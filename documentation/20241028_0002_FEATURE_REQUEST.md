@@ -5,92 +5,104 @@
 # Feature Request Template
 
 ## Funcionalidade
-[Clientes]
+[Impostos]
+[BackEnd]
+[FrontEnd]
 
 # Premissas
   1. Acompanhar Estrutura do Projeto
   2. Backend e Frontend separtados
   3. Paginas Responsivas
 
-
 ## Descrição
 [
-    Criar cadastro de Cliente
+    Criar cadastro de Impostos
 
-    Usuário deve ser capaz de criar um cliente novo com todos os campos 
-    (Todos os campos VISIVEIS na modal de Cliente são: Nome, Documento, Tipo de Cliente, Celular, Email, Endereço, Complemento) 
-    Table: customer (Criar nome como customer)
-      Fields: 
-        name = Nome, 
-        document = Documento (UNIQUE) - Campo tipo Text, mas devemos considerar apenas numeros por enquanto, 
-        customertype = Tipo de Cliente, 
-        celphone = Celular, 
-        email = Email, 
-        address = Endereço, 
-        complement = Complemento,
-        created = data de criação - (Não visivel),
-        updated = data de atualização - (Não visivel),
-        lenabled = ativo,
-
-    ou apenas os obrigatorios (observação: campos obrigatorios são apenas Nome e Celular)
-    
-    Usuário deve ser capaz de Editar um cliente seguindo as mesmas premissas de criação.
-    
-    Usuário deve ser capaz de Eliminar um cliente, IMPORTANTE Função Excluir deve apenas setar um o campo enabled = 0 e o filtro da tela deve considerar esse campo como enabled = 1.
-
+    Usuário deve ser capaz de criar um novo com todos os campos    
+    Usuário deve ser capaz de Editar um seguindo as mesmas premissas de criação.
+    Usuário deve ser capaz de Eliminar um IMPORTANTE Função Excluir deve apenas setar um o campo enabled = 0 e o filtro da tela deve considerar esse campo como enabled = 1.
     Usuário deve ser capaz de importar um arquivo xls, csv, txt
-
     Usuário deve ser capaz de Exportar um arquivo csv
 
+class Tax(models.Model):
+    TYPE_CHOICES = [
+        ('tax', 'Imposto'),
+        ('fee', 'Taxa'),
+    ]
+    GROUP_CHOICES = [
+        ('federal', 'Federal'),
+        ('state', 'Estadual'),
+        ('municipal', 'Municipal'),
+        ('other', 'Outro'),
+    ]
+    OPERATOR_CHOICES = [
+        ('+', 'Adição'),
+        ('-', 'Subtração'),
+        ('*', 'Multiplicação'),
+        ('/', 'Divisão'),
+    ]
+
+    description = models.CharField(max_length=100, verbose_name="Descrição")
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name="Tipo")
+    acronym = models.CharField(max_length=10, verbose_name="Sigla")
+    group = models.CharField(max_length=20, choices=GROUP_CHOICES, verbose_name="Grupo")
+    calc_operator = models.CharField(max_length=1, choices=[
+        ('%', 'Percentual'),
+        ('0', 'Fixo'),
+        ('+', 'Adição'),
+        ('-', 'Subtração'),
+        ('*', 'Multiplicação'),
+        ('/', 'Divisão'),
+        
+    ], default='%')
+    value = models.DecimalField(max_digits=10, decimal_places=4, verbose_name="Valor")
+    enabled = models.BooleanField(default=True, verbose_name="Ativo")
 ]
 
 ## Casos de Uso
-- [ ] Caso 1 - Criação de Cliente
+- [ ] Caso 1 - Criação
     [
-      Usuário deve ser capaz de criar um cliente novo preenchendo todos os campos 
-      (Todos os campos VISIVEIS na modal de Cliente são: Nome, Documento, Tipo de Cliente, Celular, Email, Endereço, Complemento, Ativo) 
-      ou apenas os obrigatorios (observação: campos obrigatorios são apenas Nome e Celular)
+      Usuário deve ser capaz de criar um novo registro preenchendo todos os campos 
+      ou apenas os obrigatorios.
     ]
 
-- [ ] Caso 2 - Edição de Cliente
+- [ ] Caso 2 - Edição
     [
-      Usuário deve ser capaz de Editar um cliente seguindo as mesmas premissas de criação.
+      Usuário deve ser capaz de Editar um registro seguindo as mesmas premissas de criação.
     ]
 
-- [ ] Caso 3 - Excluir Cliente
+- [ ] Caso 3 - Excluir
     [
-      Usuário deve ser capaz de Eliminar um cliente. 
+      Usuário deve ser capaz de Eliminar. 
       IMPORTANTE Função Excluir deve apenas setar um o campo enabled = 0 e o filtro da tela deve considerar esse campo como enabled = 1.
       Não devemos excluir fisicamente o registro
     ]
 
-- [ ] Caso 4 - Importar Clientes em Massa
+- [ ] Caso 4 - Importar em Massa
     [
       Usuário deve ser capaz de importar um arquivo xls, csv, txt que no mesmo contenha no minimo os campos obrigatorios Nome e Telefone. 
       Validação
-      1. Validar se no arquivo contem os Campos nesta mesmo ordem (Nome, Documento, Tipo de Cliente, Celular, Email, Endereço, Complemento, Ativo)
-      2. Campos de Documento e celular devemos gravar apenas numeros 
-      3. Campo documento quando existir deve ser gravado também no campo key      
+      1. Validar se no arquivo contem os Campos equivalentes aos da tabela      
     ]
 
-- [ ] Caso 5 - Exportar Clientes em Massa
+- [ ] Caso 5 - Exportar em Massa
     [
-      Usuário deve ser capaz de Exportar um arquivo csv dos dados contidos na tabela customers
+      Usuário deve ser capaz de Exportar um arquivo csv dos dados contidos na tabela
     ]
 
 ## Testes Necessários
-- [ ] Testes 1 - Criação de Cliente
-- [ ] Testes 2 - Edição de Cliente
-- [ ] Testes 3 - Excluir Cliente
-- [ ] Testes 4 - Importar Clientes em Massa
-- [ ] Testes 5 - Exportar Clientes em Massa
+- [ ] Testes 1 - Criação
+- [ ] Testes 2 - Edição
+- [ ] Testes 3 - Excluir
+- [ ] Testes 4 - Importar
+- [ ] Testes 5 - Exportar
 
 ## Critérios de Aceite
-- [ ] Critério 1 - Criação de Cliente
-- [ ] Critério 2 - Edição de Cliente
-- [ ] Critério 3 - Excluir Cliente
-- [ ] Critério 4 - Importar Clientes em Massa
-- [ ] Critério 5 - Exportar Clientes em Massa
+- [ ] Critério 1 - Criação
+- [ ] Critério 2 - Edição
+- [ ] Critério 3 - Excluir
+- [ ] Critério 4 - Importar
+- [ ] Critério 5 - Exportar
 
 ## Configuração de Teste
 - Jest

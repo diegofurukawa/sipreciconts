@@ -1,11 +1,11 @@
 # backend/api/serializers.py
 from rest_framework import serializers
-from .models import Customer, CustomerType, Tax
+from api.models import Customer
 
-class CustomerTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomerType
-        fields = ['id', 'name', 'description']
+# class CustomerTypeSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CustomerType
+#         fields = ['id', 'name', 'description']
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,23 +23,3 @@ class CustomerSerializer(serializers.ModelSerializer):
         # Remove todos os caracteres não numéricos
         value = ''.join(filter(str.isdigit, value))
         return value
-    
-
-# api/serializers.py
-
-# Adicionar junto com o CustomerSerializer
-class TaxSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tax
-        fields = [
-            'id',
-            'description',
-            'type',
-            'acronym',
-            'group',
-            'calc_operator',
-            'value',
-            'created',
-            'updated',
-            'enabled'
-        ]

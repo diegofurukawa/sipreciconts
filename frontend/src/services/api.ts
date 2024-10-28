@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Customer, CustomerResponse, ImportResponse } from '../types/customer';
+import { Tax } from '../types/tax';
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api/',
@@ -50,6 +51,41 @@ export const CustomerService = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  }
+};
+
+// ===============================================================
+  // Tax = Impostos
+// ===============================================================
+
+// Adicione junto com os outros serviços
+// import axios from 'axios';
+// import { Tax } from '../types/tax';
+
+// const api = axios.create({
+//   baseURL: 'http://localhost:8000/api/',
+// });
+
+export const TaxService = {
+  list: async (page = 1): Promise<{ results: Tax[]; count: number }> => {
+    const response = await api.get<{ results: Tax[]; count: number }>('taxes/', {
+      params: { page, page_size: 10 }
+    });
+    return response.data;
+  },
+
+  create: async (data: Partial<Tax>): Promise<Tax> => {
+    const response = await api.post<Tax>('taxes/', data);
+    return response.data;
+  },
+
+  update: async (id: number, data: Partial<Tax>): Promise<Tax> => {
+    const response = await api.put<Tax>(`taxes/${id}/`, data);
+    return response.data;
+  },
+
+  delete: async (id: number): Promise<void> => {
+    await api.delete(`taxes/${id}/`);
   }
 };
 
