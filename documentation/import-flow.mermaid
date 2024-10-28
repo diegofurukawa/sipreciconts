@@ -1,0 +1,72 @@
+flowchart TB
+    Start([Início]) --> UploadFile[Upload do Arquivo]
+    UploadFile --> CheckFormat{Verificar Formato}
+    
+    %% Verificação de Formato
+    CheckFormat -->|Formato Inválido| ErrorFormat[Erro: Formato não suportado]
+    ErrorFormat --> End([Fim])
+    
+    %% Processamento do CSV
+    CheckFormat -->|CSV Válido| ReadCSV[Ler arquivo CSV]
+    ReadCSV --> ValidateHeaders{Validar Cabeçalhos}
+    
+    %% Validação de Cabeçalhos
+    ValidateHeaders -->|Cabeçalhos Inválidos| ErrorHeaders[Erro: Cabeçalhos incorretos]
+    ErrorHeaders --> End
+    
+    %% Processamento de Linhas
+    ValidateHeaders -->|Cabeçalhos Válidos| ProcessRows[Processar Linhas]
+    
+    ProcessRows --> DataValidation{Validar Dados}
+    
+    %% Validação de Dados
+    DataValidation -->|Erro| CollectErrors[Coletar Erros]
+    CollectErrors --> CheckMoreRows{Mais Linhas?}
+    
+    DataValidation -->|Válido| CleanData[Limpar Dados]
+    
+    CleanData --> ValidateRequired{Campos Obrigatórios}
+    ValidateRequired -->|Faltando| CollectErrors
+    
+    ValidateRequired -->|OK| FormatData[Formatar Dados]
+    
+    FormatData --> CheckDocument{Verificar Documento}
+    
+    %% Verificação de Documento
+    CheckDocument -->|Existe| UpdateCustomer[Atualizar Cliente]
+    CheckDocument -->|Novo| CreateCustomer[Criar Cliente]
+    
+    %% Continuação do Processamento
+    UpdateCustomer --> CheckMoreRows
+    CreateCustomer --> CheckMoreRows
+    
+    CheckMoreRows -->|Sim| ProcessRows
+    CheckMoreRows -->|Não| GenerateReport[Gerar Relatório]
+    
+    %% Finalização
+    GenerateReport --> HasErrors{Tem Erros?}
+    HasErrors -->|Sim| ShowErrorReport[Exibir Relatório de Erros]
+    HasErrors -->|Não| ShowSuccess[Exibir Sucesso]
+    
+    ShowErrorReport --> End
+    ShowSuccess --> End
+    
+    %% Subprocesso de Limpeza de Dados
+    subgraph Limpeza de Dados
+        CleanData --> |Documento| CleanDoc[Remover caracteres especiais]
+        CleanData --> |Telefone| CleanPhone[Formatar telefone]
+        CleanData --> |Email| CleanEmail[Validar formato]
+    end
+    
+    %% Tipos de Erros Comuns
+    subgraph Erros Comuns
+        ErrorFormat
+        ErrorHeaders
+        CollectErrors -->|Tipos| Errors[
+            Documento inválido
+            Telefone mal formatado
+            Email inválido
+            Nome em branco
+            Telefone em branco
+        ]
+    end

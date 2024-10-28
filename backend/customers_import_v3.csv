@@ -1,0 +1,32 @@
+Nome;Documento;Tipo de Cliente;Celular;Email;Endereço;Complemento;
+Diego Furukawa;3322114455;;1197777777;diego@email.com;Rua Ccc;Casa 13;
+João Silva;12345678900;;11999999999;joao@email.com;Rua A;Apto 1;
+Maria Santos;98765432100;;11988888888;maria@email.com;Rua B;Casa 2;
+Rafael Pereira;000.111.222-33;Empresarial;(11) 98877-6655 ramal 23;rafael@empresa.com;Avenida Rebouças 789;Sala 1203;
+Mariana Costa;123.222.333-44;Individual;11988776655@whatsapp;mariana.costa@email.com;Rua das Palmeiras 432;;
+Lucas Mendes;321.222.333-44;Individual;11977665544;lucas.mendes@email.com;Rua dos Pinheiros 789;Casa 4;
+Ana Paula Souza;111222333-44;Individual;11 9.8765-4321;ana.paula@gmail.com;Alameda Santos 789;Bloco B;
+João Silva;123.456.789-00;Individual;(11) 91234-5678;joao.silva@example.com;Rua das Flores;123;Apto 45
+Carlos Silva;321.456.789-00;Individual;(11) 98765-4321;carlos.silva@email.com;Rua das Flores 123;Apto 42;
+João Silva;213.456.789-00;Individual;11988776655;joao.silva@email.com;Rua das Flores 123;Apto 42;
+Pedro Mendes;123.333.444-55;Empresarial;(11)987654321;pedro@empresa;Rua Augusta 567;Conjunto 12;
+Bruno Santos;222.333.444-55;;11988776655 / 11977665544;bruno.santos@email.com;Rua dos Ipês 876;Casa 5;
+Ana Costa;321.654.987-00;Empresarial;(41) 97654-3210;ana.costa@example.com;Avenida Paulista;101;Andar 3
+Lucia Costa;331.444.555-66;Individual;11988776655;;Rua Oscar Freire 123;Casa 2;
+Camila Lima;333.444.555-66;Individual;11988776655;11977665544;camila.lima@email.com;Alameda Jaú 654;Apto 304;
+Diego Silva;445.555.666-77;Empresarial;(11) 98877-6655 / (11) 97766-5544;diego.silva@empresa.com;Rua Augusta 432;Sala 506;
+Roberto Almeida;444555666-77;Empresarial;11977665544;roberto.almeida@email.com;;Sala 301;
+Pedro Santos;456.789.123-00;Individual;(31) 98765-4321;pedro.santos@example.com;Rua das Palmeiras;789;Casa 2
+Sofia Santos;515.666.777-88;Individual;11 98877 6655;sofia.santos@email.com;Rua Beatriz 45;;
+Eduarda Santos;555.666.777-88;Individual;11.98877.6655;eduarda.santos@email.com;Rua Consolação 789;;
+Fabio Oliveira;616.777.888-99;Individual;11988776655 cel;fabio@incorreto;Avenida Paulista 234;Apto 1502;
+Clara Oliveira;771.888.999-00;Individual;11 ABC 98877-6655;clara.oliveira@email.com;Avenida Brasil 1500;Apto 1001;
+Gabriel Costa;777.888.999-00;Empresarial;11 9 8877 6655;gabriel.costa@dominio..com;Rua Oscar Freire 567;Loja 23;
+Lucas Pereira;789.123.456-00;Individual;(51) 96543-2109;lucas.pereira@example.com;Rua das Acácias;202;Bloco B
+Fernando Silva;888.999.001-11;Empresarial;+55 11 98877-6655;fernando.silva@empresa.com;Rua dos Girassóis 234;;
+Helena Lima;888.999.000-11;Individual;11988776655 / Whats;helena.lima@email;Rua Augusta 890;;
+Maria Oliveira;987.654.321-00;Empresarial;(21) 99876-5432;maria.oliveira@example.com;Avenida Brasil;456;Sala 101
+Maria Oliveira;987.654.321-00;Empresarial;(11) 97654-3210;maria.oliveira@empresa.com;Avenida Paulista 1000;Sala 505;
+Maria Oliveira;987.654.321-00;Empresarial;11966554433;maria.oliveira@empresa.com;Avenida Paulista 1000;Sala 505;
+Julia Santos;999.000.111-22;Individual;(11) 98877-XXXX;julia.santos@email.com;Rua das Margaridas 567;Apto 89;
+Igor Santos;999.001.111-22;Empresarial;11 9 XXXX YYYY;igor.santos@empresa.com;Avenida Brasil 432;Sala 405;
