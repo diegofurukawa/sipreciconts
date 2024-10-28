@@ -10,4 +10,20 @@ export interface Customer {
     enabled?: boolean;
     created?: string;
     updated?: string;
-}
+  }
+  
+  export interface CustomerResponse {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: Customer[];
+  }
+  
+  export interface ImportResponse {
+    success: boolean;
+    message: string;
+    errors?: Array<{
+      row: any;
+      error: string;
+    }>;
+  }
