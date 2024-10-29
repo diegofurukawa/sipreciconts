@@ -40,7 +40,7 @@ class Customer(BaseModel):
         db_table = 'customer'
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
-        app_label = 'api'
+        #app_label = 'api'
 
     def __str__(self):
         return self.name

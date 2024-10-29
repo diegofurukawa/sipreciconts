@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from ..models import Asset
-from ..serializers.asset_serializer import AssetSerializer, AssetListSerializer  # Caminho correto para os serializers
+from ..serializers.asset import AssetSerializer, AssetListSerializer  # Caminho correto para os serializers
 from core.utils.mixins import BaseViewSetMixin
 import django_filters
 

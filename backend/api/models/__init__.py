@@ -9,9 +9,11 @@ from .asset import Asset
 from .asset_group import AssetGroup
 from .asset_category import AssetCategory
 from .asset_movement import AssetMovement
+from .company import Company
 
 __all__ = [
     'BaseModel',
+    'Company',
     'Customer',
     'Tax',
     'CustomerType',

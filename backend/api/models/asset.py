@@ -128,7 +128,7 @@ class Asset(BaseModel):
     class Meta:
         ordering = ['name']
         verbose_name = 'Ativo'
-        verbose_name_plural = 'Ativos'
+        verbose_name_plural = 'Insumos'
         indexes = [
             models.Index(fields=['asset_code']),
             models.Index(fields=['patrimony_code']),

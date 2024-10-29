@@ -68,7 +68,7 @@ class AssetMovement(BaseModel):
     class Meta:
         ordering = ['-movement_date']
         verbose_name = 'Movimentação de Ativo'
-        verbose_name_plural = 'Movimentações de Ativos'
+        verbose_name_plural = 'Insumos - Movimentações'
         indexes = [
             models.Index(fields=['movement_date']),
             models.Index(fields=['movement_type']),

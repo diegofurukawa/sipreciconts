@@ -3,13 +3,15 @@ from .base import BaseViewSet
 from .supply import SupplyViewSet
 from .customer import CustomerViewSet
 from .tax import TaxViewSet
-from .asset_views import AssetViewSet
-from .asset_group_views import AssetGroupViewSet
-from .asset_category_views import AssetCategoryViewSet
-from .asset_movement_views import AssetMovementViewSet
+from .asset import AssetViewSet
+from .asset_group import AssetGroupViewSet
+from .asset_category import AssetCategoryViewSet
+from .asset_movement import AssetMovementViewSet
+from .company import CompanyViewSet
 
 __all__ = [
-    'BaseViewSet', 
+    'BaseViewSet',
+    'CompanyViewSet',
     'SupplyViewSet',
     'CustomerViewSet',
     'TaxViewSet',

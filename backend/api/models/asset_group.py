@@ -16,7 +16,7 @@ class AssetGroup(BaseModel):
     class Meta:
         ordering = ['name']
         verbose_name = 'Grupo de Ativo'
-        verbose_name_plural = 'Grupos de Ativos'
+        verbose_name_plural = 'Insumos - Grupos'
         indexes = [
             models.Index(fields=['code']),
         ]

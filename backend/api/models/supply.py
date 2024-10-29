@@ -36,7 +36,7 @@ class Supply(BaseModel):
     class Meta:
         ordering = ['name']
         verbose_name = 'Supply'
-        verbose_name_plural = 'Supplies'
+        verbose_name_plural = 'Insumos - Itens'
         db_table = 'supplies'
 
     def __str__(self):

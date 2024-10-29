@@ -6,9 +6,11 @@ from .customer import CustomerAdmin
 # Registrar no admin.py principal
 # apps/assets/admin/__init__.py
 from .assets import AssetAdmin, AssetGroupAdmin, AssetCategoryAdmin, AssetMovementAdmin
+from .company import CompanyAdmin
 
 __all__ = [
     'BaseAdmin', 
+    'CompanyAdmin',
     'CustomerAdmin',
     'TaxAdmin',
     'SupplyAdmin',

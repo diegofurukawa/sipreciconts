@@ -24,7 +24,7 @@ class AssetCategory(BaseModel):
     class Meta:
         ordering = ['name']
         verbose_name = 'Categoria de Ativo'
-        verbose_name_plural = 'Categorias de Ativos'
+        verbose_name_plural = 'Insumos - Categorias'
         indexes = [
             models.Index(fields=['code']),
         ]
