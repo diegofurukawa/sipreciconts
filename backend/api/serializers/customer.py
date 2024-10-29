@@ -1,11 +1,11 @@
 # backend/api/serializers.py
 from rest_framework import serializers
-from api.models import Customer
+from api.models import Customer, CustomerType
 
-# class CustomerTypeSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CustomerType
-#         fields = ['id', 'name', 'description']
+class CustomerTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerType
+        fields = ['id', 'name', 'description']
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:

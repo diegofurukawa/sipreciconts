@@ -1,0 +1,61 @@
+Nome;Apelido;Código EAN;Tipo;Unidade de Medida
+Colete Tático 123;Colete847;783945627184;MAT;UN
+Fuzil Operacional 456;Fuzil238;129384756123;ARM;UN
+Viatura Elite 789;Viatura456;456789123456;VEI;UN
+Capacete Standard 234;Capacete123;987654321098;MAT;UN
+Kit de Proteção 567;Kit789;345678912345;MAT;UN
+Uniforme Militar 890;Uniforme567;234567891234;UNI;UN
+Rádio Profissional 345;Rádio234;678912345678;MAT;UN
+Munição Avançada 678;Munição789;891234567890;MAT;UN
+Detector Premium 901;Detector456;567891234567;MAT;ML
+Coturno de Campo 234;Coturno123;123456789012;UNI;UN
+Colete Balístico Tático 001;Colete001;7891234567890;MAT;UN
+Pistola Glock G17;Glock001;7891234567891;ARM;UN
+Viatura Blindada Patrulha;VTR001;7891234567892;VEI;UN
+Capacete Balístico Nível IIIA;Cap001;7891234567893;MAT;UN
+Fuzil T4 Tático;FuzilT4;7891234567894;ARM;UN
+Uniforme Operacional Ripstop;Unif001;7891234567895;UNI;UN
+Kit Primeiros Socorros Tático;Kit001;7891234567896;MAT;UN
+Munição 9mm Treina;Mun9mm;7891234567897;MAT;UN
+Coturno Tático Impermeável;Bot001;7891234567898;UNI;UN
+Rádio Digital Encriptado;Radio001;7891234567899;MAT;UN
+Mochila Tática 50L;Moch001;7891234567900;MAT;UN
+Cinto Tático Operacional;Cinto001;7891234567901;UNI;UN
+Óculos Balístico Noturno;Oculos001;7891234567902;MAT;UN
+Luva Tática Reforçada;Luva001;7891234567903;UNI;UN
+Spray Pimenta Defesa;Spray001;7891234567904;MAT;ML
+Bastão Retrátil Tático;Bastao001;7891234567905;MAT;UN
+Algema Tática Profissional;Algema001;7891234567906;MAT;UN
+Lanterna Tática LED;Lant001;7891234567907;MAT;UN
+GPS Militar Avançado;GPS001;7891234567908;MAT;UN
+Colete Modular Plate;ColMod001;7891234567909;MAT;UN
+Binóculo Noturno Gen3;Bin001;7891234567910;MAT;UN
+Carabina Tática .40;Carab001;7891234567911;ARM;UN
+SUV Tático Especial;SUV001;7891234567912;VEI;UN
+Gandola Operacional RipStop;Gand001;7891234567913;UNI;UN
+Capacete Balístico FAST;CapFast001;7891234567914;MAT;UN
+Kit Limpeza Armamento;KitLimp001;7891234567915;MAT;UN
+Carregador Pistola 9mm;Carr9mm;7891234567916;MAT;UN
+Coldre Tático Universal;Coldre001;7891234567917;MAT;UN
+Escudo Balístico Nível III;Escudo001;7891234567918;MAT;UN
+Munição .40 Gold;Mun40;7891234567919;MAT;UN
+Bota Tática Impermeável;Bota001;7891234567920;UNI;UN
+Calça Tática RipStop;Calca001;7891234567921;UNI;UN
+Detector Metal Portátil;Det001;7891234567922;MAT;UN
+Tonfa Policial Reforçada;Tonfa001;7891234567923;MAT;UN
+Spray Defesa OC;SprayOC001;7891234567924;MAT;ML
+Rifle Precisão .308;Rifle001;7891234567925;ARM;UN
+Caminhão Blindado 4x4;Truck001;7891234567926;VEI;UN
+Colete Tático Modular;ColTat001;7891234567927;MAT;UN
+Protetor Balístico Joelho;Prot001;7891234567928;MAT;UN
+Mira Holográfica Militar;Mira001;7891234567929;MAT;UN
+Cantil Tático 2L;Cantil001;7891234567930;MAT;ML
+Máscara Gás Completa;Masc001;7891234567931;MAT;UN
+Porta Carregador Duplo;PortaC001;7891234567932;MAT;UN
+Bolsa Primeiros Socorros;BolsaPS001;7891234567933;MAT;UN
+Capa Colete Balístico;CapaCB001;7891234567934;MAT;UN
+Facão Tático Combat;Facao001;7891234567935;MAT;UN
+Boina Militar Especial;Boina001;7891234567936;UNI;UN
+Munição 5.56 Training;Mun556;7891234567937;MAT;UN
+Quadriciclo Tático;Quad001;7891234567938;VEI;UN
+Kit Sobrevivência Tático;KitSobr001;7891234567939;MAT;UN
