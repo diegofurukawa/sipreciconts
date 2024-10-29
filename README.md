@@ -1,17 +1,84 @@
-# SiPreciConts
+# Project Name
 
-Sistema de Precificação e Contratos de Recursos e Serviços
+## Setup
 
-## Sobre o Projeto
+1. Clone o repositório
+```bash
+git clone [repository-url]
+cd [project-name]
+```
 
-SiPreciConts é uma plataforma integrada para gerenciamento de precificação e contratos, 
-focada em recursos e serviços.
+2. Criar e ativar ambiente virtual
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+.\venv\Scripts\activate  # Windows
+```
 
-## Tecnologias
+3. Instalar dependências
+```bash
+# Para desenvolvimento
+pip install -r requirements/local.txt
 
-- Backend: Django + Django REST Framework
-- Frontend: React + TypeScript
-- Testes: Jest, React Testing Library, Cypress
+# Para testes
+pip install -r requirements/test.txt
 
+# Para produção
+pip install -r requirements/prod.txt
+```
 
-pip install -r requirements.txt
+4. Configurar variáveis de ambiente
+```bash
+cp .env.example .env
+# Editar .env com suas configurações
+```
+
+5. Aplicar migrações
+```bash
+python manage.py migrate
+```
+
+6. Criar superusuário
+```bash
+python manage.py createsuperuser
+```
+
+7. Rodar servidor de desenvolvimento
+```bash
+python manage.py runserver
+```
+
+## Ambientes
+
+- **Local**: Desenvolvimento local com ferramentas de debug
+- **Test**: Ambiente de testes com dependências específicas
+- **Prod**: Ambiente de produção com otimizações
+
+## Dependências
+
+Cada ambiente tem seu próprio arquivo de requirements:
+
+- `requirements/base.txt`: Dependências básicas
+- `requirements/local.txt`: Ferramentas de desenvolvimento
+- `requirements/test.txt`: Ferramentas de teste
+- `requirements/prod.txt`: Dependências de produção
+
+## Testes
+
+```bash
+pytest
+```
+
+## Lint e Formatação
+
+```bash
+# Formatar código
+black .
+
+# Verificar estilo
+flake8
+
+# Ordenar imports
+isort .
+```
