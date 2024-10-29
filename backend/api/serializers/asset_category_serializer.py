@@ -10,7 +10,7 @@ class AssetCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AssetCategory
-        fields = ['id', 'name', 'code', 'description', 'asset_group', 
+        fields = ['assetcategory_id', 'name', 'code', 'description', 'asset_group', 
                  'asset_group_name', 'enabled', 'created', 'updated']
         read_only_fields = ['created', 'updated']
 

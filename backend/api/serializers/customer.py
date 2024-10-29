@@ -5,12 +5,12 @@ from api.models import Customer, CustomerType
 class CustomerTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerType
-        fields = ['id', 'name', 'description']
+        fields = ['customertype_id', 'name', 'description']
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = ['id', 'name', 'document', 'customer_type', 'celphone', 
+        fields = ['customer_id', 'name', 'document', 'customer_type', 'celphone', 
                  'email', 'address', 'complement', 'created', 'updated', 'enabled']
 
     def validate_document(self, value):

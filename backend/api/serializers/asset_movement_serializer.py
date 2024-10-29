@@ -15,7 +15,7 @@ class AssetMovementSerializer(serializers.ModelSerializer):
     class Meta:
         model = AssetMovement
         fields = [
-            'id', 'asset', 'asset_name', 'movement_type', 'movement_type_display',
+            'assetmovement_id', 'asset', 'asset_name', 'movement_type', 'movement_type_display',
             'quantity', 'from_location', 'to_location', 'reference_document',
             'notes', 'movement_date', 'created_by', 'created_by_name',
             'created', 'updated'

@@ -7,7 +7,7 @@ class TaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tax
         fields = [
-            'id',
+            'tax_id',
             'description',
             'type',
             'acronym',

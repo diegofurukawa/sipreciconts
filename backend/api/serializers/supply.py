@@ -11,7 +11,7 @@ class SupplySerializer(BaseSerializer):
     class Meta:
         model = Supply
         fields = [
-            'id', 'name', 'nick_name', 'ean_code', 'description',
+            'supply_id', 'name', 'nick_name', 'ean_code', 'description',
             'unit_measure', 'unit_measure_display', 'type', 'type_display',
             'created', 'updated', 'enabled'
         ]

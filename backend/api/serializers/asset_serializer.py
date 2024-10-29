@@ -15,7 +15,7 @@ class AssetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Asset
         fields = [
-            'id', 'name', 'description', 'asset_group', 'asset_group_name',
+            'asset_id', 'name', 'description', 'asset_group', 'asset_group_name',
             'category', 'category_name', 'asset_code', 'patrimony_code',
             'serial_number', 'quantity', 'minimum_quantity', 'unit_measure',
             'purchase_value', 'current_value', 'status', 'status_display',
@@ -77,6 +77,6 @@ class AssetListSerializer(AssetSerializer):
     """
     class Meta(AssetSerializer.Meta):
         fields = [
-            'id', 'name', 'asset_code', 'asset_group_name', 'category_name',
+            'asset_id', 'name', 'asset_code', 'asset_group_name', 'category_name',
             'quantity', 'status_display', 'location'
         ]

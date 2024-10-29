@@ -1,8 +1,29 @@
 # api/models/base.py
 
 from django.db import models
+from django.db.models.base import ModelBase
 
-class BaseModel(models.Model):
+class BaseModelMetaclass(ModelBase):
+    """
+    Metaclasse para personalizar o nome do campo ID
+    """
+    def __new__(cls, name, bases, attrs):
+        # Só executa para subclasses de BaseModel
+        if name != 'BaseModel':
+            # Obtém o nome da tabela a partir do nome da classe
+            table_name = name.lower()
+            # Define o nome do campo ID (ex: customer_id para a classe Customer)
+            id_field_name = f"{table_name}_id"
+            
+            # Cria o campo ID com nome personalizado
+            attrs[id_field_name] = models.BigAutoField(
+                primary_key=True,
+                editable=False
+            )
+
+        return super().__new__(cls, name, bases, attrs)
+
+class BaseModel(models.Model, metaclass=BaseModelMetaclass):
     """
     Modelo base abstrato para todos os modelos do projeto
     """

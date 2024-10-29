@@ -8,7 +8,7 @@ class AssetGroupSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = AssetGroup
-        fields = ['id', 'name', 'code', 'description', 'enabled', 'created', 'updated']
+        fields = ['assetgroup_id', 'name', 'code', 'description', 'enabled', 'created', 'updated']
         read_only_fields = ['created', 'updated']
 
     def validate_code(self, value):
