@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'api',
+    'rest_framework_simplejwt',
 ]
 
 # Desabilitar APPEND_SLASH
@@ -119,8 +120,16 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    #'api.auth.CustomAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Configurações do REST Framework
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',

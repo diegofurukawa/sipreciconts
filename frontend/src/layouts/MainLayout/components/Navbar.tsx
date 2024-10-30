@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { ChevronDown, Menu } from 'lucide-react';
+import { ChevronDown, Menu, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState('');
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const menuItems = {
     Cadastros: [
@@ -29,6 +31,15 @@ export const Navbar = () => {
 
   const handleDropdownClick = (menu: string) => {
     setActiveDropdown(activeDropdown === menu ? '' : menu);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   return (
@@ -79,6 +90,23 @@ export const Navbar = () => {
                 )}
               </div>
             ))}
+
+            {/* User Menu - Desktop */}
+            {user && (
+              <div className="flex items-center ml-4 space-x-4 border-l pl-4">
+                <div className="flex items-center text-gray-700">
+                  <User size={18} className="mr-2" />
+                  <span className="text-sm">{user.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center text-gray-700 hover:text-red-600"
+                >
+                  <LogOut size={18} className="mr-2" />
+                  <span className="text-sm">Sair</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -127,6 +155,23 @@ export const Navbar = () => {
                 )}
               </div>
             ))}
+
+            {/* User Menu - Mobile */}
+            {user && (
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <div className="px-3 py-2 text-gray-700">
+                  <User size={18} className="inline mr-2" />
+                  <span className="text-sm">{user.name}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:bg-gray-100"
+                >
+                  <LogOut size={18} className="mr-2" />
+                  <span>Sair</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,5 +1,8 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { PrivateRoute } from './components/PrivateRoute';
+import LoginPage from './pages/Login';
 import Home from './pages/Home';
 import CustomerList from './components/Customer/CustomerList';
 import TaxList from './components/Tax/TaxList';
@@ -64,27 +67,60 @@ const ContractsPage = () => (
 const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Home route */}
-        <Route path="/" element={<Home />} />
+      <AuthProvider>
+        <Routes>
+          {/* Public route */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Cadastros routes */}
-        <Route path="/cadastros">
-          <Route path="empresa" element={<CompanyPage />} />
-          <Route path="clientes" element={<CustomerList />} />
-          <Route path="impostos" element={<TaxList />} />
-          <Route path="insumos" element={<SuppliesPage />} />
-        </Route>
+          {/* Protected routes */}
+          <Route path="/" element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          } />
 
-        {/* Comercial routes */}
-        <Route path="/comercial">
-          <Route path="orcamento" element={<QuotationPage />} />
-          <Route path="contratos" element={<ContractsPage />} />
-        </Route>
+          {/* Cadastros routes */}
+          <Route path="/cadastros">
+            <Route path="empresa" element={
+              <PrivateRoute>
+                <CompanyPage />
+              </PrivateRoute>
+            } />
+            <Route path="clientes" element={
+              <PrivateRoute>
+                <CustomerList />
+              </PrivateRoute>
+            } />
+            <Route path="impostos" element={
+              <PrivateRoute>
+                <TaxList />
+              </PrivateRoute>
+            } />
+            <Route path="insumos" element={
+              <PrivateRoute>
+                <SuppliesPage />
+              </PrivateRoute>
+            } />
+          </Route>
 
-        {/* Catch all route - redirect to home */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Comercial routes */}
+          <Route path="/comercial">
+            <Route path="orcamento" element={
+              <PrivateRoute>
+                <QuotationPage />
+              </PrivateRoute>
+            } />
+            <Route path="contratos" element={
+              <PrivateRoute>
+                <ContractsPage />
+              </PrivateRoute>
+            } />
+          </Route>
+
+          {/* Catch all route - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

@@ -9,9 +9,12 @@ from .asset_category import AssetCategoryViewSet
 from .asset_movement import AssetMovementViewSet
 from .company import CompanyViewSet
 from .user import UserViewSet
+from .login import LoginView
+
 
 __all__ = [
     'BaseViewSet',
+    'LoginView', 
     
     'CompanyViewSet',
     

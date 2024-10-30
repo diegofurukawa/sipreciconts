@@ -1,3 +1,4 @@
+// src/services/api.ts
 import axios from 'axios';
 import { Customer, CustomerResponse, ImportResponse } from '../types/customer';
 import { Tax } from '../types/tax';
@@ -5,6 +6,27 @@ import { Tax } from '../types/tax';
 const api = axios.create({
   baseURL: 'http://localhost:8000/api/',
 });
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('@App:token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('@App:token');
+      localStorage.removeItem('@App:user');
+      localStorage.removeItem('@App:company_id');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const CustomerService = {
   list: async (page: number = 1): Promise<CustomerResponse> => {
@@ -42,7 +64,6 @@ export const CustomerService = {
       responseType: 'blob',
     });
     
-    // Criar blob URL e fazer download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
@@ -53,18 +74,6 @@ export const CustomerService = {
     window.URL.revokeObjectURL(url);
   }
 };
-
-// ===============================================================
-  // Tax = Impostos
-// ===============================================================
-
-// Adicione junto com os outros serviços
-// import axios from 'axios';
-// import { Tax } from '../types/tax';
-
-// const api = axios.create({
-//   baseURL: 'http://localhost:8000/api/',
-// });
 
 export const TaxService = {
   list: async (page = 1): Promise<{ results: Tax[]; count: number }> => {
@@ -86,6 +95,23 @@ export const TaxService = {
 
   delete: async (id: number): Promise<void> => {
     await api.delete(`taxes/${id}/`);
+  }
+};
+
+export const AuthService = {
+  login: async (login: string, password: string) => {
+    const response = await api.post('/auth/login/', { login, password });
+    return response.data;
+  },
+
+  logout: async () => {
+    try {
+      await api.post('/auth/logout/');
+    } finally {
+      localStorage.removeItem('@App:token');
+      localStorage.removeItem('@App:user');
+      localStorage.removeItem('@App:company_id');
+    }
   }
 };
 
