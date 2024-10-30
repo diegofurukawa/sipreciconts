@@ -10,21 +10,33 @@ import re
 from django.core.exceptions import ValidationError
 from ..models import Customer, Tax
 from ..serializers import CustomerSerializer, TaxSerializer
+from .base import BaseViewSet  # Importa BaseViewSet
 
-class CustomerViewSet(viewsets.ModelViewSet):
+class CustomerViewSet(BaseViewSet):
     """
     ViewSet para gerenciamento de clientes.
     Fornece operações CRUD padrão mais endpoints personalizados para importação e exportação.
     """
-    queryset = Customer.objects.filter(enabled=True)
     serializer_class = CustomerSerializer
+    queryset = Customer.objects.all()  # BaseViewSet já filtra por enabled=True
     
+    def get_queryset(self):
+        """
+        Retorna queryset filtrado por company e enabled
+        """
+        return Customer.get_company_queryset(self.request.user.company_id)
+
+    def perform_create(self, serializer):
+        """
+        Sobrescreve criação para incluir company automaticamente
+        """
+        serializer.save(company_id=self.request.user.company_id)
+
     def perform_destroy(self, instance):
         """
         Sobrescreve o método de exclusão para realizar soft delete
         """
-        instance.enabled = False
-        instance.save()
+        instance.soft_delete()  # Usa o método do BaseModel
 
     @action(detail=False, methods=['GET'], renderer_classes=[JSONRenderer])
     def export(self, request, *args, **kwargs):
@@ -32,9 +44,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
         Endpoint para exportar clientes para CSV
         """
         try:
-            # Configurar o response com o tipo correto
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'clientes_{timestamp}.csv'
+            company_name = request.user.company.name.lower().replace(' ', '_')
+            filename = f'clientes_{company_name}_{timestamp}.csv'
             
             response = HttpResponse(
                 content_type='text/csv',
@@ -44,13 +56,9 @@ class CustomerViewSet(viewsets.ModelViewSet):
                 },
             )
 
-            # Adicionar BOM para UTF-8
-            response.write('\ufeff')
-
-            # Criar o writer do CSV
+            response.write('\ufeff')  # UTF-8 BOM
             writer = csv.writer(response, delimiter=';', quoting=csv.QUOTE_ALL)
             
-            # Escrever cabeçalhos
             headers = [
                 'Nome',
                 'Documento',
@@ -64,7 +72,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
             ]
             writer.writerow(headers)
 
-            # Buscar e escrever dados
+            # Usa get_queryset para garantir filtragem por company
             customers = self.get_queryset().order_by('name')
             for customer in customers:
                 row = [
@@ -75,8 +83,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
                     str(customer.email) if customer.email else '',
                     str(customer.address) if customer.address else '',
                     str(customer.complement) if customer.complement else '',
-                    customer.created.strftime('%d/%m/%Y %H:%M:%S') if customer.created else '',
-                    customer.updated.strftime('%d/%m/%Y %H:%M:%S') if customer.updated else ''
+                    customer.created.strftime('%d/%m/%Y %H:%M:%S'),
+                    customer.updated.strftime('%d/%m/%Y %H:%M:%S')
                 ]
                 writer.writerow(row)
 
@@ -115,7 +123,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
             success_count = 0
             error_rows = []
             
-            # Validar cabeçalhos
             required_headers = {'Nome', 'Celular'}
             headers = set(reader.fieldnames) if reader.fieldnames else set()
             if not required_headers.issubset(headers):
@@ -124,9 +131,10 @@ class CustomerViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            company_id = request.user.company_id
+
             for row in reader:
                 try:
-                    # Limpar e validar dados
                     cleaned_data = {
                         'name': row.get('Nome', '').strip(),
                         'document': re.sub(r'[^\d]', '', row.get('Documento', '')),
@@ -134,7 +142,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
                         'celphone': re.sub(r'[^\d]', '', row.get('Celular', '')),
                         'email': row.get('Email', '').strip(),
                         'address': row.get('Endereço', '').strip(),
-                        'complement': row.get('Complemento', '').strip()
+                        'complement': row.get('Complemento', '').strip(),
+                        'company_id': company_id  # Adiciona company_id automaticamente
                     }
 
                     # Validações básicas
@@ -147,18 +156,20 @@ class CustomerViewSet(viewsets.ModelViewSet):
                     if cleaned_data['email'] and '@' not in cleaned_data['email']:
                         raise ValidationError('Email inválido')
 
-                    # Verificar existência do cliente pelo documento
+                    # Verificar existência do cliente pelo documento na mesma company
                     customer = None
                     if cleaned_data['document']:
                         customer = Customer.objects.filter(
                             document=cleaned_data['document'],
+                            company_id=company_id,
                             enabled=True
                         ).first()
 
                     if customer:
                         # Atualizar cliente existente
                         for key, value in cleaned_data.items():
-                            setattr(customer, key, value)
+                            if key != 'company_id':  # Não permite alterar company_id
+                                setattr(customer, key, value)
                         customer.save()
                     else:
                         # Criar novo cliente
@@ -172,7 +183,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
                         'error': str(e)
                     })
 
-            # Preparar mensagem de retorno
             message = f'{success_count} clientes importados com sucesso.'
             if error_rows:
                 message += f' {len(error_rows)} erros encontrados.'
@@ -188,11 +198,3 @@ class CustomerViewSet(viewsets.ModelViewSet):
                 {'error': f'Erro ao processar arquivo: {str(e)}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-    def get_queryset(self):
-        """
-        Sobrescreve o queryset padrão para adicionar ordenação
-        e possibilidade de filtros futuros
-        """
-        queryset = super().get_queryset()
-        return queryset.order_by('name')

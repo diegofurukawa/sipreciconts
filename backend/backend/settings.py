@@ -24,6 +24,7 @@ INSTALLED_APPS = [
 # Desabilitar APPEND_SLASH
 APPEND_SLASH = False
 
+#AUTH_USER_MODEL = 'api.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

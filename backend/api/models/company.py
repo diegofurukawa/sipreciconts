@@ -1,28 +1,59 @@
 from django.db import models
 from .base import BaseModel
+from django.core.exceptions import ValidationError
 
+# api/models/company.py
 class Company(BaseModel):
-    COMPANY_TYPES = (
-        ('PF', 'Física'),
-        ('PJ', 'Jurídica'),
+    """
+    Modelo de Empresa com company_id personalizável
+    """
+    name = models.CharField(
+        'Nome da Empresa',
+        max_length=100
+    )
+    document = models.CharField(
+        'CNPJ',
+        max_length=14,
+        unique=True,
+        null=True,
+        blank=True
+    )
+    phone = models.CharField(
+        'Telefone',
+        max_length=20,
+        null=True,
+        blank=True
+    )
+    email = models.EmailField(
+        'Email',
+        null=True,
+        blank=True
+    )
+    address = models.TextField(
+        'Endereço',
+        null=True,
+        blank=True
     )
 
-    nick_name = models.CharField(max_length=100)
-    full_name = models.CharField(max_length=200, null=True, blank=True)
-    type = models.CharField(max_length=2, choices=COMPANY_TYPES)
-    document = models.CharField(max_length=20, null=True, blank=True, unique=True)
-    address = models.TextField(null=True, blank=True)
-    phone = models.CharField(max_length=20, null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    # enabled = models.BooleanField(default=True)
-    # created = models.DateTimeField(auto_now_add=True)
-    # updated = models.DateTimeField(auto_now=True)
-
     class Meta:
-        db_table = 'company'
-        verbose_name = 'Company'
+        verbose_name = 'Empresa'
         verbose_name_plural = 'Empresas'
-        ordering = ['nick_name']
+        ordering = ['name']
 
     def __str__(self):
-        return self.nick_name
+        return f"{self.company_id} - {self.name}"
+
+    def clean(self):
+        """
+        Validações adicionais para o modelo Company
+        """
+        # Garante que company_id seja maiúsculo e sem espaços
+        if self.company_id:
+            self.company_id = self.company_id.upper().strip()
+        
+        # Validação customizada para company_id
+        if not self.company_id:
+            raise ValidationError({'company_id': 'O código da empresa é obrigatório'})
+        
+        if not self.company_id.isalnum():
+            raise ValidationError({'company_id': 'O código deve conter apenas letras e números'})

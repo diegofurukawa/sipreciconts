@@ -8,21 +8,28 @@ from .supply import Supply
 from .asset import Asset
 from .asset_group import AssetGroup
 from .asset_category import AssetCategory
-from .asset_movement import AssetMovement
+from .asset_movement import AssetMovement, Location
 from .company import Company
+from .user import User
 
 __all__ = [
     'BaseModel',
     'Company',
+    'User',
+    
     'Customer',
-    'Tax',
     'CustomerType',
+
+    'Tax',
     'TaxType',
     'TaxGroup',
     'CalcOperator',
+
     'Supply',
+
     'Asset',
     'AssetGroup',
     'AssetCategory',
     'AssetMovement',
+    'Location',
 ]

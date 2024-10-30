@@ -2,7 +2,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import F, Sum
-from ..models import Asset, AssetGroup, AssetCategory, AssetMovement
+from ..models import Asset, AssetGroup, AssetCategory, AssetMovement, Location
+
 
 @admin.register(AssetGroup)
 class AssetGroupAdmin(admin.ModelAdmin):
@@ -145,57 +146,93 @@ class AssetAdmin(admin.ModelAdmin):
         )
     mark_as_available.short_description = "Marcar selecionados como disponíveis"
 
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'enabled', 'created_at', 'updated_at')
+    list_filter = ('enabled',)
+    search_fields = ('name', 'description')
+    ordering = ('name',)
+
 @admin.register(AssetMovement)
 class AssetMovementAdmin(admin.ModelAdmin):
-    list_display = ('movement_date', 'asset', 'movement_type_colored', 
-                   'quantity', 'from_location', 'to_location', 'created_by')
-    list_filter = ('movement_type', 'movement_date', 'created_by')
-    search_fields = ('asset__name', 'asset__asset_code', 'reference_document', 
-                    'from_location', 'to_location')
-    ordering = ('-movement_date',)
-    readonly_fields = ('created', 'updated', 'created_by')
-    list_per_page = 20
-
+    list_display = (
+        'movement_date',
+        'movement_type',
+        'asset',
+        'quantity',
+        'from_location',
+        'to_location',
+        'status',
+        'created_by'
+    )
+    
+    list_filter = (
+        'status',
+        'movement_date',
+        'movement_type',
+        'from_location',
+        'to_location',
+        'enabled'
+    )
+    
+    readonly_fields = (
+        'created',
+        'updated',
+        'created_by',
+        'updated_by',
+        'approved_by',
+        'approved_at',
+        'total_value'
+    )
+    
+    search_fields = (
+        'asset__name',
+        'document_number',
+        'description'
+    )
+    
+    ordering = ('-movement_date', '-created')
+    
     fieldsets = (
-        ('Informações da Movimentação', {
+        ('Informações Principais', {
             'fields': (
-                'asset', 'movement_type', 'quantity',
-                'from_location', 'to_location', 'movement_date'
+                'movement_type',
+                'movement_date',
+                'asset',
+                'quantity',
+                'unit_value',
+                'total_value'
             )
         }),
-        ('Documentação', {
+        ('Localização', {
             'fields': (
-                'reference_document', 'notes'
+                'from_location',
+                'to_location'
             )
         }),
-        ('Controle', {
-            'fields': ('created_by', 'created', 'updated'),
+        ('Detalhes', {
+            'fields': (
+                'document_number',
+                'description',
+                'status'
+            )
+        }),
+        ('Auditoria', {
+            'fields': (
+                'created',
+                'created_by',
+                'updated',
+                'updated_by',
+                'approved_by',
+                'approved_at',
+                'enabled'
+            ),
             'classes': ('collapse',)
-        }),
+        })
     )
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related(
-            'asset', 'created_by'
-        )
-
-    def movement_type_colored(self, obj):
-        colors = {
-            'in': 'green',
-            'out': 'red',
-            'transfer': 'blue',
-            'adjustment': 'orange',
-            'maintenance': 'purple',
-            'return': 'teal'
-        }
-        return format_html(
-            '<span style="color: {};">{}</span>',
-            colors.get(obj.movement_type, 'black'),
-            obj.get_movement_type_display()
-        )
-    movement_type_colored.short_description = 'Tipo de Movimento'
-
     def save_model(self, request, obj, form, change):
-        if not change:  # Se é uma nova movimentação
+        if not change:  # Se é uma nova instância
             obj.created_by = request.user
+        obj.updated_by = request.user
         super().save_model(request, obj, form, change)

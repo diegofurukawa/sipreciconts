@@ -8,8 +8,11 @@ from .asset_group import AssetGroupSerializer
 from .asset_category import AssetCategorySerializer
 from .asset_movement import AssetMovementSerializer
 from .company import CompanySerializer, CompanyDetailSerializer, CompanyListSerializer
+from .user import UserSerializer
+
 
 __all__ = [
+    #Base
     'BaseSerializer',
     
     #Companys
@@ -17,12 +20,20 @@ __all__ = [
     'CompanyListSerializer',
     'CompanyDetailSerializer',
 
+    #User
+    'UserSerializer',
+
+    #Tax
     'TaxSerializer',
+
+    #Customer
     'CustomerSerializer',
     'CustomerTypeSerializer',
 
+    #Supply
     'SupplySerializer',
 
+    #Asset
     'AssetSerializer',
     'AssetGroupSerializer',
     'AssetCategorySerializer',

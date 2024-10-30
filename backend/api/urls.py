@@ -7,9 +7,12 @@ from .views.asset_group import AssetGroupViewSet
 from .views.asset_category import AssetCategoryViewSet
 from .views.asset_movement import AssetMovementViewSet
 from .views.company import CompanyViewSet
+from .views.user import UserViewSet
 
 router = DefaultRouter()
 router.register(r'companies', CompanyViewSet, basename='company')
+router.register(r'users', UserViewSet, basename='user')
+
 router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'taxes', TaxViewSet)
 router.register(r'supplies', SupplyViewSet, basename='supply')  # Adicione esta linha

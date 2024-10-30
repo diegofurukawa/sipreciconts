@@ -12,6 +12,18 @@ class CompanySerializer(serializers.ModelSerializer):
             'created', 'updated'
         ]
         read_only_fields = ['created', 'updated']
+    
+    def validate_company_id(self, value):
+        """
+        Validação adicional para o company_id no serializer
+        """
+        if value:
+            value = value.upper().strip()
+            if not value.isalnum():
+                raise serializers.ValidationError(
+                    'O código deve conter apenas letras e números'
+                )
+        return value
 
 # Opção 2: Serializer com campos customizados adicionais
 class CompanyDetailSerializer(serializers.ModelSerializer):
@@ -37,6 +49,18 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
         #read_only_fields = ['company_id', 'created', 'updated']
         read_only_fields = ['created', 'updated']
 
+    def validate_company_id(self, value):
+        """
+        Validação adicional para o company_id no serializer
+        """
+        if value:
+            value = value.upper().strip()
+            if not value.isalnum():
+                raise serializers.ValidationError(
+                    'O código deve conter apenas letras e números'
+                )
+        return value
+    
 # Opção 3: Serializer simplificado para listagens
 class CompanyListSerializer(serializers.ModelSerializer):
     class Meta:

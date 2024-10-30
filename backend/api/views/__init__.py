@@ -8,12 +8,19 @@ from .asset_group import AssetGroupViewSet
 from .asset_category import AssetCategoryViewSet
 from .asset_movement import AssetMovementViewSet
 from .company import CompanyViewSet
+from .user import UserViewSet
 
 __all__ = [
     'BaseViewSet',
+    
     'CompanyViewSet',
+    
+    'UserViewSet',
+
     'SupplyViewSet',
+    
     'CustomerViewSet',
+    
     'TaxViewSet',
 
     'AssetViewSet',

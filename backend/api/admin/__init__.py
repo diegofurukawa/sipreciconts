@@ -7,12 +7,19 @@ from .customer import CustomerAdmin
 # apps/assets/admin/__init__.py
 from .assets import AssetAdmin, AssetGroupAdmin, AssetCategoryAdmin, AssetMovementAdmin
 from .company import CompanyAdmin
+from .user import UserAdmin
 
 __all__ = [
     'BaseAdmin', 
     'CompanyAdmin',
+    'UserAdmin',
+
+    #'CustomUserAdmin', 
+
     'CustomerAdmin',
+    
     'TaxAdmin',
+    
     'SupplyAdmin',
 
     'AssetAdmin',
