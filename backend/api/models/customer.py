@@ -40,7 +40,10 @@ class Customer(BaseModel):
         db_table = 'customer'
         verbose_name = 'Cliente'
         verbose_name_plural = 'Clientes'
-        #app_label = 'api'
+        indexes = [
+            models.Index(fields=['company_id']),
+            models.Index(fields=['customer_id']),            
+        ]
 
     def __str__(self):
         return self.name

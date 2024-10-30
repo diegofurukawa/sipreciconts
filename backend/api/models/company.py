@@ -13,7 +13,7 @@ class Company(BaseModel):
     )
     document = models.CharField(
         'CNPJ',
-        max_length=14,
+        max_length=20,
         unique=True,
         null=True,
         blank=True
@@ -36,6 +36,7 @@ class Company(BaseModel):
     )
 
     class Meta:
+        db_table = 'company'
         verbose_name = 'Empresa'
         verbose_name_plural = 'Empresas'
         ordering = ['name']

@@ -22,9 +22,11 @@ class AssetCategory(BaseModel):
         return f"{self.code} - {self.name}"
 
     class Meta:
+        db_table = 'assetcategory'
         ordering = ['name']
         verbose_name = 'Categoria de Ativo'
         verbose_name_plural = 'Insumos - Categorias'
         indexes = [
+            models.Index(fields=['company_id']),
             models.Index(fields=['code']),
         ]

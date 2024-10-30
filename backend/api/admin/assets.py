@@ -146,12 +146,12 @@ class AssetAdmin(admin.ModelAdmin):
         )
     mark_as_available.short_description = "Marcar selecionados como disponíveis"
 
-@admin.register(Location)
-class LocationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'enabled', 'created_at', 'updated_at')
-    list_filter = ('enabled',)
-    search_fields = ('name', 'description')
-    ordering = ('name',)
+# @admin.register(Location)
+# class LocationAdmin(admin.ModelAdmin):
+#     list_display = ('name', 'enabled', 'created_at', 'updated_at')
+#     list_filter = ('enabled',)
+#     search_fields = ('name', 'description')
+#     ordering = ('name',)
 
 @admin.register(AssetMovement)
 class AssetMovementAdmin(admin.ModelAdmin):

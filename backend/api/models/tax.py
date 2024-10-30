@@ -39,7 +39,10 @@ class Tax(BaseModel):
         db_table = 'tax'
         verbose_name = 'Imposto'
         verbose_name_plural = 'Impostos'
-        app_label = 'api'
+        indexes = [
+            models.Index(fields=['company_id']),
+            models.Index(fields=['tax_id']),            
+        ]
 
     def __str__(self):
         return f"{self.acronym} - {self.description}"

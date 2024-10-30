@@ -63,10 +63,12 @@ class User(BaseModel):
         super().save(*args, **kwargs)
 
     class Meta:
+        db_table = 'user'
         verbose_name = 'Usuário'
         verbose_name_plural = 'Usuários'
         ordering = ['user_name']
         indexes = [
+            models.Index(fields=['company_id']),
             models.Index(fields=['email']),
             models.Index(fields=['login']),
         ]

@@ -126,10 +126,12 @@ class Asset(BaseModel):
         return f"{self.asset_code} - {self.name}"
 
     class Meta:
+        db_table = 'asset'
         ordering = ['name']
         verbose_name = 'Ativo'
         verbose_name_plural = 'Insumos'
         indexes = [
+            models.Index(fields=['company_id']),
             models.Index(fields=['asset_code']),
             models.Index(fields=['patrimony_code']),
             models.Index(fields=['status']),

@@ -4,42 +4,11 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from .base import BaseModel
+from .location import Location
 
-class Location(models.Model):
-    """
-    Modelo para localização de ativos
-    """
-    name = models.CharField(
-        max_length=100,
-        verbose_name='Nome'
-    )
-    description = models.TextField(
-        verbose_name='Descrição',
-        blank=True,
-        null=True
-    )
-    enabled = models.BooleanField(
-        default=True,
-        verbose_name='Ativo'
-    )
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Criado em'
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name='Atualizado em'
-    )
 
-    class Meta:
-        verbose_name = 'Localização'
-        verbose_name_plural = 'Localizações'
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-class AssetMovement(models.Model):
+class AssetMovement(BaseModel):
     """
     Modelo para controle de movimentação de ativos
     """
@@ -130,11 +99,11 @@ class AssetMovement(models.Model):
         blank=True
     )
 
-    # Campos de auditoria
-    created = models.DateTimeField(  # Renomeado de 'created_at' para 'created'
-        auto_now_add=True,
-        verbose_name='Criado em'
-    )
+    # # Campos de auditoria
+    # created = models.DateTimeField(  # Renomeado de 'created_at' para 'created'
+    #     auto_now_add=True,
+    #     verbose_name='Criado em'
+    # )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -143,10 +112,10 @@ class AssetMovement(models.Model):
         related_name='created_asset_movements'
     )
 
-    updated = models.DateTimeField(  # Renomeado de 'updated_at' para 'updated'
-        auto_now=True,
-        verbose_name='Atualizado em'
-    )
+    # updated = models.DateTimeField(  # Renomeado de 'updated_at' para 'updated'
+    #     auto_now=True,
+    #     verbose_name='Atualizado em'
+    # )
 
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -172,16 +141,18 @@ class AssetMovement(models.Model):
         blank=True
     )
 
-    enabled = models.BooleanField(
-        default=True,
-        verbose_name='Ativo'
-    )
+    # enabled = models.BooleanField(
+    #     default=True,
+    #     verbose_name='Ativo'
+    # )
 
     class Meta:
+        db_table = 'assetmovement'
         verbose_name = 'Movimentação de Ativo'
         verbose_name_plural = 'Movimentações de Ativos'
         ordering = ['-movement_date', '-created']
         indexes = [
+            models.Index(fields=['company_id']),
             models.Index(fields=['movement_date', 'movement_type']),
             models.Index(fields=['created']),
             models.Index(fields=['status']),

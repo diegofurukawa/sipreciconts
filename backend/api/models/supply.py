@@ -34,10 +34,15 @@ class Supply(BaseModel):
     )
 
     class Meta:
+        db_table = 'supplies'
         ordering = ['name']
         verbose_name = 'Supply'
         verbose_name_plural = 'Insumos - Itens'
-        db_table = 'supplies'
+        indexes = [
+            models.Index(fields=['company_id']),
+            models.Index(fields=['supply_id']),            
+        ]
+        
 
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"

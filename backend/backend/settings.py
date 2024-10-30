@@ -64,6 +64,19 @@ DATABASES = {
     }
 }
 
+
+# # Nova configuração para PostgreSQL
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': 'HVZs2vXE6XtLm2VC',
+#         'HOST': 'rigorously-evolved-thornbill.data-1.use1.tembo.io',
+#         'PORT': '5432',
+#     }
+# }
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

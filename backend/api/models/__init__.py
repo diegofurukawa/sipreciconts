@@ -8,9 +8,11 @@ from .supply import Supply
 from .asset import Asset
 from .asset_group import AssetGroup
 from .asset_category import AssetCategory
-from .asset_movement import AssetMovement, Location
+from .asset_movement import AssetMovement
 from .company import Company
 from .user import User
+from .asset_location import AssetLocation
+from .location import Location
 
 __all__ = [
     'BaseModel',
@@ -26,10 +28,13 @@ __all__ = [
     'CalcOperator',
 
     'Supply',
+    
+    'Location',
 
     'Asset',
     'AssetGroup',
     'AssetCategory',
     'AssetMovement',
-    'Location',
+    'AssetLocation', 
+    
 ]

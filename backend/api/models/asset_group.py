@@ -14,9 +14,11 @@ class AssetGroup(BaseModel):
         return f"{self.code} - {self.name}"
 
     class Meta:
+        db_table = 'assetgroup'
         ordering = ['name']
         verbose_name = 'Grupo de Ativo'
         verbose_name_plural = 'Insumos - Grupos'
         indexes = [
+            models.Index(fields=['company_id']),
             models.Index(fields=['code']),
         ]
