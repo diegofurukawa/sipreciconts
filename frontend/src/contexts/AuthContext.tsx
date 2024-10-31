@@ -1,63 +1,92 @@
 // src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api, { AuthService } from '../services/api';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { authService, APIError } from '../services/api';
+import type { AuthResponse } from '../services/api';
 
-interface User {
-  id: number;
-  login: string;
-  name: string;
-  company_id: number;
+interface AuthContextData {
+  signed: boolean;
+  user: AuthResponse['user'] | null;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-interface AuthContextType {
-  user: User | null;
-  login: (login: string, password: string) => Promise<void>;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem('@App:user');
-    return storedUser ? JSON.parse(storedUser) : null;
+  const [user, setUser] = useState<AuthResponse['user'] | null>(() => {
+    return authService.getCurrentUser();
   });
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const login = async (login: string, password: string) => {
+  // Verificar estado de autenticação inicial
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = authService.getCurrentUser();
+        setUser(currentUser);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Gerenciar redirecionamentos baseados no estado de autenticação
+  useEffect(() => {
+    if (!loading) {
+      if (!user && location.pathname !== '/login') {
+        navigate('/login', { replace: true });
+      } else if (user && location.pathname === '/login') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, loading, location.pathname, navigate]);
+
+  const login = useCallback(async (username: string, password: string) => {
     try {
-      const response = await AuthService.login(login, password);
-      const { user, token } = response;
-      
-      localStorage.setItem('@App:token', token);
-      localStorage.setItem('@App:user', JSON.stringify(user));
-      localStorage.setItem('@App:company_id', user.company_id.toString());
-      
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      setUser(user);
-      navigate('/');
+      setLoading(true);
+      const response = await authService.login(username, password);
+      setUser(response.user);
+      navigate('/', { replace: true });
     } catch (error) {
-      throw new Error('Credenciais inválidas');
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await AuthService.logout();
+      console.error('Login error:', error);
+      if (error instanceof APIError) {
+        throw error;
+      }
+      throw new Error('Erro ao realizar login');
     } finally {
-      localStorage.removeItem('@App:token');
-      localStorage.removeItem('@App:user');
-      localStorage.removeItem('@App:company_id');
-      setUser(null);
-      delete api.defaults.headers.common['Authorization'];
-      navigate('/login');
+      setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  const logout = useCallback(async () => {
+    try {
+      setLoading(true);
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setLoading(false);
+      navigate('/login', { replace: true });
+    }
+  }, [navigate]);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        signed: !!user,
+        user,
+        loading,
+        login,
+        logout
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,89 +1,92 @@
-import { useState, useEffect } from 'react';
-import { Customer } from '../../types/customer';
-import { CustomerService } from '../../services/api';
-import { MainLayout } from '../../layouts/MainLayout';
-import { CustomerHeader } from './CustomerHeader';
-import CustomerForm from './CustomerForm';
-import ImportHelpDialog from './ImportHelp';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
+// src/components/Customer/CustomerList.tsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { customerService } from '../../services/api';
+import { Customer, CustomerResponse } from '../../types/customer';
+import { APIError } from '../../services/api/types';
+import { useToast } from '../../hooks/useToast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
+import { Loader2, Plus, FileUp, FileDown, Pencil, Trash2 } from 'lucide-react';
 
-const CustomerList = () => {
-  // Estados
+interface CustomerListProps {
+  onEdit?: (customer: Customer) => void;
+  onNew?: () => void;
+}
+
+export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => {
+  // State
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [deleteAlert, setDeleteAlert] = useState<{ show: boolean; id?: number }>({ show: false });
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [showImportHelp, setShowImportHelp] = useState(false);
-  
-  // Estados de Paginação
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCustomers, setTotalCustomers] = useState(0);
-  const itemsPerPage = 10;
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; customer?: Customer }>({
+    show: false
+  });
+  const [importLoading, setImportLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
-  useEffect(() => {
-    loadCustomers(currentPage);
-  }, [currentPage]);
+  const { showToast } = useToast();
 
-  const loadCustomers = async (page: number) => {
+  // Handlers
+  const loadCustomers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await CustomerService.list(page);
-      
-      setCustomers(response.results || []);
-      const total = Number(response.count) || 0;
-      setTotalCustomers(total);
-      const calculatedPages = Math.max(1, Math.ceil(total / itemsPerPage));
-      setTotalPages(calculatedPages);
-
+      const response = await customerService.list(page);
+      setCustomers(response.results);
+      setTotalItems(response.count);
     } catch (error) {
-      console.error('Erro ao carregar clientes:', error);
-      showFeedback('error', 'Erro ao carregar clientes');
-      setCustomers([]);
-      setTotalCustomers(0);
-      setTotalPages(1);
+      if (error instanceof APIError) {
+        showToast({
+          type: 'error',
+          title: 'Erro ao carregar clientes',
+          message: error.message
+        });
+      } else {
+        showToast({
+          type: 'error',
+          title: 'Erro inesperado',
+          message: 'Não foi possível carregar a lista de clientes'
+        });
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, showToast]);
 
-  const handleNew = () => {
-    setSelectedCustomer(null);
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
 
-  const handleEdit = (customer: Customer) => {
-    setSelectedCustomer(customer);
-    setIsModalOpen(true);
-  };
+  const handleDelete = async (customer: Customer) => {
+    if (!customer.id) return;
 
-  const handleDelete = (id: number) => {
-    setDeleteAlert({ show: true, id });
-  };
-
-  const confirmDelete = async () => {
-    if (deleteAlert.id) {
-      try {
-        await CustomerService.delete(deleteAlert.id);
-        showFeedback('success', 'Cliente excluído com sucesso');
-        await loadCustomers(currentPage);
-      } catch (error) {
-        console.error('Erro ao excluir cliente:', error);
-        showFeedback('error', 'Erro ao excluir cliente');
+    try {
+      await customerService.delete(customer.id);
+      showToast({
+        type: 'success',
+        title: 'Cliente excluído',
+        message: 'Cliente excluído com sucesso!'
+      });
+      await loadCustomers();
+    } catch (error) {
+      if (error instanceof APIError) {
+        showToast({
+          type: 'error',
+          title: 'Erro ao excluir',
+          message: error.message
+        });
       }
+    } finally {
+      setDeleteDialog({ show: false });
     }
-    setDeleteAlert({ show: false });
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -91,210 +94,161 @@ const CustomerList = () => {
     if (!file) return;
 
     try {
-      if (!file.name.toLowerCase().endsWith('.csv')) {
-        showFeedback('error', 'Por favor, selecione um arquivo CSV válido');
-        return;
+      setImportLoading(true);
+      await customerService.import(file);
+      showToast({
+        type: 'success',
+        title: 'Importação concluída',
+        message: 'Clientes importados com sucesso!'
+      });
+      await loadCustomers();
+    } catch (error) {
+      if (error instanceof APIError) {
+        showToast({
+          type: 'error',
+          title: 'Erro na importação',
+          message: error.message
+        });
       }
-
-      const maxSize = 5 * 1024 * 1024; // 5MB
-      if (file.size > maxSize) {
-        showFeedback('error', 'O arquivo é muito grande. Tamanho máximo: 5MB');
-        return;
-      }
-
-      const result = await CustomerService.import(file);
-      showFeedback('success', result.message || 'Clientes importados com sucesso');
-      await loadCustomers(1);
-      setCurrentPage(1);
-
-      if (result.errors && result.errors.length > 0) {
-        console.log('Erros na importação:', result.errors);
-      }
-    } catch (error: any) {
-      console.error('Erro ao importar clientes:', error);
-      showFeedback('error', error.message || 'Erro ao importar clientes');
+    } finally {
+      setImportLoading(false);
+      // Reset input
+      event.target.value = '';
     }
-
-    event.target.value = '';
   };
 
   const handleExport = async () => {
     try {
-      await CustomerService.export();
-      showFeedback('success', 'Dados exportados com sucesso');
-    } catch (error: any) {
-      console.error('Erro ao exportar clientes:', error);
-      showFeedback('error', error.message || 'Erro ao exportar clientes');
+      setExportLoading(true);
+      await customerService.export();
+      showToast({
+        type: 'success',
+        title: 'Exportação concluída',
+        message: 'Arquivo gerado com sucesso!'
+      });
+    } catch (error) {
+      if (error instanceof APIError) {
+        showToast({
+          type: 'error',
+          title: 'Erro na exportação',
+          message: error.message
+        });
+      }
+    } finally {
+      setExportLoading(false);
     }
   };
 
-  const handleFormSuccess = async () => {
-    setIsModalOpen(false);
-    await loadCustomers(currentPage);
-    showFeedback('success', `Cliente ${selectedCustomer ? 'atualizado' : 'criado'} com sucesso`);
+  const confirmDelete = (customer: Customer) => {
+    setDeleteDialog({ show: true, customer });
   };
 
-  const showFeedback = (type: 'success' | 'error', message: string) => {
-    setFeedback({ type, message });
-    setTimeout(() => setFeedback(null), 3000);
-  };
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return pages;
-  };
-
-  if (loading) {
-    return (
-      <MainLayout showHeader={false}>
-        <CustomerHeader 
-          title="Gerenciamento de Clientes"
-          subtitle="Cadastre e gerencie seus clientes"
-        />
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  return (
-    <MainLayout showHeader={false}>
-      <CustomerHeader 
-        title="Gerenciamento de Clientes"
-        subtitle="Cadastre e gerencie seus clientes"
-      />
-
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col min-h-full bg-white shadow-lg rounded-lg">
-          {/* Feedback */}
-          {feedback && (
-            <div
-              className={`fixed top-4 right-4 p-4 rounded-md shadow-lg z-50 ${
-                feedback.type === 'success' ? 'bg-green-500' : 'bg-red-500'
-              } text-white`}
-            >
-              {feedback.message}
-            </div>
+  // Render helpers
+  const renderHeader = () => (
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Clientes</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          {totalItems} cliente{totalItems !== 1 ? 's' : ''} cadastrado{totalItems !== 1 ? 's' : ''}
+        </p>
+      </div>
+      <div className="flex space-x-3">
+        <button
+          onClick={() => onNew?.()}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Cliente
+        </button>
+        <button
+          onClick={() => document.getElementById('importInput')?.click()}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          disabled={importLoading}
+        >
+          {importLoading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <FileUp className="h-4 w-4 mr-2" />
           )}
+          Importar
+        </button>
+        <input
+          id="importInput"
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          onChange={handleImport}
+          className="hidden"
+        />
+        <button
+          onClick={handleExport}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          disabled={exportLoading}
+        >
+          {exportLoading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4 mr-2" />
+          )}
+          Exportar
+        </button>
+      </div>
+    </div>
+  );
 
-          {/* Cabeçalho */}
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  Gerencie seus clientes, importações e exportações
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleNew}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Novo Cliente
-                </button>
-                <div className="relative">
-                  <label
-                    htmlFor="importInput"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 cursor-pointer"
-                  >
-                    Importar
-                  </label>
-                  <button
-                    onClick={() => setShowImportHelp(true)}
-                    className="absolute -right-7 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    title="Ajuda para importação"
-                  >
-                    ?
-                  </button>
-                  <input
-                    id="importInput"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleImport}
-                    className="hidden"
-                  />
-                </div>
-                <button
-                  onClick={handleExport}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Exportar
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabela */}
-          <div className="flex-1 overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+  const renderTable = () => (
+    <div className="mt-4 flex flex-col">
+      <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+          <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <table className="min-w-full divide-y divide-gray-300">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">
                     Nome
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Documento
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Celular
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ações
+                  <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                    <span className="sr-only">Ações</span>
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 bg-white">
                 {customers.map((customer) => (
-                  <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <tr key={customer.id}>
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
                       {customer.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {customer.document || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {customer.celphone}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {customer.email || '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                       <button
-                        onClick={() => handleEdit(customer)}
-                        className="text-blue-600 hover:text-blue-900"
+                        onClick={() => onEdit?.(customer)}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
                       >
-                        Editar
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Editar</span>
                       </button>
                       <button
-                        onClick={() => customer.id && handleDelete(customer.id)}
+                        onClick={() => confirmDelete(customer)}
                         className="text-red-600 hover:text-red-900"
                       >
-                        Excluir
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Excluir</span>
                       </button>
                     </td>
                   </tr>
@@ -302,113 +256,48 @@ const CustomerList = () => {
               </tbody>
             </table>
           </div>
-
-          {/* Paginação */}
-          {totalCustomers > 0 && (
-            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-700">
-                  Mostrando <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> até{' '}
-                  <span className="font-medium">
-                    {Math.min(currentPage * itemsPerPage, totalCustomers)}
-                  </span> de{' '}
-                  <span className="font-medium">{totalCustomers}</span> resultados
-                </p>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage <= 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage <= 1
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    Anterior
-                  </button>
-                  {getPageNumbers().map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => handlePageChange(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        currentPage === page
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage >= totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                      currentPage >= totalPages
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    Próximo
-                  </button>
-                </nav>
-              </div>
-            </div>
-          )}
         </div>
       </div>
-{/* Modal de Form */}
-{isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
-                {selectedCustomer ? 'Editar Cliente' : 'Novo Cliente'}
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <span className="sr-only">Fechar</span>
-                ×
-              </button>
-            </div>
-            <CustomerForm
-              customer={selectedCustomer}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setIsModalOpen(false)}
-            />
-          </div>
-        </div>
-      )}
+    </div>
+  );
 
-      {/* Modal de Confirmação de Exclusão */}
-      <AlertDialog open={deleteAlert.show}>
+  const renderLoading = () => (
+    <div className="flex justify-center items-center h-64">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+    </div>
+  );
+
+  // Main render
+  return (
+    <div className="px-4 sm:px-6 lg:px-8">
+      {renderHeader()}
+      
+      {loading ? renderLoading() : renderTable()}
+
+      <AlertDialog open={deleteDialog.show}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este cliente?
+              Tem certeza que deseja excluir o cliente "{deleteDialog.customer?.name}"?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteAlert({ show: false })}>
+            <AlertDialogCancel onClick={() => setDeleteDialog({ show: false })}>
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
+            <AlertDialogAction
+              onClick={() => deleteDialog.customer && handleDelete(deleteDialog.customer)}
+              className="bg-red-600 hover:bg-red-700"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Modal de Ajuda para Importação */}
-      <ImportHelpDialog 
-        isOpen={showImportHelp}
-        onClose={() => setShowImportHelp(false)}
-      />
-    </MainLayout>
+    </div>
   );
 };
 
-export default CustomerList;      
+export default CustomerList;
