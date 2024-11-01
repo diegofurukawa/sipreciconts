@@ -1,7 +1,7 @@
 // src/components/Supply/__tests__/SupplyList.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SupplyList from '../SupplyList';
-import { SupplyService } from '../../../services/supplyService';
+import { SupplyService } from '../../../services/api/supply';
 
 jest.mock('../../../services/supplyService');
 
@@ -54,7 +54,7 @@ describe('SupplyList', () => {
 // src/components/Supply/__tests__/SupplyForm.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SupplyForm from '../SupplyForm';
-import { SupplyService } from '../../../services/supplyService';
+import { SupplyService } from '../../../services/api/supply';
 
 jest.mock('../../../services/supplyService');
 

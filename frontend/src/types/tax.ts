@@ -9,6 +9,7 @@ export interface Tax {
     group: string; // 'federal' | 'state' | 'municipal' | 'other'
     calc_operator: string; // '%' | '0' | '+' | '-' | '*' | '/'
     value: number;
+    company_id: string; // Added company field
   }
 
 export const TAX_TYPES = {

@@ -1,281 +1,110 @@
 // src/routes/index.tsx
-import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout } from '../layouts/MainLayout';
+import { LayoutWrapper } from '../components/LayoutWrapper';
 
-// Páginas públicas
-import Login from '../pages/Login';
-import NotFound from '../pages/NotFound';
+// Pages
+import LoginPage from '../pages/Login';
+import HomePage from '../pages/Home';
+import NotFoundPage from '../pages/NotFound';
+import SuppliesPage from '../pages/Supplies';
+import HelpPage from '../pages/Help';
 
-// Páginas protegidas - Lazy loading para melhor performance
-const Home = React.lazy(() => import('../pages/Home'));
+// Módulos de Rotas
+import { cadastrosRoutes } from './modules/cadastros.routes';
+import { comercialRoutes } from './modules/comercial.routes';
 
-// Cadastros
-const CustomerList = React.lazy(() => import('../components/Customer/CustomerList'));
-const CustomerForm = React.lazy(() => import('../components/Customer/CustomerForm'));
-//const CompanyForm = React.lazy(() => import('../components/Company/CompanyForm'));
-const TaxList = React.lazy(() => import('../components/Tax/TaxList'));
-const TaxForm = React.lazy(() => import('../components/Tax/TaxForm'));
-const SupplyList = React.lazy(() => import('../components/Supply/SupplyList'));
-const SupplyForm = React.lazy(() => import('../components/Supply/SupplyForm'));
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
 
-// Comercial
-// const QuoteList = React.lazy(() => import('../components/Quote/QuoteList'));
-// const QuoteForm = React.lazy(() => import('../components/Quote/QuoteForm'));
-// const ContractList = React.lazy(() => import('../components/Contract/ContractList'));
-// const ContractForm = React.lazy(() => import('../components/Contract/ContractForm'));
+  // Função para verificar autenticação e redirecionar
+  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
+    }
 
-// Ajuda
-// const Help = React.lazy(() => import('../pages/Help'));
+    return <LayoutWrapper>{children}</LayoutWrapper>;
+  };
 
-// Loading Component
-const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-  </div>
-);
+  // Função para redirecionar usuário logado da página de login
+  const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+    if (isAuthenticated) {
+      return <Navigate to="/" replace />;
+    }
 
-interface PrivateRouteProps {
-  children: React.ReactNode;
-}
+    return <>{children}</>;
+  };
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { signed, loading } = useAuth();
-
-  if (loading) {
-    return <PageLoader />;
-  }
-
-  if (!signed) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// Wrapper para páginas com MainLayout
-const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <MainLayout>
-    <div className="container mx-auto px-4 py-8">
-      <Suspense fallback={<PageLoader />}>
-        {children}
-      </Suspense>
-    </div>
-  </MainLayout>
-);
-
-const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={<Login />} />
+      {/* Rotas Públicas */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        }
+      />
 
-      {/* Protected Routes */}
-      {/* Home */}
+      {/* Rotas Privadas */}
       <Route
         path="/"
         element={
           <PrivateRoute>
-            <LayoutWrapper>
-              <Home />
-            </LayoutWrapper>
+            <HomePage />
           </PrivateRoute>
         }
       />
 
-      {/* Cadastros Routes */}
-      <Route path="/cadastros">
-        {/* Empresa */}
-        <Route
-          path="empresa"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
+      {/* Módulo de Cadastros */}
+      <Route
+        path="/cadastros/*"
+        element={
+          <PrivateRoute>
+            <Routes>{cadastrosRoutes}</Routes>
+          </PrivateRoute>
+        }
+      />
 
-        {/* Clientes */}
-        <Route
-          path="clientes"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="clientes/novo"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="clientes/:id"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
+      {/* Módulo Comercial */}
+      <Route
+        path="/comercial/*"
+        element={
+          <PrivateRoute>
+            <Routes>{comercialRoutes}</Routes>
+          </PrivateRoute>
+        }
+      />
 
-        {/* Impostos */}
-        <Route
-          path="impostos"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <TaxList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="impostos/novo"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="impostos/:id"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
+      {/* Outras Rotas Privadas */}
+      <Route
+        path="/suprimentos"
+        element={
+          <PrivateRoute>
+            <SuppliesPage />
+          </PrivateRoute>
+        }
+      />
 
-        {/* Insumos */}
-        <Route
-          path="insumos"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <SupplyList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="insumos/novo"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="insumos/:id"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-      </Route>
-
-      {/* Comercial Routes */}
-      <Route path="/comercial">
-        {/* Orçamentos */}
-        <Route
-          path="orcamento"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="orcamento/novo"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="orcamento/:id"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-
-        {/* Contratos */}
-        <Route
-          path="contratos"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="contratos/novo"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="contratos/:id"
-          element={
-            <PrivateRoute>
-              <LayoutWrapper>
-                <CustomerList />
-              </LayoutWrapper>
-            </PrivateRoute>
-          }
-        />
-      </Route>
-
-      {/* Ajuda Route */}
       <Route
         path="/ajuda"
         element={
           <PrivateRoute>
-            <LayoutWrapper>
-              <CustomerList />
-            </LayoutWrapper>
+            <HelpPage />
           </PrivateRoute>
         }
       />
 
-      {/* Not Found Route */}
-      <Route path="*" element={<NotFound />} />
+      {/* Rota 404 */}
+      <Route
+        path="*"
+        element={
+          <PrivateRoute>
+            <NotFoundPage />
+          </PrivateRoute>
+        }
+      />
     </Routes>
   );
 };

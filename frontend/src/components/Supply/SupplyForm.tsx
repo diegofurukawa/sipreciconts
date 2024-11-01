@@ -2,7 +2,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Supply, UNIT_MEASURES, SUPPLY_TYPES } from '../../types/supply';
-import { SupplyService } from '../../services/supplyService';
+import { SupplyService } from '../../services/api/supply';
 
 interface SupplyFormProps {
   supply: Supply | null;

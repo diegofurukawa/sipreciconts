@@ -1,90 +1,48 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { authService, APIError } from '../services/api';
-import type { AuthResponse } from '../services/api';
+import { AuthService } from '../services/api';
+import type { LoginResponse, AuthContextType } from '../types/auth.types';
 
-interface AuthContextData {
-  signed: boolean;
-  user: AuthResponse['user'] | null;
-  loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthResponse['user'] | null>(() => {
-    return authService.getCurrentUser();
+  const [user, setUser] = useState<LoginResponse['user'] | null>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
   });
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  // Verificar estado de autenticação inicial
+  const login = useCallback(async (username: string, password: string) => {
+    const response = await AuthService.login({ login: username, password });
+    localStorage.setItem('token', response.token);
+    localStorage.setItem('user', JSON.stringify(response.user));
+    setUser(response.user);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await AuthService.logout();
+    setUser(null);
+  }, []);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentUser = authService.getCurrentUser();
-        setUser(currentUser);
-      } finally {
-        setLoading(false);
+    const validateAuth = async () => {
+      const isValid = await AuthService.validateToken();
+      if (!isValid) {
+        logout();
       }
     };
 
-    checkAuth();
-  }, []);
-
-  // Gerenciar redirecionamentos baseados no estado de autenticação
-  useEffect(() => {
-    if (!loading) {
-      if (!user && location.pathname !== '/login') {
-        navigate('/login', { replace: true });
-      } else if (user && location.pathname === '/login') {
-        navigate('/', { replace: true });
-      }
+    if (user) {
+      validateAuth();
     }
-  }, [user, loading, location.pathname, navigate]);
-
-  const login = useCallback(async (username: string, password: string) => {
-    try {
-      setLoading(true);
-      const response = await authService.login(username, password);
-      setUser(response.user);
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('Login error:', error);
-      if (error instanceof APIError) {
-        throw error;
-      }
-      throw new Error('Erro ao realizar login');
-    } finally {
-      setLoading(false);
-    }
-  }, [navigate]);
-
-  const logout = useCallback(async () => {
-    try {
-      setLoading(true);
-      await authService.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      setLoading(false);
-      navigate('/login', { replace: true });
-    }
-  }, [navigate]);
+  }, [logout, user]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        signed: !!user,
-        user,
-        loading,
-        login,
-        logout
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        login, 
+        logout, 
+        isAuthenticated: !!user 
       }}
     >
       {children}
@@ -94,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

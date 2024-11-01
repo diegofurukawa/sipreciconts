@@ -418,4 +418,5 @@ const TaxList = () => {
   );
 };
 
+export { TaxList };    
 export default TaxList;                  

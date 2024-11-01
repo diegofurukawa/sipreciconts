@@ -1,8 +1,8 @@
 // src/components/Customer/CustomerList.tsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { customerService } from '../../services/api';
+import { CustomerService } from '../../services/api';
 import { Customer, CustomerResponse } from '../../types/customer';
-import { APIError } from '../../services/api/types';
+import { ApiError } from '../../services/api/types';
 import { useToast } from '../../hooks/useToast';
 import {
   AlertDialog,
@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { Loader2, Plus, FileUp, FileDown, Pencil, Trash2 } from 'lucide-react';
+//import { ApiError } from '@/services/xxx...api';
 
 interface CustomerListProps {
   onEdit?: (customer: Customer) => void;
@@ -39,11 +40,11 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
   const loadCustomers = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await customerService.list(page);
+      const response = await CustomerService.list(page);
       setCustomers(response.results);
       setTotalItems(response.count);
     } catch (error) {
-      if (error instanceof APIError) {
+      if (error instanceof ApiError) {
         showToast({
           type: 'error',
           title: 'Erro ao carregar clientes',
@@ -69,7 +70,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
     if (!customer.id) return;
 
     try {
-      await customerService.delete(customer.id);
+      await CustomerService.delete(customer.id);
       showToast({
         type: 'success',
         title: 'Cliente excluído',
@@ -77,7 +78,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
       });
       await loadCustomers();
     } catch (error) {
-      if (error instanceof APIError) {
+      if (error instanceof ApiError) {
         showToast({
           type: 'error',
           title: 'Erro ao excluir',
@@ -95,7 +96,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
 
     try {
       setImportLoading(true);
-      await customerService.import(file);
+      await CustomerService.import(file);
       showToast({
         type: 'success',
         title: 'Importação concluída',
@@ -103,7 +104,7 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
       });
       await loadCustomers();
     } catch (error) {
-      if (error instanceof APIError) {
+      if (error instanceof ApiError) {
         showToast({
           type: 'error',
           title: 'Erro na importação',
@@ -120,14 +121,14 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
   const handleExport = async () => {
     try {
       setExportLoading(true);
-      await customerService.export();
+      await CustomerService.export();
       showToast({
         type: 'success',
         title: 'Exportação concluída',
         message: 'Arquivo gerado com sucesso!'
       });
     } catch (error) {
-      if (error instanceof APIError) {
+      if (error instanceof ApiError) {
         showToast({
           type: 'error',
           title: 'Erro na exportação',

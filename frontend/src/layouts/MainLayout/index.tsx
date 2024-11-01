@@ -7,7 +7,7 @@ interface MainLayoutProps {
   children: React.ReactNode;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -18,3 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     </div>
   );
 };
+
+// Adicionando ambas as exportações para maior flexibilidade
+export { MainLayout };
+export default MainLayout;

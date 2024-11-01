@@ -1,6 +1,6 @@
 // src/services/supplyService.ts
-import api from './api';
-import { Supply } from '../types/supply';
+import { api } from './utils';
+import { Supply } from '../../types/supply';
 
 interface PaginatedResponse {
   count: number;
