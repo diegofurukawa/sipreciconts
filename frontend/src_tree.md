@@ -9,6 +9,7 @@
 │   │   ├── CompanyForm
 │   │   │   └── index.tsx
 │   │   └── CompanyList
+│   │       └── index.tsx
 │   ├── Contract
 │   │   ├── ContractForm
 │   │   │   └── index.tsx
@@ -56,6 +57,8 @@
 │   │   ├── TaxForm.tsx
 │   │   └── TaxList.tsx
 │   └── ui
+│       ├── accordion
+│       │   └── index.tsx
 │       ├── alert-dialog.tsx
 │       ├── TablePagination.tsx
 │       └── toast.tsx
@@ -78,6 +81,8 @@
 │   │   ├── index.tsx
 │   │   └── teste.tsx
 │   └── teste
+├── lib
+│   └── utils.ts
 ├── logo.svg
 ├── main.tsx
 ├── pages
@@ -107,17 +112,17 @@
 │       ├── comercial.routes.tsx
 │       └── index.ts
 ├── services
-│   ├── api
-│   │   ├── auth.ts
-│   │   ├── auth.types.ts
-│   │   ├── base.ts
-│   │   ├── customer.ts
-│   │   ├── index.ts
-│   │   ├── tax.ts
-│   │   ├── token.ts
-│   │   ├── types.ts
-│   │   └── utils.ts
-│   └── supplyService.ts
+│   └── api
+│       ├── auth.ts
+│       ├── auth.types.ts
+│       ├── base.ts
+│       ├── customer.ts
+│       ├── index.ts
+│       ├── supply.ts
+│       ├── tax.ts
+│       ├── token.ts
+│       ├── types.ts
+│       └── utils.ts
 ├── setupTests.ts
 ├── types
 │   ├── auth.types.ts

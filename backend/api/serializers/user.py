@@ -1,4 +1,3 @@
-# backend/api/serializers/user.py
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password, check_password
 from ..models.user import User
@@ -65,3 +64,52 @@ class UserSerializer(serializers.ModelSerializer):
         if 'password' in validated_data:
             validated_data['password'] = make_password(validated_data['password'])
         return super().update(instance, validated_data)
+
+
+class UserAuthSerializer(serializers.Serializer):
+    """
+    Serializer específico para autenticação, separado do serializer principal
+    para manter as responsabilidades separadas
+    """
+    username = serializers.CharField(source='login')
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        """
+        Valida as credenciais do usuário
+        """
+        login = data.get('login')
+        password = data.get('password')
+
+        if not login or not password:
+            raise serializers.ValidationError({
+                'error': 'Login e senha são obrigatórios.'
+            })
+
+        # Busca o usuário pelo login
+        try:
+            user = User.objects.get(login=login, enabled=True)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({
+                'error': 'Usuário não encontrado ou desativado.'
+            })
+
+        # Verifica a senha
+        if not check_password(password, user.password):
+            raise serializers.ValidationError({
+                'error': 'Senha incorreta.'
+            })
+
+        # Adiciona o usuário validado aos dados
+        data['user'] = user
+        return data
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    """
+    Serializer para dados básicos da empresa, usado em conjunto com UserSerializer
+    quando necessário
+    """
+    class Meta:
+        model = Company
+        fields = ['id', 'name']

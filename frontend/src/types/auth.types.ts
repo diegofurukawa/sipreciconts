@@ -1,4 +1,3 @@
-// src/types/auth.types.ts
 export interface LoginCredentials {
   username: string;
   password: string;
@@ -15,8 +14,22 @@ export interface User {
   last_login?: string;
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
+  access: string;      // Token JWT de acesso
+  refresh: string;     // Token JWT de refresh
+  user: User;          // Dados do usuário
+}
+
+// Interface para o token decodificado
+export interface DecodedToken {
+  exp: number;         // Timestamp de expiração
+  iat: number;         // Timestamp de emissão
+  jti: string;         // JWT ID
+  token_type: string;  // Tipo do token (access/refresh)
+  user_id: number;     // ID do usuário
+}
+
+// Interface para respostas de refresh de token
+export interface RefreshTokenResponse {
   access: string;
-  refresh: string;
-  user: User;
 }

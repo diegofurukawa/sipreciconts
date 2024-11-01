@@ -1,20 +1,16 @@
-// src/services/api/base.ts
 import axios from 'axios';
-import { getToken } from './token';
 
-export const baseURL = 'http://localhost:8000/api/';
-
-const axiosInstance = axios.create({
-  baseURL,
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api/',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Interceptor para adicionar o token em todas as requisições
-axiosInstance.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
-    const token = getToken();
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,11 +21,12 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Interceptor para tratar erros de resposta
-axiosInstance.interceptors.response.use(
+// Interceptor para tratar erros de autenticação
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Token expirado ou inválido
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -38,4 +35,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance;
+export default api;

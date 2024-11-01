@@ -1,89 +1,125 @@
-# backend/api/views/login.py
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.hashers import check_password
-from django.db import connection
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from django.utils import timezone
+from django.conf import settings
+from ..serializers.user import UserSerializer
+from ..models.user import User
 
-class LoginView(generics.CreateAPIView):
-    permission_classes = [AllowAny]
-
-    def get_tokens_for_user(self, user_data):
-        refresh = RefreshToken()
-        
-        # Add custom claims to the token
-        refresh['user_id'] = user_data['user_id']
-        refresh['login'] = user_data['login']
-        refresh['company_id'] = user_data['company_id']
-        refresh['name'] = user_data['name']
-
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
+class LoginView(APIView):
+    permission_classes = []
 
     def post(self, request, *args, **kwargs):
         try:
-            login = request.data.get('login')
+            login = request.data.get('username')
             password = request.data.get('password')
-            
-            print(f"Login attempt for: {login}")
-            
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                    SELECT user_id, user_name, login, password, company_id, enabled
-                    FROM user 
-                    WHERE login = %s
-                """, [login])
-                
-                row = cursor.fetchone()
-                
-                if row:
-                    user_id, user_name, db_login, db_password, company_id, enabled = row
-                    
-                    print(f"Found user: {db_login}")
-                    
-                    if not enabled:
-                        return Response(
-                            {'error': 'Usuário desativado'},
-                            status=status.HTTP_401_UNAUTHORIZED
-                        )
-                    
-                    if check_password(password, db_password):
-                        print("Password matched")
-                        user_data = {
-                            'user_id': user_id,
-                            'login': db_login,
-                            'name': user_name,
-                            'company_id': company_id
-                        }
-                        
-                        # Update last_login
-                        cursor.execute("""
-                            UPDATE user 
-                            SET last_login = CURRENT_TIMESTAMP 
-                            WHERE login = %s
-                        """, [login])
-                        
-                        # Get tokens
-                        tokens = self.get_tokens_for_user(user_data)
-                        
-                        return Response({
-                            'token': tokens['access'],
-                            'user': user_data
-                        })
-                    else:
-                        print("Password did not match")
-                
+
+            if not login or not password:
                 return Response(
-                    {'error': 'Credenciais inválidas'},
+                    {'error': 'Login e senha são obrigatórios'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                user = User.objects.get(login=login, enabled=True)
+            except User.DoesNotExist:
+                return Response(
+                    {'error': 'Usuário não encontrado ou inativo'},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
-                
+
+            if not user.check_password(password):
+                return Response(
+                    {'error': 'Senha incorreta'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            # Atualiza último login
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+
+            try:
+                # Gera os tokens JWT
+                refresh = RefreshToken.for_user(user)
+                access_token = refresh.access_token
+
+                # Serializa os dados do usuário
+                user_data = UserSerializer(user).data
+
+                return Response({
+                    'access': str(access_token),
+                    'refresh': str(refresh),
+                    'user': user_data
+                })
+
+            except Exception as token_error:
+                print(f"Erro ao gerar token: {str(token_error)}")
+                return Response(
+                    {'error': 'Erro ao gerar token de acesso'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
         except Exception as e:
             print(f"Login error: {str(e)}")
             return Response(
-                {'error': 'Erro interno do servidor'},
+                {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class LogoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            auth_header = request.headers.get('Authorization', '')
+            if not auth_header.startswith('Bearer '):
+                return Response(
+                    {'error': 'Token não fornecido'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            token = auth_header.split(' ')[1]
+            
+            try:
+                token = RefreshToken(token)
+                token.blacklist()
+                
+                return Response(
+                    {'message': 'Logout realizado com sucesso'},
+                    status=status.HTTP_200_OK
+                )
+            except Exception as token_error:
+                print(f"Erro ao invalidar token: {str(token_error)}")
+                return Response(
+                    {'error': 'Erro ao invalidar token'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Exception as e:
+            print(f"Logout error: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class ValidateTokenView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            user = request.user
+            if not user.enabled:
+                raise ValueError('Usuário desativado')
+                
+            user_data = UserSerializer(user).data
+            
+            return Response({
+                'is_valid': True,
+                'user': user_data
+            })
+        except Exception as e:
+            print(f"Token validation error: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
