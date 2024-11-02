@@ -236,5 +236,3 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
     </div>
   );
 };
-
-export default CustomerForm;

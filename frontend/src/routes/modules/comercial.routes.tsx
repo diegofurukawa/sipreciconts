@@ -1,9 +1,20 @@
 // src/routes/modules/comercial.routes.tsx
 import { Route } from 'react-router-dom';
-import { QuoteList } from '../../components/Quote/QuoteList';
-import { ContractList } from '../../components/Contract/ContractList';
+import { lazy } from 'react';
+import type { AppRouteObject } from '../types';
 
-export const comercialRoutes = [
-  <Route key="orcamentos" path="orcamentos" element={<QuoteList />} />,
-  <Route key="contratos" path="contratos" element={<ContractList />} />
+const QuoteList = lazy(() => import('../../components/Quote/QuoteList'));
+const ContractList = lazy(() => import('../../components/Contract/ContractList'));
+
+export const comercialRoutes: AppRouteObject[] = [
+  {
+    path: 'orcamentos',
+    element: <QuoteList />,
+    title: 'Orçamentos'
+  },
+  {
+    path: 'contratos',
+    element: <ContractList />,
+    title: 'Contratos'
+  }
 ];

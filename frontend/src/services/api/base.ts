@@ -1,38 +1,49 @@
+// src/services/api/base.ts
 import axios from 'axios';
+import { setupInterceptors, setupRetry } from './utils';
 
-const api = axios.create({
-  baseURL: 'http://localhost:8000/api/',
+const DEFAULT_CONFIG = {
+  baseURL: 'http://localhost:8000/api',
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-  },
+  }
+};
+
+export const api = axios.create(DEFAULT_CONFIG);
+
+// Configure interceptors and retry
+setupInterceptors(api);
+setupRetry(api, {
+  maxAttempts: 3,
+  baseDelay: 1000,
+  statusCodes: [408, 429, 500, 502, 503, 504]
 });
+export type ApiInstance = typeof api;
 
-// Interceptor para adicionar o token em todas as requisições
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
-// Interceptor para tratar erros de autenticação
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expirado ou inválido
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+// import axios from 'axios';
+// import { setupInterceptors } from './utils';
+// import { setupRetry } from './utils';
+// import type { ApiConfig } from './types';
 
-export default api;
+// const DEFAULT_CONFIG: ApiConfig = {
+//   baseURL: 'http://localhost:8000/api',
+//   timeout: 10000,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   }
+// };
+
+// export const api = axios.create(DEFAULT_CONFIG);
+
+// // Configura interceptors e retry
+// setupInterceptors(api);
+// setupRetry(api, {
+//   maxAttempts: 3,
+//   baseDelay: 1000,
+//   statusCodes: [408, 429, 500, 502, 503, 504]
+// });
+
+// export type ApiInstance = typeof api;
+// export default api;

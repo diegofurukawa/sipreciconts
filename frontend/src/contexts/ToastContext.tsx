@@ -7,7 +7,7 @@ import {
   ToastProvider as RadixToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/components/ui/toast";
+} from "@/components/ui/toast/toast";
 import { AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react";
 
 // Types

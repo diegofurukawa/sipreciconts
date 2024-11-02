@@ -1,6 +1,6 @@
 // src/pages/Supplies/index.tsx
 import { MainLayout } from '../../layouts/MainLayout';
-import SupplyList from '../../components/Supply/SupplyList';
+import { SupplyList } from '../../components/Supply';
 
 const SuppliesPage = () => {
   return (
@@ -18,4 +18,6 @@ const SuppliesPage = () => {
   );
 };
 
-export default SuppliesPage;
+export {
+  SuppliesPage
+};

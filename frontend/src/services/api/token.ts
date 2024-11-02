@@ -1,46 +1,25 @@
-// src/services/api/token.ts
-import { api } from './utils';
+import { AuthTokens } from './types';
 
 export const TokenService = {
-  getAccessToken: (): string | null => {
-    return localStorage.getItem('accessToken');
+  getAccessToken(): string | null {
+    return localStorage.getItem('access_token');
   },
 
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem('refreshToken');
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
   },
 
-  setTokens: (access: string, refresh: string): void => {
-    localStorage.setItem('accessToken', access);
-    localStorage.setItem('refreshToken', refresh);
+  setTokens({ access, refresh }: AuthTokens): void {
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
   },
 
-  removeTokens: (): void => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  clearTokens(): void {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   },
 
-  isAuthenticated: (): boolean => {
-    return !!TokenService.getAccessToken();
+  hasValidToken(): boolean {
+    return !!this.getAccessToken();
   }
 };
-
-// Configurar interceptor para adicionar token em todas as requisições
-api.interceptors.request.use(
-  (config) => {
-    const token = TokenService.getAccessToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-export const getToken = () => localStorage.getItem('token');
-
-export const setToken = (token: string) => localStorage.setItem('token', token);
-
-export const removeToken = () => localStorage.removeItem('token');

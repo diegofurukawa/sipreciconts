@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Supply } from '../../types/supply';
 import { SupplyService } from '../../services/api/supply';
-import SupplyForm from './SupplyForm';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { SupplyForm } from '@/components/Supply';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog/alert-dialog';
 
 interface PaginationInfo {
   currentPage: number;
@@ -419,5 +419,6 @@ const SupplyList: React.FC = () => {
   );
 };
 
-export { SupplyList };
-export default SupplyList;
+export{
+  SupplyList
+};

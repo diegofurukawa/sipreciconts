@@ -107,4 +107,4 @@ const Help: React.FC = () => {
   );
 };
 
-export default Help;
+export {Help};

@@ -1,109 +1,108 @@
 // src/routes/index.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { LayoutWrapper } from '../components/LayoutWrapper';
+import type { AppRouteObject } from './types';
+import { cadastrosRoutes, comercialRoutes } from './modules';
 
-// Pages
-import LoginPage from '../pages/Login';
-import HomePage from '../pages/Home';
-import NotFoundPage from '../pages/NotFound';
-import SuppliesPage from '../pages/Supplies';
-import HelpPage from '../pages/Help';
+// Lazy loading das páginas
+const LoginPage = lazy(() => import('../pages/Login'));
+const HomePage = lazy(() => import('../pages/Home'));
+const NotFoundPage = lazy(() => import('../pages/NotFound'));
 
-// Módulos de Rotas
-import { cadastrosRoutes } from './modules/cadastros.routes';
-import { comercialRoutes } from './modules/comercial.routes';
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+  </div>
+);
 
-const AppRoutes = () => {
+
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  // Função para verificar autenticação e redirecionar
-  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-    if (!isAuthenticated) {
-      return <Navigate to="/login" replace />;
-    }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-    return <LayoutWrapper>{children}</LayoutWrapper>;
-  };
+  return <LayoutWrapper>{children}</LayoutWrapper>;
+};
 
-  // Função para redirecionar usuário logado da página de login
-  const PublicRoute = ({ children }: { children: React.ReactNode }) => {
-    if (isAuthenticated) {
-      return <Navigate to="/" replace />;
-    }
+const renderRoutes = (routes: AppRouteObject[]) => 
+  routes.map(({ path, element, title }) => (
+    <Route 
+      key={path} 
+      path={path} 
+      element={
+        <Suspense fallback={<LoadingFallback />}>
+          {element}
+        </Suspense>
+      } 
+    />
+  ));
 
-    return <>{children}</>;
-  };
+export const AppRoutes = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingFallback />;
+  }
 
   return (
     <Routes>
-      {/* Rotas Públicas */}
-      <Route
-        path="/login"
+      {/* Rota pública */}
+      <Route 
+        path="/login" 
         element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
+          <Suspense fallback={<LoadingFallback />}>
+            {isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+          </Suspense>
+        } 
       />
 
-      {/* Rotas Privadas */}
+      {/* Rotas protegidas */}
       <Route
         path="/"
         element={
           <PrivateRoute>
-            <HomePage />
+            <Suspense fallback={<LoadingFallback />}>
+              <HomePage />
+            </Suspense>
           </PrivateRoute>
         }
       />
 
-      {/* Módulo de Cadastros */}
       <Route
         path="/cadastros/*"
         element={
           <PrivateRoute>
-            <Routes>{cadastrosRoutes}</Routes>
+            <Routes>
+              {renderRoutes(cadastrosRoutes)}
+            </Routes>
           </PrivateRoute>
         }
       />
 
-      {/* Módulo Comercial */}
       <Route
         path="/comercial/*"
         element={
           <PrivateRoute>
-            <Routes>{comercialRoutes}</Routes>
-          </PrivateRoute>
-        }
-      />
-
-      {/* Outras Rotas Privadas */}
-      <Route
-        path="/suprimentos"
-        element={
-          <PrivateRoute>
-            <SuppliesPage />
-          </PrivateRoute>
-        }
-      />
-
-      <Route
-        path="/ajuda"
-        element={
-          <PrivateRoute>
-            <HelpPage />
+            <Routes>
+              {renderRoutes(comercialRoutes)}
+            </Routes>
           </PrivateRoute>
         }
       />
 
       {/* Rota 404 */}
-      <Route
-        path="*"
+      <Route 
+        path="*" 
         element={
-          <PrivateRoute>
+          <Suspense fallback={<LoadingFallback />}>
             <NotFoundPage />
-          </PrivateRoute>
-        }
+          </Suspense>
+        } 
       />
     </Routes>
   );

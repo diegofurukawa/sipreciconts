@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import MainLayout from '../../layouts/MainLayout';
-import { TablePagination } from '../../components/ui/TablePagination';
+import { MainLayout } from '../../layouts/MainLayout';
+import { TablePagination } from '../ui/table-pagination';
 import { Tax } from '../../types/tax';
-import { TaxService } from '../../services/api';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { TaxService } from '@/services/api';
+
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog/alert-dialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 
 interface TaxFormData {

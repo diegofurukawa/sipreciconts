@@ -1,22 +1,18 @@
 // src/pages/Login/index.tsx
-import React from 'react';
-import { LoginForm } from '../../components/Login';
+import { LoginHeader } from './components/LoginHeader';
+import { LoginForm } from './components/LoginForm';
+import { useLoginForm } from './hooks/useLoginForm';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
+  const loginForm = useLoginForm();
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h1 className="text-center text-3xl font-extrabold text-emerald-600">
-          SiPreciConts
-        </h1>
-        <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
-          Entre na sua conta
-        </h2>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <LoginForm />
+        <LoginHeader />
+        
+        <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <LoginForm form={loginForm} />
         </div>
       </div>
     </div>

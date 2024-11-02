@@ -3,7 +3,7 @@ interface FeatureCardProps {
   description: string;
 }
 
-export const FeatureCard = ({ title, description }: FeatureCardProps) => {
+const FeatureCard = ({ title, description }: FeatureCardProps) => {
   return (
     <div className="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
       <div className="p-6">
@@ -12,4 +12,8 @@ export const FeatureCard = ({ title, description }: FeatureCardProps) => {
       </div>
     </div>
   );
+};
+
+export {
+  FeatureCard
 };

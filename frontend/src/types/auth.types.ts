@@ -33,3 +33,10 @@ export interface DecodedToken {
 export interface RefreshTokenResponse {
   access: string;
 }
+
+// Interface para respostas de refresh de token
+export interface AuthContextType {
+  user: User;
+  login: string;
+  token: string;
+}

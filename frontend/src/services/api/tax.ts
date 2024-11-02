@@ -1,9 +1,9 @@
-// src/services/api/tax.ts
-import { api, handleApiError } from './utils';
-import { PaginatedResponse } from './types';
-import { Tax } from '../../types/tax';
+import { api } from './base';
+import { handleApiError } from './utils';
+import type { PaginatedResponse } from './types';
+import type { Tax } from '@/types/tax';
 
-export const TaxService = {
+const TaxService = {
   /**
    * Lista todos os impostos cadastrados
    */
@@ -170,4 +170,4 @@ export const TaxService = {
 };
 
 // Adicionar uma exportação default para maior flexibilidade
-export default TaxService;
+export  {TaxService}

@@ -1,53 +1,49 @@
-// src/contexts/AuthContext.tsx
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { AuthService } from '../services/api';
-import type { LoginResponse, AuthContextType } from '../types/auth.types';
+import { createContext, useContext, useState, useCallback } from 'react';
+import { AuthService, TokenService } from '../services/api';
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  loading: boolean;
+  user: any | null; // Replace 'any' with your user type
+  signIn: (credentials: { username: string; password: string }) => Promise<void>;
+  signOut: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<LoginResponse['user'] | null>(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const login = useCallback(async (username: string, password: string) => {
-    const response = await AuthService.login({ login: username, password });
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
-    setUser(response.user);
-  }, []);
-
-  const logout = useCallback(async () => {
-    await AuthService.logout();
-    setUser(null);
-  }, []);
-
-  useEffect(() => {
-    const validateAuth = async () => {
-      const isValid = await AuthService.validateToken();
-      if (!isValid) {
-        logout();
-      }
-    };
-
-    if (user) {
-      validateAuth();
+  const signIn = useCallback(async (credentials: { username: string; password: string }) => {
+    try {
+      setLoading(true);
+      const response = await AuthService.login(credentials);
+      setUser(response.user);
+    } finally {
+      setLoading(false);
     }
-  }, [logout, user]);
+  }, []);
 
-  return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        logout, 
-        isAuthenticated: !!user 
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const signOut = useCallback(async () => {
+    try {
+      setLoading(true);
+      await AuthService.logout();
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const value = {
+    isAuthenticated: !!user,
+    loading,
+    user,
+    signIn,
+    signOut
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

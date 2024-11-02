@@ -1,6 +1,6 @@
 // src/layouts/MainLayout/index.tsx
 import React from 'react';
-import { Navbar } from './components/Navbar';
+import { MainLayoutNavbar } from './components/MainLayoutNavbar';
 import { Footer } from './components/Footer';
 
 interface MainLayoutProps {
@@ -10,7 +10,7 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <MainLayoutNavbar />
       <main className="flex-grow bg-gray-50">
         {children}
       </main>
@@ -19,6 +19,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   );
 };
 
-// Adicionando ambas as exportações para maior flexibilidade
-export { MainLayout };
-export default MainLayout;
+export {
+  MainLayout
+}

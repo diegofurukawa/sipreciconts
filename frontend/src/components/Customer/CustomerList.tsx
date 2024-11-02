@@ -13,7 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../../components/ui/alert-dialog';
+} from '../ui/alert-dialog/alert-dialog';
 import { Loader2, Plus, FileUp, FileDown, Pencil, Trash2 } from 'lucide-react';
 //import { ApiError } from '@/services/xxx...api';
 
@@ -22,7 +22,7 @@ interface CustomerListProps {
   onNew?: () => void;
 }
 
-export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => {
+const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => {
   // State
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -301,4 +301,6 @@ export const CustomerList: React.FC<CustomerListProps> = ({ onEdit, onNew }) => 
   );
 };
 
-export default CustomerList;
+export {
+  CustomerList
+}

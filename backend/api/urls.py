@@ -11,7 +11,7 @@ from .views import (
     CompanyViewSet,
     UserViewSet
 )
-from .views.login import LoginView, LogoutView, ValidateTokenView
+from .auth_custom.views import LoginView, LogoutView, ValidateTokenView, TokenRefreshView
 
 # Configuração do router para ViewSets
 router = DefaultRouter()
@@ -26,14 +26,16 @@ router.register(r'asset-categories', AssetCategoryViewSet, basename='asset-categ
 router.register(r'asset-movements', AssetMovementViewSet, basename='asset-movement')
 
 # URLs de autenticação
-auth_patterns = [
-    path('login/', LoginView.as_view(), name='auth-login'),
-    path('logout/', LogoutView.as_view(), name='auth-logout'),
-    path('validate-token/', ValidateTokenView.as_view(), name='auth-validate-token'),
+auth_urls = [
+    path('auth/login/', LoginView.as_view(), name='login'),
+    path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('auth/validate/', ValidateTokenView.as_view(), name='validate-token'),
+    path('auth/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
 ]
+
 
 # Combinando todas as URLs
 urlpatterns = [
     path('', include(router.urls)),
-    path('auth/', include((auth_patterns, 'auth'), namespace='auth')),
+    *auth_urls,
 ]

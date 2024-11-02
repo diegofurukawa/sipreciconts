@@ -1,13 +1,32 @@
 // src/routes/modules/cadastros.routes.tsx
 import { Route } from 'react-router-dom';
-import { CustomerList } from '../../components/Customer/CustomerList';
-import { CompanyList } from '../../components/Company/CompanyList';
-import { TaxList } from '../../components/Tax/TaxList';
-import { SupplyList } from '../../components/Supply/SupplyList';
+import { lazy } from 'react';
+import type { AppRouteObject } from '../types';
 
-export const cadastrosRoutes = [
-  <Route key="clientes" path="clientes" element={<CustomerList />} />,
-  <Route key="empresas" path="empresas" element={<CompanyList />} />,
-  <Route key="impostos" path="impostos" element={<TaxList />} />,
-  <Route key="insumos" path="insumos" element={<SupplyList />} />
+const CustomerList = lazy(() => import('../../components/Customer/CustomerList'));
+const CompanyList = lazy(() => import('../../components/Company/CompanyList'));
+const TaxList = lazy(() => import('../../components/Tax/TaxList'));
+const SupplyList = lazy(() => import('../../components/Supply/SupplyList'));
+
+export const cadastrosRoutes: AppRouteObject[] = [
+  {
+    path: 'clientes',
+    element: <CustomerList />,
+    title: 'Clientes'
+  },
+  {
+    path: 'empresas',
+    element: <CompanyList />,
+    title: 'Empresas'
+  },
+  {
+    path: 'impostos',
+    element: <TaxList />,
+    title: 'Impostos'
+  },
+  {
+    path: 'insumos',
+    element: <SupplyList />,
+    title: 'Insumos'
+  }
 ];
