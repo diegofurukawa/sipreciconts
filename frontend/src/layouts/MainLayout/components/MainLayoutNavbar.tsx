@@ -1,118 +1,349 @@
-// src/layouts/MainLayout/components/MainLayoutNavbar.tsx
-import { useState } from 'react';
-import { ChevronDown, Menu } from 'lucide-react';
-import { Link } from 'react-router-dom'; // Adicionando import do Link
+// src/layouts/MainLayout/components/Navbar.tsx
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { 
+  ChevronDown, 
+  Menu, 
+  LogOut, 
+  User,
+  Home,
+  Building2,
+  Users,
+  Calculator,
+  Package,
+  ScrollText,
+  ClipboardList,
+  FileSpreadsheet,
+  HelpCircle,
+  Settings,
+  BarChart3,
+  type LucideIcon,
+} from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useCompany } from '@/contexts/CompanyContext';
+import { useToast } from '@/hooks/useToast';
+import { ROUTES } from '@/routes/config/route-paths';
+
+// Tipos
+interface MenuItem {
+  label: string;
+  path: string;
+  icon: LucideIcon;
+}
+
+interface MenuGroup {
+  label: string;
+  icon: LucideIcon;
+  path?: string;
+  items: MenuItem[];
+}
+
+// Constantes separadas para melhor manutenção
+const MENU_ITEMS: MenuGroup[] = [
+  {
+    label: 'Home',
+    icon: Home,
+    path: ROUTES.PRIVATE.HOME,
+    items: []
+  },
+  {
+    label: 'Cadastros',
+    icon: Building2,
+    items: [
+      { 
+        label: 'Empresa', 
+        path: ROUTES.PRIVATE.CADASTROS.EMPRESA.ROOT, 
+        icon: Building2 
+      },
+      { 
+        label: 'Clientes', 
+        path: ROUTES.PRIVATE.CADASTROS.CLIENTES.ROOT, 
+        icon: Users 
+      },
+      { 
+        label: 'Impostos', 
+        path: ROUTES.PRIVATE.CADASTROS.IMPOSTOS.ROOT, 
+        icon: Calculator 
+      },
+      { 
+        label: 'Insumos', 
+        path: ROUTES.PRIVATE.CADASTROS.INSUMOS.ROOT, 
+        icon: Package 
+      }
+    ]
+  },
+  {
+    label: 'Comercial',
+    icon: ScrollText,
+    items: [
+      { 
+        label: 'Orçamentos', 
+        path: ROUTES.PRIVATE.COMERCIAL.ORCAMENTOS.ROOT, 
+        icon: ClipboardList 
+      },
+      { 
+        label: 'Contratos', 
+        path: ROUTES.PRIVATE.COMERCIAL.CONTRATOS.ROOT, 
+        icon: FileSpreadsheet 
+      }
+    ]
+  },
+  {
+    label: 'Relatórios',
+    icon: BarChart3,
+    path: ROUTES.PRIVATE.RELATORIOS.ROOT,
+    items: []
+  },
+  {
+    label: 'Configurações',
+    icon: Settings,
+    path: ROUTES.PRIVATE.CONFIGURACOES.ROOT,
+    items: []
+  },
+  {
+    label: 'Ajuda',
+    icon: HelpCircle,
+    path: ROUTES.PRIVATE.AJUDA.ROOT,
+    items: []
+  }
+];
+
+const MenuButton = ({ 
+  icon: Icon,
+  label, 
+  isActive, 
+  onClick, 
+  hasDropdown = false 
+}: {
+  icon: LucideIcon;
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+  hasDropdown?: boolean;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`
+      flex items-center px-3 py-2 rounded-md w-full
+      ${isActive ? 'text-emerald-600 bg-emerald-50' : 'text-gray-700 hover:text-emerald-600 hover:bg-gray-50'}
+      transition-colors duration-200
+    `}
+  >
+    <Icon size={18} className="mr-2 flex-shrink-0" />
+    <span className="flex-1 text-left">{label}</span>
+    {hasDropdown && (
+      <ChevronDown 
+        size={16} 
+        className={`transform transition-transform duration-200 ${isActive ? 'rotate-180' : ''}`}
+      />
+    )}
+  </button>
+);
+
+const UserMenu = ({ isMobile, user, onLogout }: {
+  isMobile: boolean;
+  user: { name: string } | null;
+  onLogout: () => void;
+}) => {
+  const { currentCompany } = useCompany();
+  
+  return user && (
+    <div className={`
+      ${isMobile 
+        ? "border-t border-gray-200 pt-4 mt-4" 
+        : "flex items-center ml-4 space-x-4 border-l pl-4"
+      }
+    `}>
+      <div className="flex flex-col items-start">
+        <div className="flex items-center text-gray-700">
+          <User size={18} className="mr-2 flex-shrink-0" />
+          <span className="font-medium truncate">{user.name}</span>
+        </div>
+        {currentCompany && (
+          <span className="text-sm text-gray-500 ml-6">
+            {currentCompany.name}
+          </span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onLogout}
+        className={`
+          flex items-center
+          ${isMobile 
+            ? "w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100" 
+            : "text-gray-700 hover:text-red-600"
+          }
+          transition-colors duration-200 rounded-md
+        `}
+      >
+        <LogOut size={18} className="mr-2 flex-shrink-0" />
+        <span>Sair</span>
+      </button>
+    </div>
+  );
+};
 
 export const MainLayoutNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const { showToast } = useToast();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const menuItems = {
-    Cadastros: ['Empresa', 'Clientes', 'Impostos', 'Insumos'],
-    Comercial: ['Orçamento', 'Contratos'],
-    Ajuda: []
-  };
+  const handleNavigate = useCallback((path: string) => {
+    navigate(path);
+    setIsMenuOpen(false);
+    setActiveDropdown('');
+  }, [navigate]);
 
-  const handleDropdownClick = (menu: string) => {
-    setActiveDropdown(activeDropdown === menu ? '' : menu);
-  };
+  const handleDropdownClick = useCallback((menu: string) => {
+    setActiveDropdown(prev => prev === menu ? '' : menu);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await logout();
+      showToast({
+        type: 'success',
+        title: 'Logout realizado',
+        message: 'Você foi desconectado com sucesso'
+      });
+      navigate(ROUTES.PUBLIC.LOGIN);
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      showToast({
+        type: 'error',
+        title: 'Erro no logout',
+        message: 'Ocorreu um erro ao tentar desconectar'
+      });
+    } finally {
+      setIsMenuOpen(false);
+    }
+  }, [logout, showToast, navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setActiveDropdown('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setActiveDropdown('');
+  }, [location.pathname]);
+
+  const isActiveRoute = useCallback((path?: string): boolean => {
+    if (!path) return false;
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  }, [location.pathname]);
 
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between h-16">
           {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-xl font-bold text-emerald-600">
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={() => handleNavigate(ROUTES.PRIVATE.HOME)}
+              className="text-xl font-bold text-emerald-600 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-md transition-colors duration-200"
+            >
               SiPreciConts
-            </Link>
+            </button>
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to="/" 
-              className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md"
-            >
-              Home
-            </Link>
-            {Object.entries(menuItems).map(([menu, items]) => (
-              <div key={menu} className="relative group">
-                <button
-                  onClick={() => handleDropdownClick(menu)}
-                  className="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md"
-                >
-                  <span>{menu}</span>
-                  <ChevronDown size={16} />
-                </button>
-                {items.length > 0 && activeDropdown === menu && (
-                  <div className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                    <div className="py-1">
-                      {items.map((item) => (
-                        <Link
-                          key={item}
-                          to={`/${menu.toLowerCase()}/${item.toLowerCase()}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {item}
-                        </Link>
-                      ))}
-                    </div>
+          <div className="hidden md:flex items-center space-x-2" ref={dropdownRef}>
+            {MENU_ITEMS.map((group) => (
+              <div key={group.label} className="relative">
+                <MenuButton
+                  icon={group.icon}
+                  label={group.label}
+                  isActive={group.path ? isActiveRoute(group.path) : activeDropdown === group.label}
+                  onClick={() => group.path ? handleNavigate(group.path) : handleDropdownClick(group.label)}
+                  hasDropdown={group.items.length > 0}
+                />
+                {activeDropdown === group.label && group.items.length > 0 && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 py-1 z-50">
+                    {group.items.map(item => (
+                      <MenuButton
+                        key={item.path}
+                        icon={item.icon}
+                        label={item.label}
+                        isActive={isActiveRoute(item.path)}
+                        onClick={() => handleNavigate(item.path)}
+                      />
+                    ))}
                   </div>
                 )}
               </div>
             ))}
+            <UserMenu 
+              isMobile={false} 
+              user={user} 
+              onLogout={handleLogout} 
+            />
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-emerald-600 hover:bg-gray-100"
-            >
-              <Menu size={24} />
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-md text-gray-700 hover:text-emerald-600 hover:bg-gray-100"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <Menu size={24} />
+          </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden border-t border-gray-200">
           <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-100"
-            >
-              Home
-            </Link>
-            {Object.entries(menuItems).map(([menu, items]) => (
-              <div key={menu}>
-                <button
-                  onClick={() => handleDropdownClick(menu)}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-emerald-600 hover:bg-gray-100"
-                >
-                  <span>{menu}</span>
-                  <ChevronDown size={16} />
-                </button>
-                {items.length > 0 && activeDropdown === menu && (
-                  <div className="pl-4">
-                    {items.map((item) => (
-                      <Link
-                        key={item}
-                        to={`/${menu.toLowerCase()}/${item.toLowerCase()}`}
-                        className="block px-3 py-2 rounded-md text-base text-gray-700 hover:text-emerald-600 hover:bg-gray-100"
-                      >
-                        {item}
-                      </Link>
+            {MENU_ITEMS.map(group => (
+              <div key={group.label}>
+                <MenuButton
+                  icon={group.icon}
+                  label={group.label}
+                  isActive={group.path ? isActiveRoute(group.path) : activeDropdown === group.label}
+                  onClick={() => group.path ? handleNavigate(group.path) : handleDropdownClick(group.label)}
+                  hasDropdown={group.items.length > 0}
+                />
+                {activeDropdown === group.label && group.items.length > 0 && (
+                  <div className="pl-4 space-y-1">
+                    {group.items.map(item => (
+                      <MenuButton
+                        key={item.path}
+                        icon={item.icon}
+                        label={item.label}
+                        isActive={isActiveRoute(item.path)}
+                        onClick={() => handleNavigate(item.path)}
+                      />
                     ))}
                   </div>
                 )}
               </div>
             ))}
           </div>
+          <UserMenu 
+            isMobile={true} 
+            user={user} 
+            onLogout={handleLogout} 
+          />
         </div>
       )}
     </nav>
   );
 };
+
+export { MainLayoutNavbar as Navbar };

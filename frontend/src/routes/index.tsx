@@ -6,6 +6,7 @@ import { LayoutWrapper } from '../components/LayoutWrapper';
 import type { AppRouteObject } from './types';
 import { cadastrosRoutes, comercialRoutes } from './modules';
 
+
 // Lazy loading das páginas
 const LoginPage = lazy(() => import('../pages/Login'));
 const HomePage = lazy(() => import('../pages/Home'));

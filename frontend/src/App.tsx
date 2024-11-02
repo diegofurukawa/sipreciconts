@@ -1,13 +1,13 @@
 // src/App.tsx
-import { AppProviders } from './providers';
 import { AppRoutes } from './routes';
+import { MainLayout } from './layouts/MainLayout';
 
-const App = () => {
+function App() {
   return (
-    <AppProviders>
+    <MainLayout>
       <AppRoutes />
-    </AppProviders>
+    </MainLayout>
   );
-};
+}
 
 export default App;
