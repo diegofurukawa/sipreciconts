@@ -1,16 +1,23 @@
 // src/providers/index.tsx
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { CompanyProvider } from '@/contexts/CompanyContext';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { ReactNode } from 'react';
 
 interface AppProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const AppProviders = ({ children }: AppProvidersProps) => {
   return (
     <BrowserRouter>
       <AuthProvider>
-        {children}
+        <ToastProvider>
+          <CompanyProvider>
+            {children}
+          </CompanyProvider>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -1,24 +1,23 @@
 // src/layouts/MainLayout/index.tsx
-import React from 'react';
-import { MainLayoutNavbar } from './components/MainLayoutNavbar';
+import { ReactNode } from 'react';
+import { MainLayoutNavbar as Navbar } from './components/MainLayoutNavbar';
 import { Footer } from './components/Footer';
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col">
-      <MainLayoutNavbar />
-      <main className="flex-grow bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <main className="flex-grow">
         {children}
       </main>
       <Footer />
     </div>
   );
 };
-
 export {
   MainLayout
 }

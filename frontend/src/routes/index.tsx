@@ -1,11 +1,9 @@
 // src/routes/index.tsx
 import { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { LayoutWrapper } from '../components/LayoutWrapper';
+import { useAuth } from '@/contexts/AuthContext';
 import type { AppRouteObject } from './types';
 import { cadastrosRoutes, comercialRoutes } from './modules';
-
 
 // Lazy loading das páginas
 const LoginPage = lazy(() => import('../pages/Login'));
@@ -14,10 +12,9 @@ const NotFoundPage = lazy(() => import('../pages/NotFound'));
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
   </div>
 );
-
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
@@ -27,21 +24,8 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <LayoutWrapper>{children}</LayoutWrapper>;
+  return children; // Removido o LayoutWrapper daqui
 };
-
-const renderRoutes = (routes: AppRouteObject[]) => 
-  routes.map(({ path, element, title }) => (
-    <Route 
-      key={path} 
-      path={path} 
-      element={
-        <Suspense fallback={<LoadingFallback />}>
-          {element}
-        </Suspense>
-      } 
-    />
-  ));
 
 export const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -52,7 +36,6 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Rota pública */}
       <Route 
         path="/login" 
         element={
@@ -62,7 +45,6 @@ export const AppRoutes = () => {
         } 
       />
 
-      {/* Rotas protegidas */}
       <Route
         path="/"
         element={
@@ -79,7 +61,17 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <Routes>
-              {renderRoutes(cadastrosRoutes)}
+              {cadastrosRoutes.map(({ path, element, title }) => (
+                <Route 
+                  key={path} 
+                  path={path} 
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      {element}
+                    </Suspense>
+                  } 
+                />
+              ))}
             </Routes>
           </PrivateRoute>
         }
@@ -90,13 +82,22 @@ export const AppRoutes = () => {
         element={
           <PrivateRoute>
             <Routes>
-              {renderRoutes(comercialRoutes)}
+              {comercialRoutes.map(({ path, element, title }) => (
+                <Route 
+                  key={path} 
+                  path={path} 
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      {element}
+                    </Suspense>
+                  } 
+                />
+              ))}
             </Routes>
           </PrivateRoute>
         }
       />
 
-      {/* Rota 404 */}
       <Route 
         path="*" 
         element={
@@ -108,5 +109,3 @@ export const AppRoutes = () => {
     </Routes>
   );
 };
-
-export default AppRoutes;
