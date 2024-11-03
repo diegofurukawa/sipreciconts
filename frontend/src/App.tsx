@@ -1,15 +1,18 @@
 // src/App.tsx
-import { AppProviders } from './providers';
-import { MainLayout } from './layouts/MainLayout';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { AppRoutes } from './routes';
 
 const App = () => {
   return (
-    <AppProviders>
-      <MainLayout>
-        <AppRoutes />
-      </MainLayout>
-    </AppProviders>
+    <AuthProvider>
+      <ToastProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </ToastProvider>
+    </AuthProvider>
   );
 };
 

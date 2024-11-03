@@ -1,4 +1,5 @@
 import { AuthTokens } from './types';
+const TOKEN_KEY = '@SiPreciConts:token';
 
 export const TokenService = {
   getAccessToken(): string | null {
@@ -21,5 +22,21 @@ export const TokenService = {
 
   hasValidToken(): boolean {
     return !!this.getAccessToken();
+  },
+
+  getToken: (): string | null => {
+    return localStorage.getItem(TOKEN_KEY);
+  },
+
+  setToken: (token: string): void => {
+    localStorage.setItem(TOKEN_KEY, token);
+  },
+
+  clearToken: (): void => {
+    localStorage.removeItem(TOKEN_KEY);
+  },
+
+  hasToken: (): boolean => {
+    return !!localStorage.getItem(TOKEN_KEY);
   }
 };

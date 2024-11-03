@@ -141,7 +141,7 @@ const MenuButton = ({
   </button>
 );
 
-export const MainLayoutNavbar = () => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState('');
   const navigate = useNavigate();
@@ -300,4 +300,4 @@ export const MainLayoutNavbar = () => {
   );
 };
 
-export { MainLayoutNavbar as Navbar };
+export { Navbar as Navbar };

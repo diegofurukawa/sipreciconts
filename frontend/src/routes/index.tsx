@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/layouts/MainLayout';
+import { AuthLayout } from '@/layouts/AuthLayout';
 
 // Import direto das páginas principais usando named imports
 import { LoginPage } from '@/pages/Login';
@@ -32,6 +33,22 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   }
 
   return <MainLayout>{children}</MainLayout>;
+};
+
+interface PublicRouteProps {
+  children: React.ReactNode;
+}
+
+const PublicRoute = ({ children }: PublicRouteProps) => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  if (isAuthenticated) {
+    // Redireciona para a página inicial se já estiver autenticado
+    return <Navigate to="/" replace />;
+  }
+
+  return <AuthLayout>{children}</AuthLayout>;
 };
 
 interface RouteConfig {
@@ -74,19 +91,17 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Rota pública */}
+      {/* Rotas públicas */}
       <Route
         path="/login"
         element={
-          isAuthenticated ? (
-            <Navigate to="/" replace />
-          ) : (
+          <PublicRoute>
             <LoginPage />
-          )
+          </PublicRoute>
         }
       />
 
-      {/* Rota principal */}
+      {/* Rotas privadas */}
       <Route
         path="/"
         element={
@@ -120,10 +135,14 @@ export const AppRoutes = () => {
         }
       />
 
-      {/* Rota 404 */}
+      {/* Página não encontrada */}
       <Route 
         path="*" 
-        element={<NotFoundPage />} 
+        element={
+          <AuthLayout>
+            <NotFoundPage />
+          </AuthLayout>
+        } 
       />
     </Routes>
   );
