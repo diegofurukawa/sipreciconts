@@ -1,122 +1,59 @@
-import {api} from './base';
-import { handleApiError } from './utils';
-import { PaginatedResponse } from './types';
+// src/services/api/customer.ts
+import { api } from './base';
+import type { Customer } from '@/pages/Customer/types';
 
-export interface Customer {
-  id?: number;
-  name: string;
-  document?: string;
-  customer_type?: string;
-  celphone: string;
-  email?: string;
-  address?: string;
-  complement?: string;
-  enabled?: boolean;
-  created?: string;
-  updated?: string;
-}
+const CUSTOMER_ENDPOINT = '/customers';
 
-const CustomerService = {
-  /**
-   * Lista todos os clientes
-   */
-  list: async (): Promise<PaginatedResponse<Customer>> => {
-    try {
-      const response = await api.get<PaginatedResponse<Customer>>('/customers/');
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
+export const CustomerService = {
+  list: async (): Promise<Customer[]> => {
+    const response = await api.get(CUSTOMER_ENDPOINT);
+    return response.data;
   },
 
-  /**
-   * Cria um novo cliente
-   */
   create: async (data: Partial<Customer>): Promise<Customer> => {
-    try {
-      const response = await api.post<Customer>('/customers/', data);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
+    const response = await api.post(CUSTOMER_ENDPOINT, data);
+    return response.data;
   },
 
-  /**
-   * Atualiza um cliente existente
-   */
   update: async (id: number, data: Partial<Customer>): Promise<Customer> => {
-    try {
-      const response = await api.put<Customer>(`/customers/${id}/`, data);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
+    const response = await api.put(`${CUSTOMER_ENDPOINT}/${id}`, data);
+    return response.data;
   },
 
-  /**
-   * Remove um cliente
-   */
   delete: async (id: number): Promise<void> => {
-    try {
-      await api.delete(`/customers/${id}/`);
-    } catch (error) {
-      throw handleApiError(error);
-    }
+    await api.delete(`${CUSTOMER_ENDPOINT}/${id}`);
   },
 
-  /**
-   * Importa clientes de um arquivo
-   */
   import: async (file: File): Promise<void> => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      await api.post('/customers/import_customers/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    } catch (error) {
-      throw handleApiError(error);
-    }
+    const formData = new FormData();
+    formData.append('file', file);
+    await api.post(`${CUSTOMER_ENDPOINT}/import`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   },
 
-  /**
-   * Exporta clientes para CSV
-   */
   export: async (): Promise<void> => {
-    try {
-      const response = await api.get('/customers/export/', {
-        responseType: 'blob',
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `clientes_${new Date().toISOString()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-
-  /**
-   * Busca um cliente específico
-   */
-  getById: async (id: number): Promise<Customer> => {
-    try {
-      const response = await api.get<Customer>(`/customers/${id}/`);
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
+    const response = await api.get(`${CUSTOMER_ENDPOINT}/export`, {
+      responseType: 'blob',
+    });
+    
+    // Criar blob e fazer download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Pegar nome do arquivo do header ou usar padrão
+    const contentDisposition = response.headers['content-disposition'];
+    const fileName = contentDisposition
+      ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+      : 'clientes.csv';
+    
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 };
-
-
-export {
-  CustomerService
-}

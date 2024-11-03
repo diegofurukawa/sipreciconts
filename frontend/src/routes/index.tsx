@@ -14,17 +14,27 @@ import { NotFoundPage } from '@/pages/NotFound';
 import { cadastrosRoutes } from './modules/cadastros.routes';
 import { comercialRoutes } from './modules/comercial.routes';
 
+// Componente de loading padrão
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
   </div>
 );
 
-interface PrivateRouteProps {
+// Tipos
+interface RouteProps {
   children: React.ReactNode;
 }
 
-const PrivateRoute = ({ children }: PrivateRouteProps) => {
+interface RouteConfig {
+  path: string;
+  element: React.ReactElement;
+  title?: string;
+  children?: RouteConfig[];
+}
+
+// Componente de rota privada
+const PrivateRoute = ({ children }: RouteProps) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -35,52 +45,57 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
-interface PublicRouteProps {
-  children: React.ReactNode;
-}
-
-const PublicRoute = ({ children }: PublicRouteProps) => {
+// Componente de rota pública
+const PublicRoute = ({ children }: RouteProps) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
   if (isAuthenticated) {
     // Redireciona para a página inicial se já estiver autenticado
-    return <Navigate to="/" replace />;
+    const from = location.state?.from?.pathname || '/';
+    return <Navigate to={from} replace />;
   }
 
   return <AuthLayout>{children}</AuthLayout>;
 };
 
-interface RouteConfig {
-  path: string;
-  Component: React.ComponentType;
-  title?: string;
-}
-
+// Função para renderizar rotas de módulo
 const renderModuleRoutes = (routes: RouteConfig[]) => {
-  return routes.map(({ path, Component, title }) => {
-    if (!Component) {
-      console.warn(`No component provided for route: ${path}`);
+  return routes.map((route) => {
+    if (!route.element) {
+      console.warn(`No element provided for route: ${route.path}`);
       return null;
     }
 
+    // Se houver rotas filhas, renderiza recursivamente
+    if (route.children && route.children.length > 0) {
+      return (
+        <Route key={route.path} path={route.path} element={route.element}>
+          {renderModuleRoutes(route.children)}
+        </Route>
+      );
+    }
+
+    // Rota simples
     return (
       <Route
-        key={path}
-        path={path}
+        key={route.path}
+        path={route.path}
         element={
           <Suspense fallback={<LoadingFallback />}>
-            <Component />
+            {route.element}
           </Suspense>
         }
       />
     );
-  }).filter(Boolean);
+  }).filter(Boolean); // Remove itens null/undefined
 };
 
+// Componente principal de rotas
 export const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
 
+  // Loading inicial do auth
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -91,7 +106,7 @@ export const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Rotas públicas */}
+      {/* Rota de login */}
       <Route
         path="/login"
         element={
@@ -101,7 +116,7 @@ export const AppRoutes = () => {
         }
       />
 
-      {/* Rotas privadas */}
+      {/* Rota inicial */}
       <Route
         path="/"
         element={
@@ -111,31 +126,47 @@ export const AppRoutes = () => {
         }
       />
 
-      {/* Rotas de cadastros */}
-      <Route 
-        path="/cadastros/*" 
+      {/* Módulo de Cadastros */}
+      <Route
+        path="/cadastros/*"
         element={
           <PrivateRoute>
-            <Routes>
-              {renderModuleRoutes(cadastrosRoutes)}
-            </Routes>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {cadastrosRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  />
+                ))}
+              </Routes>
+            </Suspense>
           </PrivateRoute>
         }
       />
 
-      {/* Rotas comerciais */}
-      <Route 
-        path="/comercial/*" 
+      {/* Módulo Comercial */}
+      <Route
+        path="/comercial/*"
         element={
           <PrivateRoute>
-            <Routes>
-              {renderModuleRoutes(comercialRoutes)}
-            </Routes>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {comercialRoutes.map((route) => (
+                  <Route
+                    key={route.path}
+                    path={route.path}
+                    element={route.element}
+                  />
+                ))}
+              </Routes>
+            </Suspense>
           </PrivateRoute>
         }
       />
 
-      {/* Página não encontrada */}
+      {/* Rota para página não encontrada */}
       <Route 
         path="*" 
         element={
@@ -148,4 +179,8 @@ export const AppRoutes = () => {
   );
 };
 
+// Exporta os tipos para uso em outros arquivos
+export type { RouteConfig };
+
+// Exporta o componente como default
 export default AppRoutes;

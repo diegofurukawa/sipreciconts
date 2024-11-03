@@ -13,7 +13,7 @@ interface CompanyContextData {
 
 const CompanyContext = createContext<CompanyContextData>({} as CompanyContextData);
 
-export const CompanyProvider = ({ children }: { children: ReactNode }) => {
+const CompanyProvider = ({ children }: { children: ReactNode }) => {
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,10 +64,15 @@ export const CompanyProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useCompany = () => {
+const useCompany = () => {
   const context = useContext(CompanyContext);
   if (!context) {
     throw new Error('useCompany must be used within a CompanyProvider');
   }
   return context;
+};
+
+export {
+  useCompany
+  ,CompanyProvider
 };
