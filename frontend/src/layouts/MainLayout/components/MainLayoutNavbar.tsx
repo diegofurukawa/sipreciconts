@@ -2,9 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   ChevronDown, 
-  Menu, 
-  LogOut, 
-  User,
+  Menu,
   Home,
   Building2,
   Users,
@@ -20,9 +18,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCompany } from '@/contexts/CompanyContext';
 import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/routes/config/route-paths';
+import { UserMenu } from './UserMenu';
 
 // Tipos
 interface MenuItem {
@@ -108,19 +106,21 @@ const MENU_ITEMS: MenuGroup[] = [
   }
 ];
 
+interface MenuButtonProps {
+  icon: LucideIcon;
+  label: string;
+  isActive: boolean;
+  onClick: () => void;
+  hasDropdown?: boolean;
+}
+
 const MenuButton = ({ 
   icon: Icon,
   label, 
   isActive, 
   onClick, 
   hasDropdown = false 
-}: {
-  icon: LucideIcon;
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-  hasDropdown?: boolean;
-}) => (
+}: MenuButtonProps) => (
   <button
     type="button"
     onClick={onClick}
@@ -141,56 +141,12 @@ const MenuButton = ({
   </button>
 );
 
-const UserMenu = ({ isMobile, user, onLogout }: {
-  isMobile: boolean;
-  user: { name: string } | null;
-  onLogout: () => void;
-}) => {
-  const { currentCompany } = useCompany();
-  
-  return user && (
-    <div className={`
-      ${isMobile 
-        ? "border-t border-gray-200 pt-4 mt-4" 
-        : "flex items-center ml-4 space-x-4 border-l pl-4"
-      }
-    `}>
-      <div className="flex flex-col items-start">
-        <div className="flex items-center text-gray-700">
-          <User size={18} className="mr-2 flex-shrink-0" />
-          <span className="font-medium truncate">{user.name}</span>
-        </div>
-        {currentCompany && (
-          <span className="text-sm text-gray-500 ml-6">
-            {currentCompany.name}
-          </span>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={onLogout}
-        className={`
-          flex items-center
-          ${isMobile 
-            ? "w-full px-3 py-2 text-sm text-red-600 hover:bg-gray-100" 
-            : "text-gray-700 hover:text-red-600"
-          }
-          transition-colors duration-200 rounded-md
-        `}
-      >
-        <LogOut size={18} className="mr-2 flex-shrink-0" />
-        <span>Sair</span>
-      </button>
-    </div>
-  );
-};
-
 export const MainLayoutNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { showToast } = useToast();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -289,7 +245,6 @@ export const MainLayoutNavbar = () => {
             ))}
             <UserMenu 
               isMobile={false} 
-              user={user} 
               onLogout={handleLogout} 
             />
           </div>
@@ -337,7 +292,6 @@ export const MainLayoutNavbar = () => {
           </div>
           <UserMenu 
             isMobile={true} 
-            user={user} 
             onLogout={handleLogout} 
           />
         </div>

@@ -1,22 +1,29 @@
 // src/routes/index.tsx
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import type { AppRouteObject } from './types';
-import { cadastrosRoutes, comercialRoutes } from './modules';
+import { MainLayout } from '@/layouts/MainLayout';
 
-// Lazy loading das páginas
-const LoginPage = lazy(() => import('../pages/Login'));
-const HomePage = lazy(() => import('../pages/Home'));
-const NotFoundPage = lazy(() => import('../pages/NotFound'));
+// Import direto das páginas principais usando named imports
+import { LoginPage } from '@/pages/Login';
+import { HomePage } from '@/pages/Home';
+import { NotFoundPage } from '@/pages/NotFound';
+
+// Import das rotas de módulos
+import { cadastrosRoutes } from './modules/cadastros.routes';
+import { comercialRoutes } from './modules/comercial.routes';
 
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
   </div>
 );
 
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+interface PrivateRouteProps {
+  children: React.ReactNode;
+}
+
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
@@ -24,88 +31,102 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children; // Removido o LayoutWrapper daqui
+  return <MainLayout>{children}</MainLayout>;
+};
+
+interface RouteConfig {
+  path: string;
+  Component: React.ComponentType;
+  title?: string;
+}
+
+const renderModuleRoutes = (routes: RouteConfig[]) => {
+  return routes.map(({ path, Component, title }) => {
+    if (!Component) {
+      console.warn(`No component provided for route: ${path}`);
+      return null;
+    }
+
+    return (
+      <Route
+        key={path}
+        path={path}
+        element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Component />
+          </Suspense>
+        }
+      />
+    );
+  }).filter(Boolean);
 };
 
 export const AppRoutes = () => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <LoadingFallback />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
   }
 
   return (
     <Routes>
-      <Route 
-        path="/login" 
+      {/* Rota pública */}
+      <Route
+        path="/login"
         element={
-          <Suspense fallback={<LoadingFallback />}>
-            {isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
-          </Suspense>
-        } 
+          isAuthenticated ? (
+            <Navigate to="/" replace />
+          ) : (
+            <LoginPage />
+          )
+        }
       />
 
+      {/* Rota principal */}
       <Route
         path="/"
         element={
           <PrivateRoute>
-            <Suspense fallback={<LoadingFallback />}>
-              <HomePage />
-            </Suspense>
+            <HomePage />
           </PrivateRoute>
         }
       />
 
-      <Route
-        path="/cadastros/*"
+      {/* Rotas de cadastros */}
+      <Route 
+        path="/cadastros/*" 
         element={
           <PrivateRoute>
             <Routes>
-              {cadastrosRoutes.map(({ path, element, title }) => (
-                <Route 
-                  key={path} 
-                  path={path} 
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      {element}
-                    </Suspense>
-                  } 
-                />
-              ))}
+              {renderModuleRoutes(cadastrosRoutes)}
             </Routes>
           </PrivateRoute>
         }
       />
 
-      <Route
-        path="/comercial/*"
+      {/* Rotas comerciais */}
+      <Route 
+        path="/comercial/*" 
         element={
           <PrivateRoute>
             <Routes>
-              {comercialRoutes.map(({ path, element, title }) => (
-                <Route 
-                  key={path} 
-                  path={path} 
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      {element}
-                    </Suspense>
-                  } 
-                />
-              ))}
+              {renderModuleRoutes(comercialRoutes)}
             </Routes>
           </PrivateRoute>
         }
       />
 
+      {/* Rota 404 */}
       <Route 
         path="*" 
-        element={
-          <Suspense fallback={<LoadingFallback />}>
-            <NotFoundPage />
-          </Suspense>
-        } 
+        element={<NotFoundPage />} 
       />
     </Routes>
   );
 };
+
+export default AppRoutes;

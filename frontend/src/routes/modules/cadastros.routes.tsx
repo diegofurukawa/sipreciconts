@@ -1,44 +1,40 @@
-// src/routes/modules/cadastros.routes.tsx
+// src/routes/modules/cadastros.routes.ts
 import { lazy } from 'react';
-import type { AppRouteObject } from '../types';
 
-// const CustomerList = lazy(() => import('../../components/Customer/CustomerList'));
-// const TaxList = lazy(() => import('../../components/Tax/TaxList'));
-// const SupplyList = lazy(() => import('../../components/Supply/SupplyList'));
+// Lazy imports
+const CustomerList = lazy(() => import('@/pages/Customer/List'));
+const CustomerForm = lazy(() => import('@/pages/Customer/Form'));
+const CompanyForm = lazy(() => import('@/pages/Company/Form'));
 
-// Importando da nova estrutura de Company
-const Company = lazy(() => import('../../pages/Company').then(m => ({ default: m.Company })));
+interface RouteConfig {
+  path: string;
+  Component: React.ComponentType;
+  title: string;
+}
 
-export const cadastrosRoutes: AppRouteObject[] = [
-  // {
-  //   path: 'clientes',
-  //   element: <CustomerList />,
-  //   title: 'Clientes'
-  // },
+const cadastrosRoutes: RouteConfig[] = [
+  {
+    path: 'clientes',
+    Component: CustomerList,
+    title: 'Lista de Clientes'
+  },
+  {
+    path: 'clientes/novo',
+    Component: CustomerForm,
+    title: 'Novo Cliente'
+  },
+  {
+    path: 'clientes/:id',
+    Component: CustomerForm,
+    title: 'Editar Cliente'
+  },
   {
     path: 'empresa',
-    element: <Company />,
-    title: 'Empresa'
-  },
-  {
-    path: 'empresa/nova',
-    element: <Company />,
-    title: 'Nova Empresa'
-  },
-  {
-    path: 'empresa/:id',
-    element: <Company />,
-    title: 'Editar Empresa'
+    Component: CompanyForm,
+    title: 'Dados da Empresa'
   }
-  // ,
-  // {
-  //   path: 'impostos',
-  //   element: <TaxList />,
-  //   title: 'Impostos'
-  // },
-  // {
-  //   path: 'insumos',
-  //   element: <SupplyList />,
-  //   title: 'Insumos'
-  // }
 ];
+
+export {
+  cadastrosRoutes
+};

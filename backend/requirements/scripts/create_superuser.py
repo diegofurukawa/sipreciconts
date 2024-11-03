@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-var_username = 'user_co001'
+var_username = 'admin'
 var_password = 'dgo@2337'
 
 def create_superuser():

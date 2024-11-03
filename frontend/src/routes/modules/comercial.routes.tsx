@@ -6,7 +6,7 @@ import type { AppRouteObject } from '../types';
 const QuoteList = lazy(() => import('../../components/Quote/QuoteList'));
 const ContractList = lazy(() => import('../../components/Contract/ContractList'));
 
-export const comercialRoutes: AppRouteObject[] = [
+const comercialRoutes: AppRouteObject[] = [
   {
     path: 'orcamentos',
     element: <QuoteList />,
@@ -18,3 +18,7 @@ export const comercialRoutes: AppRouteObject[] = [
     title: 'Contratos'
   }
 ];
+
+export {
+  comercialRoutes
+};

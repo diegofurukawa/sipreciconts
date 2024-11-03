@@ -1,41 +1,67 @@
 # api/serializers/__init__.py
 
-from .customer import CustomerSerializer
+from .base import BaseSerializer
+from .company import (
+    UserMinimalSerializer,
+    CompanyListSerializer,
+    CompanyDetailSerializer,
+    CompanyCreateSerializer,
+    CompanyUpdateSerializer,
+    CompanyMemberManagementSerializer,
+    CompanyBasicSerializer,
+    CompanySerializer
+)
+from .customer import CustomerSerializer, CustomerTypeSerializer
 from .tax import TaxSerializer
 from .supply import SupplySerializer
 from .asset import AssetSerializer
 from .asset_group import AssetGroupSerializer
 from .asset_category import AssetCategorySerializer
 from .asset_movement import AssetMovementSerializer
-from .company import CompanySerializer, CompanyDetailSerializer, CompanyListSerializer
 from .user import UserSerializer
-
+# from .contract import ContractSerializer, ContractDetailSerializer, ContractListSerializer
+# from .quote import QuoteSerializer, QuoteDetailSerializer, QuoteListSerializer
 
 __all__ = [
-    #Base
+    # Base
     'BaseSerializer',
     
-    #Companys
-    'CompanySerializer',
+    # Company
+    'UserMinimalSerializer',
     'CompanyListSerializer',
     'CompanyDetailSerializer',
+    'CompanyCreateSerializer',
+    'CompanyUpdateSerializer',
+    'CompanyMemberManagementSerializer',
+    'CompanyBasicSerializer',
+    'CompanySerializer',
 
-    #User
+    # User
     'UserSerializer',
 
-    #Tax
+    # Tax
     'TaxSerializer',
 
-    #Customer
+    # Customer
     'CustomerSerializer',
     'CustomerTypeSerializer',
 
-    #Supply
+    # Supply
     'SupplySerializer',
 
-    #Asset
+    # Asset
     'AssetSerializer',
     'AssetGroupSerializer',
     'AssetCategorySerializer',
     'AssetMovementSerializer',
+
+    # # Contract
+    # 'ContractSerializer',
+    # 'ContractDetailSerializer',
+    # 'ContractListSerializer',
+
+    # # Quote
+    # 'QuoteSerializer',
+    # 'QuoteDetailSerializer',
+    # 'QuoteListSerializer',
 ]
