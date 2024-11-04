@@ -1,36 +1,21 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useCallback } from 'react';
-import { AuthService, TokenService } from '../services/api';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  username: string;
-  company_id: number;
-  company_name?: string;
-  role?: string;
-  last_login?: string;
-}
+import { authService, TokenService } from '@/services/api';
+import type { AuthUser, AuthCredentials, AuthResponse } from '@/services/api';
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   token: string | null;
 }
 
 interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
-  user: User | null;
-  signIn: (credentials: SignInCredentials) => Promise<void>;
+  user: AuthUser | null;
+  signIn: (credentials: AuthCredentials) => Promise<void>;
   signOut: () => Promise<void>;
-  logout: () => Promise<void>; // Alias para signOut para compatibilidade
-  updateUser: (data: Partial<User>) => void;
-}
-
-interface SignInCredentials {
-  username: string;
-  password: string;
+  logout: () => Promise<void>;
+  updateUser: (data: Partial<AuthUser>) => void;
 }
 
 interface AuthProviderProps {
@@ -47,12 +32,18 @@ function loadStorageData(): AuthState {
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       
-      // Restaura o token no serviço
-      if (parsedData.token) {
-        TokenService.setToken(parsedData.token);
+      // Restaura os tokens no serviço
+      if (parsedData.access && parsedData.refresh) {
+        TokenService.setTokens({
+          access: parsedData.access,
+          refresh: parsedData.refresh
+        });
       }
       
-      return parsedData;
+      return {
+        user: parsedData.user,
+        token: parsedData.access
+      };
     }
   } catch (error) {
     console.error('Erro ao carregar dados do storage:', error);
@@ -65,28 +56,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(loadStorageData);
   const [loading, setLoading] = useState(false);
 
-  const updateStorage = useCallback((data: AuthState) => {
+  const updateStorage = useCallback((data: AuthResponse) => {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
   }, []);
 
-  const signIn = useCallback(async (credentials: SignInCredentials) => {
+  const signIn = useCallback(async (credentials: AuthCredentials) => {
     try {
       setLoading(true);
-      const response = await AuthService.login(credentials);
+      const response = await authService.login(credentials);
       
       const newAuthState = {
         user: response.user,
-        token: response.token
+        token: response.access
       };
 
       // Atualiza o estado e o storage
       setAuthState(newAuthState);
-      updateStorage(newAuthState);
+      updateStorage(response);
 
-      // Configura o token no TokenService
-      if (response.token) {
-        TokenService.setToken(response.token);
-      }
+      // TokenService já é atualizado dentro do authService.login
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;
@@ -100,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       
       // Tenta fazer logout no servidor
-      await AuthService.logout().catch((error) => {
+      await authService.logout().catch((error) => {
         console.warn('Erro ao fazer logout no servidor:', error);
       });
 
@@ -109,13 +97,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       // Sempre limpa os dados locais, mesmo se houver erro no servidor
       localStorage.removeItem(AUTH_STORAGE_KEY);
-      TokenService.clearToken();
+      TokenService.clearAll();
       setAuthState({ user: null, token: null });
       setLoading(false);
     }
   }, []);
 
-  const updateUser = useCallback((data: Partial<User>) => {
+  const updateUser = useCallback((data: Partial<AuthUser>) => {
     setAuthState(prev => {
       if (!prev.user) return prev;
 
@@ -124,15 +112,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: { ...prev.user, ...data }
       };
 
-      updateStorage(newState);
+      // Atualiza também no storage
+      const storedData = localStorage.getItem(AUTH_STORAGE_KEY);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+          ...parsedData,
+          user: { ...parsedData.user, ...data }
+        }));
+      }
+
       return newState;
     });
-  }, [updateStorage]);
+  }, []);
 
-  // Alias para signOut para manter compatibilidade com o nome usado no Navbar
-  const logout = useCallback(async () => {
-    return signOut();
-  }, [signOut]);
+  // Alias para signOut
+  const logout = useCallback(() => signOut(), [signOut]);
 
   const value = {
     isAuthenticated: !!authState.user,
