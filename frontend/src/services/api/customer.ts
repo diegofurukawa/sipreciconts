@@ -1,56 +1,56 @@
 // src/services/api/customer.ts
 import { api } from './base';
-import type { Customer } from '@/pages/Customer/types';
+import type { Customer } from '@/types/customer';
 
-const CUSTOMER_ENDPOINT = '/customers';
+interface ListParams {
+  company_id?: number;
+}
 
 export const CustomerService = {
-  list: async (): Promise<Customer[]> => {
-    const response = await api.get(CUSTOMER_ENDPOINT);
+  list: async (params?: ListParams) => {
+    const response = await api.get<Customer[]>('/api/customers/', { params });
     return response.data;
   },
 
-  create: async (data: Partial<Customer>): Promise<Customer> => {
-    const response = await api.post(CUSTOMER_ENDPOINT, data);
+  getById: async (id: number) => {
+    const response = await api.get<Customer>(`/api/customers/${id}/`);
     return response.data;
   },
 
-  update: async (id: number, data: Partial<Customer>): Promise<Customer> => {
-    const response = await api.put(`${CUSTOMER_ENDPOINT}/${id}`, data);
+  create: async (data: Partial<Customer>) => {
+    const response = await api.post<Customer>('/api/customers/', data);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await api.delete(`${CUSTOMER_ENDPOINT}/${id}`);
+  update: async (id: number, data: Partial<Customer>) => {
+    const response = await api.put<Customer>(`/api/customers/${id}/`, data);
+    return response.data;
   },
 
-  import: async (file: File): Promise<void> => {
+  delete: async (id: number) => {
+    await api.delete(`/api/customers/${id}/`);
+  },
+
+  import: async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    await api.post(`${CUSTOMER_ENDPOINT}/import`, formData, {
+    const response = await api.post('/api/customers/import/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
   },
 
-  export: async (): Promise<void> => {
-    const response = await api.get(`${CUSTOMER_ENDPOINT}/export`, {
+  export: async () => {
+    const response = await api.get('/api/customers/export/', {
       responseType: 'blob',
     });
     
-    // Criar blob e fazer download
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    
-    // Pegar nome do arquivo do header ou usar padrão
-    const contentDisposition = response.headers['content-disposition'];
-    const fileName = contentDisposition
-      ? contentDisposition.split('filename=')[1].replace(/"/g, '')
-      : 'clientes.csv';
-    
-    link.setAttribute('download', fileName);
+    link.setAttribute('download', 'clientes.csv');
     document.body.appendChild(link);
     link.click();
     link.remove();

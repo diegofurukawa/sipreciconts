@@ -1,9 +1,10 @@
 // src/routes/types.ts
-import type { RouteObject } from 'react-router-dom';
-import type { ComponentType } from 'react';
+import { ReactNode } from 'react';
 
-export interface AppRouteObject extends RouteObject {
+export interface AppRouteObject {
+  path: string;
+  element: ReactNode;
   title?: string;
-  icon?: ComponentType;
-  requiredRoles?: string[];
+  children?: AppRouteObject[];
+  index?: boolean;
 }

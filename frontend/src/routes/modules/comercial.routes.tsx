@@ -3,8 +3,8 @@ import { Route } from 'react-router-dom';
 import { lazy } from 'react';
 import type { AppRouteObject } from '../types';
 
-const QuoteList = lazy(() => import('../../components/Quote/QuoteList'));
-const ContractList = lazy(() => import('../../components/Contract/ContractList'));
+const QuoteList = lazy(() => import('@/pages/Quote/QuoteList'));
+const ContractList = lazy(() => import('@/pages/Contract/ContractList'));
 
 const comercialRoutes: AppRouteObject[] = [
   {

@@ -5,12 +5,19 @@ export interface LoginCredentials {
   }
   
   export interface LoginResponse {
-    token: string;
     user: {
-      user_id: number;
-      login: string;
+      id: string;
       name: string;
-      company_id: string;
+      email: string;
+      username: string;
+      company_id: number;
+      company_name?: string;
+      role?: string;
+      last_login?: string;
+    };
+    token: {
+      access: string;
+      refresh: string;
     };
   }
   

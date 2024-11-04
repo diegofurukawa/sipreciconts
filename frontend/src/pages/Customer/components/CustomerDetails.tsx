@@ -286,4 +286,4 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
   );
 };
 
-export {CustomerDetails};
+export default CustomerDetails;

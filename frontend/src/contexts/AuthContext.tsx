@@ -7,6 +7,15 @@ interface User {
   name: string;
   email: string;
   username: string;
+  company_id: number;
+  company_name?: string;
+  role?: string;
+  last_login?: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
 }
 
 interface AuthContextType {
@@ -16,6 +25,7 @@ interface AuthContextType {
   signIn: (credentials: SignInCredentials) => Promise<void>;
   signOut: () => Promise<void>;
   logout: () => Promise<void>; // Alias para signOut para compatibilidade
+  updateUser: (data: Partial<User>) => void;
 }
 
 interface SignInCredentials {
@@ -27,28 +37,51 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const AUTH_USER_KEY = '@SiPreciConts:user';
+const AUTH_STORAGE_KEY = '@SiPreciConts:auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const storedUser = localStorage.getItem(AUTH_USER_KEY);
-    if (storedUser) {
-      return JSON.parse(storedUser);
+function loadStorageData(): AuthState {
+  try {
+    const storedData = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      
+      // Restaura o token no serviço
+      if (parsedData.token) {
+        TokenService.setToken(parsedData.token);
+      }
+      
+      return parsedData;
     }
-    return null;
-  });
+  } catch (error) {
+    console.error('Erro ao carregar dados do storage:', error);
+  }
+  
+  return { user: null, token: null };
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [authState, setAuthState] = useState<AuthState>(loadStorageData);
   const [loading, setLoading] = useState(false);
+
+  const updateStorage = useCallback((data: AuthState) => {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
+  }, []);
 
   const signIn = useCallback(async (credentials: SignInCredentials) => {
     try {
       setLoading(true);
       const response = await AuthService.login(credentials);
       
-      // Salva o usuário no localStorage
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
-      setUser(response.user);
+      const newAuthState = {
+        user: response.user,
+        token: response.token
+      };
+
+      // Atualiza o estado e o storage
+      setAuthState(newAuthState);
+      updateStorage(newAuthState);
 
       // Configura o token no TokenService
       if (response.token) {
@@ -60,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateStorage]);
 
   const signOut = useCallback(async () => {
     try {
@@ -75,12 +108,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Erro ao fazer logout:', error);
     } finally {
       // Sempre limpa os dados locais, mesmo se houver erro no servidor
-      localStorage.removeItem(AUTH_USER_KEY);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       TokenService.clearToken();
-      setUser(null);
+      setAuthState({ user: null, token: null });
       setLoading(false);
     }
   }, []);
+
+  const updateUser = useCallback((data: Partial<User>) => {
+    setAuthState(prev => {
+      if (!prev.user) return prev;
+
+      const newState = {
+        ...prev,
+        user: { ...prev.user, ...data }
+      };
+
+      updateStorage(newState);
+      return newState;
+    });
+  }, [updateStorage]);
 
   // Alias para signOut para manter compatibilidade com o nome usado no Navbar
   const logout = useCallback(async () => {
@@ -88,12 +135,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [signOut]);
 
   const value = {
-    isAuthenticated: !!user,
+    isAuthenticated: !!authState.user,
     loading,
-    user,
+    user: authState.user,
     signIn,
     signOut,
-    logout
+    logout,
+    updateUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

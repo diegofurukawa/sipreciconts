@@ -32,6 +32,4 @@ const CustomerHeader = ({ title, subtitle }: CustomerHeaderProps) => {
   );
 };
 
-export {
-    CustomerHeader
-};
+export {CustomerHeader};

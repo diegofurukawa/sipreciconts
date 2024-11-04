@@ -103,6 +103,5 @@ return (
 );
 };
 
-export {
-    CustomerForm
-};
+
+export default CustomerForm;

@@ -1,19 +1,21 @@
 import { useState } from 'react';
-import { Plus, Search, Download, Upload, HelpCircle } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Download, Upload, HelpCircle, Pencil, Trash, Eye } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CustomerForm } from './CustomerForm';
 import { DeleteConfirmation } from './DeleteConfirmation';
 import { ImportHelpDialog } from './ImportHelpDialog';
 import { FeedbackMessage } from './FeedbackMessage';
 import { useCustomerList } from '../hooks/useCustomerList';
+import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 import type { Customer } from '../types';
 
 const CustomerList = () => {
+  const navigate = useNavigate();
+  
   // Estados locais
   const [search, setSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
   const [showImportHelp, setShowImportHelp] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -36,13 +38,31 @@ const CustomerList = () => {
     customer.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Handlers
+  // Navigation handlers
+  const handleNew = () => {
+    navigate(CADASTROS_ROUTES.CLIENTES.NEW);
+  };
+
+  const handleEdit = (id: number) => {
+    navigate(CADASTROS_ROUTES.CLIENTES.EDIT(id));
+  };
+
+  const handleView = (id: number) => {
+    navigate(CADASTROS_ROUTES.CLIENTES.DETAILS(id));
+  };
+
+  const handleImportClick = () => {
+    navigate(CADASTROS_ROUTES.CLIENTES.IMPORT);
+  };
+
+  // Action handlers
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
         await handleImport(file);
         showFeedback('success', 'Clientes importados com sucesso');
+        await reloadCustomers();
       } catch (error) {
         showFeedback('error', 'Erro ao importar clientes');
       }
@@ -58,7 +78,7 @@ const CustomerList = () => {
     }
   };
 
-  const handleDeleteClick = async (id: number) => {
+  const handleDeleteClick = (id: number) => {
     setCustomerToDelete(id);
   };
 
@@ -67,6 +87,7 @@ const CustomerList = () => {
       try {
         await handleDelete(customerToDelete);
         showFeedback('success', 'Cliente excluído com sucesso');
+        await reloadCustomers();
       } catch (error) {
         showFeedback('error', 'Erro ao excluir cliente');
       }
@@ -109,7 +130,7 @@ const CustomerList = () => {
               <div className="relative">
                 <Button
                   variant="outline"
-                  onClick={() => document.getElementById('importInput')?.click()}
+                  onClick={handleImportClick}
                 >
                   <Upload size={20} className="mr-2" />
                   Importar
@@ -131,9 +152,7 @@ const CustomerList = () => {
                 />
               </div>
               
-              <Button
-                onClick={() => setSelectedCustomer({})}
-              >
+              <Button onClick={handleNew}>
                 <Plus size={20} className="mr-2" />
                 Novo Cliente
               </Button>
@@ -143,7 +162,7 @@ const CustomerList = () => {
           {/* Tabela de clientes */}
           {loading ? (
             <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
             </div>
           ) : filteredCustomers.length === 0 ? (
             <div className="text-center py-12">
@@ -177,8 +196,17 @@ const CustomerList = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setSelectedCustomer(customer)}
+                          onClick={() => customer.customer_id && handleView(customer.customer_id)}
                         >
+                          <Eye size={16} className="mr-1" />
+                          Detalhes
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => customer.customer_id && handleEdit(customer.customer_id)}
+                        >
+                          <Pencil size={16} className="mr-1" />
                           Editar
                         </Button>
                         <Button
@@ -187,6 +215,7 @@ const CustomerList = () => {
                           className="text-red-600 hover:text-red-700"
                           onClick={() => customer.customer_id && handleDeleteClick(customer.customer_id)}
                         >
+                          <Trash size={16} className="mr-1" />
                           Excluir
                         </Button>
                       </td>
@@ -198,23 +227,6 @@ const CustomerList = () => {
           )}
         </div>
       </Card>
-
-      {/* Modal de formulário */}
-      {selectedCustomer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <CustomerForm
-              customer={selectedCustomer.customer_id ? selectedCustomer : undefined}
-              onSuccess={() => {
-                setSelectedCustomer(null);
-                reloadCustomers();
-                showFeedback('success', `Cliente ${selectedCustomer.customer_id ? 'atualizado' : 'criado'} com sucesso`);
-              }}
-              onCancel={() => setSelectedCustomer(null)}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Modal de confirmação de exclusão */}
       <DeleteConfirmation
@@ -240,6 +252,5 @@ const CustomerList = () => {
   );
 };
 
-export {
-  CustomerList
-};
+export {CustomerList};
+export default CustomerList;
