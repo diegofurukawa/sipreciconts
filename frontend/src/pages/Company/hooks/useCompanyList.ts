@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Company } from '../types';
-import { api } from '@/services/api';
+import { apiService as api } from '@/services/api';
 import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/routes/config/route-paths';
 

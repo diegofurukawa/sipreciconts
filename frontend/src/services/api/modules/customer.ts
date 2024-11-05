@@ -144,36 +144,48 @@ class CustomerApiService extends ApiService {
    * Exporta clientes para arquivo
    */
   async export(options?: CustomerExportOptions): Promise<Blob> {
-    const response = await this.api.get(`${this.baseUrl}/export`, {
-      params: options,
-      responseType: 'blob',
-      headers: {
-        ...this.getHeaders(),
-        Accept: options?.format === 'xlsx' 
-          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          : 'text/csv'
-      }
-    });
-
-    return response.data;
+    return this.downloadFile(
+      `${this.baseUrl}/export/`,
+      `clientes.${options?.format || 'csv'}`,
+      options?.format,
+      { params: options }
+    );
   }
 
   /**
    * Download do template de importação
    */
   async downloadTemplate(format: 'csv' | 'xlsx' = 'csv'): Promise<Blob> {
-    const response = await this.api.get(`${this.baseUrl}/import-template`, {
-      params: { format },
-      responseType: 'blob',
-      headers: {
-        ...this.getHeaders(),
-        Accept: format === 'xlsx'
-          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          : 'text/csv'
-      }
-    });
+    return this.downloadFile(
+      `${this.baseUrl}/import-template`,
+      `modelo_importacao_clientes.${format}`,
+      format,
+      { params: { format } }
+    );
+  }
 
-    return response.data;
+  /**
+   * Exporta e salva arquivo de clientes
+   */
+  async exportAndSave(options?: CustomerExportOptions): Promise<void> {
+    await this.downloadAndSaveFile(
+      `${this.baseUrl}/export`,
+      `clientes.${options?.format || 'csv'}`,
+      options?.format,
+      { params: options }
+    );
+  }
+
+  /**
+   * Download e salva template de importação
+   */
+  async downloadAndSaveTemplate(format: 'csv' | 'xlsx' = 'csv'): Promise<void> {
+    await this.downloadAndSaveFile(
+      `${this.baseUrl}/import-template`,
+      `modelo_importacao_clientes.${format}`,
+      format,
+      { params: { format } }
+    );
   }
 
   /**

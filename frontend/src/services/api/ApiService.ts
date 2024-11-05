@@ -33,15 +33,16 @@ export class ApiService {
     // Request interceptor
     this.api.interceptors.request.use(
       (config) => {
+        // Merge with base headers
+        config.headers = {
+          ...config.headers,
+          ...this.getHeaders()
+        };
+        
         // Add authorization header if token exists
         const token = TokenService.getAccessToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-        }
-        
-        // Add company ID header if set
-        if (this.companyId) {
-          config.headers['X-Company-ID'] = this.companyId.toString();
         }
         
         return config;
@@ -87,6 +88,30 @@ export class ApiService {
     retryUtils.setupRetry(this.api);
   }
 
+  // Headers management
+  protected getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json'
+    };
+    
+    if (this.companyId) {
+      headers['X-Company-ID'] = this.companyId.toString();
+    }
+
+    return headers;
+  }
+
+  protected getBlobHeaders(format?: 'csv' | 'xlsx'): Record<string, string> {
+    return {
+      ...this.getHeaders(),
+      Accept: format === 'xlsx'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'text/csv',
+      'Content-Type': 'application/json'
+    };
+  }
+
   // Public methods
   setCompanyId(id: number | null): void {
     this.companyId = id;
@@ -100,7 +125,13 @@ export class ApiService {
   // Protected request methods
   protected async request<T = any>(config: AxiosRequestConfig): Promise<T> {
     try {
-      const response = await this.api.request<T>(config);
+      const response = await this.api.request<T>({
+        ...config,
+        headers: {
+          ...this.getHeaders(),
+          ...config.headers
+        }
+      });
       return response.data;
     } catch (error) {
       throw errorUtils.handleApiError(error);
@@ -179,7 +210,7 @@ export class ApiService {
     return this.get<PaginatedResponse<T>>(url, params, config);
   }
 
-  // File upload
+  // File handling methods
   protected async uploadFile(
     url: string,
     file: File,
@@ -192,6 +223,7 @@ export class ApiService {
     return this.post<ApiResponse>(url, formData, {
       ...config,
       headers: {
+        ...this.getHeaders(),
         'Content-Type': 'multipart/form-data',
       },
       onUploadProgress: (progressEvent) => {
@@ -203,18 +235,28 @@ export class ApiService {
     });
   }
 
-  // File download
   protected async downloadFile(
     url: string,
     filename: string,
+    format?: 'csv' | 'xlsx',
     config?: Partial<AxiosRequestConfig>
-  ): Promise<void> {
+  ): Promise<Blob> {
     const response = await this.api.get(url, {
       ...config,
-      responseType: 'blob'
+      responseType: 'blob',
+      headers: this.getBlobHeaders(format)
     });
 
-    const blob = new Blob([response.data]);
+    return response.data;
+  }
+
+  protected async downloadAndSaveFile(
+    url: string,
+    filename: string,
+    format?: 'csv' | 'xlsx',
+    config?: Partial<AxiosRequestConfig>
+  ): Promise<void> {
+    const blob = await this.downloadFile(url, filename, format, config);
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = downloadUrl;

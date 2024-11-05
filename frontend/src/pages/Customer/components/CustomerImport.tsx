@@ -9,7 +9,8 @@ import {
   Download,
   X,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Settings2
 } from 'lucide-react';
 import { 
   Card,
@@ -28,30 +29,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/useToast';
-import { CustomerService } from '@/services/api';
+import { customerService, type CustomerImportResponse } from '@/services/api/modules/customer';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-
-// Tipos
-interface ImportError {
-  row: number;
-  message: string;
-  data: Record<string, string>;
-}
-
-interface ImportResult {
-  success: boolean;
-  message: string;
-  errors?: ImportError[];
-  totalProcessed?: number;
-  successCount?: number;
-  errorCount?: number;
-}
 
 export const CustomerImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<ImportResult | null>(null);
+  const [result, setResult] = useState<CustomerImportResponse | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [importOptions, setImportOptions] = useState({
+    update_existing: false,
+    skip_errors: false
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -59,16 +59,17 @@ export const CustomerImport = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      if (!selectedFile.name.endsWith('.csv')) {
+      if (!selectedFile.name.endsWith('.csv') && !selectedFile.name.endsWith('.xlsx')) {
         showToast({
           type: 'error',
           title: 'Arquivo inválido',
-          message: 'Por favor, selecione um arquivo CSV'
+          message: 'Por favor, selecione um arquivo CSV ou XLSX'
         });
         return;
       }
       setFile(selectedFile);
       setResult(null);
+      setUploadProgress(0);
     }
   };
 
@@ -82,14 +83,15 @@ export const CustomerImport = () => {
     event.stopPropagation();
     
     const droppedFile = event.dataTransfer.files[0];
-    if (droppedFile && droppedFile.name.endsWith('.csv')) {
+    if (droppedFile && (droppedFile.name.endsWith('.csv') || droppedFile.name.endsWith('.xlsx'))) {
       setFile(droppedFile);
       setResult(null);
+      setUploadProgress(0);
     } else {
       showToast({
         type: 'error',
         title: 'Arquivo inválido',
-        message: 'Por favor, selecione um arquivo CSV'
+        message: 'Por favor, selecione um arquivo CSV ou XLSX'
       });
     }
   };
@@ -99,29 +101,30 @@ export const CustomerImport = () => {
 
     try {
       setImporting(true);
-      await CustomerService.import(file);
-      setResult({
-        success: true,
-        message: 'Importação concluída com sucesso',
-        successCount: 0, // Será atualizado com a resposta real da API
-        errorCount: 0,
-        totalProcessed: 0
-      });
-      showToast({
-        type: 'success',
-        title: 'Sucesso',
-        message: 'Clientes importados com sucesso'
-      });
+      setUploadProgress(0);
+      
+      const result = await customerService.import(
+        file,
+        importOptions,
+        (progress) => setUploadProgress(progress)
+      );
+
+      setResult(result);
+      
+      if (result.error_count === 0) {
+        showToast({
+          type: 'success',
+          title: 'Sucesso',
+          message: 'Clientes importados com sucesso'
+        });
+      } else {
+        showToast({
+          type: 'warning',
+          title: 'Importação concluída com erros',
+          message: `${result.error_count} erros encontrados`
+        });
+      }
     } catch (error: any) {
-      const errorResult: ImportResult = {
-        success: false,
-        message: 'Erro na importação',
-        errors: error.response?.data?.errors || [],
-        errorCount: error.response?.data?.errors?.length || 0,
-        totalProcessed: error.response?.data?.totalProcessed || 0,
-        successCount: error.response?.data?.successCount || 0
-      };
-      setResult(errorResult);
       showToast({
         type: 'error',
         title: 'Erro',
@@ -134,15 +137,12 @@ export const CustomerImport = () => {
 
   const downloadTemplate = async () => {
     try {
-      const template = `Nome,Documento,Tipo de Cliente,Celular,Email,Endereço,Complemento
-João Silva,123.456.789-00,Individual,(11) 98765-4321,joao.silva@email.com,Rua das Flores 123,Apto 42
-Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa.com,Avenida Paulista 1000,Sala 505`;
-
-      const blob = new Blob([template], { type: 'text/csv' });
+      const format = 'csv'; // ou 'xlsx'
+      const blob = await customerService.downloadTemplate(format);
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'modelo_importacao_clientes.csv');
+      link.setAttribute('download', `modelo_importacao_clientes.${format}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -170,10 +170,54 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
           </Button>
           <h1 className="text-2xl font-semibold">Importar Clientes</h1>
         </div>
-        <Button onClick={downloadTemplate}>
-          <Download className="mr-2 h-4 w-4" />
-          Baixar Modelo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Opções de Importação</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-4 mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Atualizar existentes</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Atualiza clientes que já existem no sistema
+                    </p>
+                  </div>
+                  <Switch
+                    checked={importOptions.update_existing}
+                    onCheckedChange={(checked) => 
+                      setImportOptions(prev => ({ ...prev, update_existing: checked }))
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Ignorar erros</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Continua a importação mesmo quando encontrar erros
+                    </p>
+                  </div>
+                  <Switch
+                    checked={importOptions.skip_errors}
+                    onCheckedChange={(checked) => 
+                      setImportOptions(prev => ({ ...prev, skip_errors: checked }))
+                    }
+                  />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          <Button onClick={downloadTemplate}>
+            <Download className="mr-2 h-4 w-4" />
+            Baixar Modelo
+          </Button>
+        </div>
       </div>
 
       {/* Área de Upload */}
@@ -181,7 +225,7 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
         <CardHeader>
           <CardTitle>Upload de Arquivo</CardTitle>
           <CardDescription>
-            Arraste e solte seu arquivo CSV ou clique para selecionar
+            Arraste e solte seu arquivo CSV/XLSX ou clique para selecionar
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -194,7 +238,7 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.xlsx"
               onChange={handleFileSelect}
               className="hidden"
             />
@@ -215,6 +259,7 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
                     e.stopPropagation();
                     setFile(null);
                     setResult(null);
+                    setUploadProgress(0);
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -225,8 +270,17 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
                 <Upload className="h-12 w-12 mx-auto text-gray-400" />
                 <div>
                   <p className="font-medium">Clique para selecionar ou arraste seu arquivo</p>
-                  <p className="text-sm text-gray-500 mt-1">Somente arquivos CSV são aceitos</p>
+                  <p className="text-sm text-gray-500 mt-1">Arquivos CSV e XLSX são aceitos</p>
                 </div>
+              </div>
+            )}
+
+            {importing && uploadProgress > 0 && (
+              <div className="mt-4">
+                <Progress value={uploadProgress} className="h-2" />
+                <p className="text-sm text-gray-500 mt-2">
+                  Upload em progresso: {uploadProgress.toFixed(0)}%
+                </p>
               </div>
             )}
           </div>
@@ -260,7 +314,7 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              {result.success ? (
+              {result.error_count === 0 ? (
                 <>
                   <CheckCircle2 className="h-5 w-5 text-green-500" />
                   <span>Importação Concluída</span>
@@ -273,9 +327,9 @@ Maria Oliveira,987.654.321-00,Empresarial,(11) 97654-3210,maria.oliveira@empresa
               )}
             </CardTitle>
             <CardDescription>
-              Total processado: {result.totalProcessed} | 
-              Sucesso: {result.successCount} | 
-              Erros: {result.errorCount}
+              Total processado: {result.total_processed} | 
+              Sucesso: {result.success_count} | 
+              Erros: {result.error_count}
             </CardDescription>
           </CardHeader>
           

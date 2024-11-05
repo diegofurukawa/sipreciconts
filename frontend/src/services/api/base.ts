@@ -187,4 +187,4 @@ export class BaseApiService {
 }
 
 // Export a default instance for backward compatibility
-export const api = new BaseApiService().api;
+export const api = new BaseApiService().setCompanyId;

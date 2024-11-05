@@ -1,7 +1,7 @@
 // src/pages/Company/hooks/useCompanyForm.ts
 import { useState } from 'react';
 import { CompanyFormData } from '../types';
-import { api } from '../../../services/api';
+import { apiService as api } from '../../../services/api';
 import { useToast } from '../../../hooks/useToast';
 
 export const useCompanyForm = () => {

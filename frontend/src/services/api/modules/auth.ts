@@ -45,7 +45,7 @@ class AuthApiService extends ApiService {
    */
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
-      const response = await this.post<AuthResponse>(`${this.baseUrl}/login`, credentials);
+      const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, credentials);
       
       // Armazena tokens
       TokenService.setTokens({

@@ -10,7 +10,9 @@ import {
   Phone,
   Mail,
   MapPin,
-  AlertTriangle
+  AlertTriangle,
+  AlertCircle,
+  RotateCcw
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -35,7 +37,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/useToast';
-import { CustomerService } from '@/services/api';
+import { customerService } from '@/services/api/modules/customer';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 import type { Customer } from '../types';
 
@@ -47,6 +49,8 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showHardDeleteDialog, setShowHardDeleteDialog] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -57,8 +61,9 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
   const loadCustomer = async () => {
     try {
       setLoading(true);
-      const data = await CustomerService.getById(Number(customerId));
+      const data = await customerService.getById(Number(customerId));
       setCustomer(data);
+      setIsDeleted(!data.enabled); // Assumindo que enabled:false significa soft deleted
     } catch (error) {
       showToast({
         type: 'error',
@@ -73,7 +78,7 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
 
   const handleDelete = async () => {
     try {
-      await CustomerService.delete(Number(customerId));
+      await customerService.delete(Number(customerId));
       showToast({
         type: 'success',
         title: 'Sucesso',
@@ -88,6 +93,44 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
       });
     }
     setShowDeleteDialog(false);
+  };
+
+  const handleHardDelete = async () => {
+    try {
+      await customerService.hardDelete(Number(customerId));
+      showToast({
+        type: 'success',
+        title: 'Sucesso',
+        message: 'Cliente excluído permanentemente'
+      });
+      navigate(CADASTROS_ROUTES.CLIENTES.ROOT);
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Erro ao excluir permanentemente o cliente'
+      });
+    }
+    setShowHardDeleteDialog(false);
+  };
+
+  const handleRestore = async () => {
+    try {
+      const restored = await customerService.restore(Number(customerId));
+      setCustomer(restored);
+      setIsDeleted(false);
+      showToast({
+        type: 'success',
+        title: 'Sucesso',
+        message: 'Cliente restaurado com sucesso'
+      });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Erro ao restaurar cliente'
+      });
+    }
   };
 
   const formatDate = (date: string) => {
@@ -155,24 +198,54 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-semibold">Detalhes do Cliente</h1>
+          <div>
+            <h1 className="text-2xl font-semibold">Detalhes do Cliente</h1>
+            {isDeleted && (
+              <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+                <AlertCircle className="h-4 w-4" />
+                Este cliente está excluído
+              </p>
+            )}
+          </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.EDIT(customerId))}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Editar
-          </Button>
-          <Button
-            variant="outline"
-            className="text-red-600 hover:text-red-700"
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            Excluir
-          </Button>
+          {isDeleted ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={handleRestore}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restaurar
+              </Button>
+              <Button
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+                onClick={() => setShowHardDeleteDialog(true)}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Excluir Permanentemente
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.EDIT(customerId))}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Editar
+              </Button>
+              <Button
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash className="mr-2 h-4 w-4" />
+                Excluir
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -267,8 +340,7 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este cliente? Esta ação não pode ser
-              desfeita.
+              Tem certeza que deseja excluir este cliente? Esta ação pode ser desfeita posteriormente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -278,6 +350,27 @@ const CustomerDetails = ({ customerId }: CustomerDetailsProps) => {
               onClick={handleDelete}
             >
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Diálogo de Confirmação de Exclusão Permanente */}
+      <AlertDialog open={showHardDeleteDialog} onOpenChange={setShowHardDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão permanente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir permanentemente este cliente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 text-white hover:bg-red-700"
+              onClick={handleHardDelete}
+            >
+              Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

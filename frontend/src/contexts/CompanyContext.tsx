@@ -1,7 +1,7 @@
 // src/contexts/CompanyContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company } from '@/pages/Company/types';
-import { api } from '@/services/api';
+import { apiService as api } from '@/services/api';
 import { useAuth } from './AuthContext';
 
 interface CompanyContextData {
