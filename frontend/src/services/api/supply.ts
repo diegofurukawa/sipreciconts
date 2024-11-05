@@ -1,145 +1,127 @@
 // src/services/supplyService.ts
-import { api } from './utils';
 import { Supply } from '../../types/supply';
+// src/services/api/modules/supply/index.ts
+import { ApiService } from '@/services/api';
+import type { Supply, SupplyCreateData, SupplyUpdateData } from './types';
+import type { PaginatedResponse } from '../../types';
 
-interface PaginatedResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Supply[];
+interface SupplyFilterParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  category?: string;
+  enabled?: boolean;
+  sort_by?: string;
 }
 
-export const SupplyService = {
-    list: async (page: number = 1, pageSize: number = 10): Promise<PaginatedResponse> => {
-        try {
-            const response = await api.get<PaginatedResponse>('supplies/', {
-                params: {
-                    page,
-                    page_size: pageSize
-                }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao listar insumos:', error);
-            throw error;
-        }
-    },
+export class SupplyService extends ApiService {
+  private readonly basePath = '/supplies';
 
-    create: async (data: Partial<Supply>): Promise<Supply> => {
-        try {
-            const response = await api.post<Supply>('supplies/', data);
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao criar insumo:', error);
-            throw error;
-        }
-    },
+  /**
+   * Lista insumos com paginação e filtros
+   */
+  async list(params?: SupplyFilterParams): Promise<PaginatedResponse<Supply>> {
+    return this.getPaginated<Supply>(this.basePath, params);
+  }
 
-    update: async (id: number, data: Partial<Supply>): Promise<Supply> => {
-        try {
-            const response = await api.put<Supply>(`supplies/${id}/`, data);
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao atualizar insumo:', error);
-            throw error;
-        }
-    },
+  /**
+   * Busca um insumo pelo ID
+   */
+  async getById(id: number): Promise<Supply> {
+    return this.get<Supply>(`${this.basePath}/${id}`);
+  }
 
-    delete: async (id: number): Promise<void> => {
-        try {
-            await api.delete(`supplies/${id}/`);
-        } catch (error) {
-            console.error('Erro ao excluir insumo:', error);
-            throw error;
-        }
-    },
+  /**
+   * Cria um novo insumo
+   */
+  async create(data: SupplyCreateData): Promise<Supply> {
+    return this.post<Supply>(this.basePath, data);
+  }
 
-    import: async (file: File): Promise<void> => {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            await api.post('supplies/import_supplies/', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-        } catch (error) {
-            console.error('Erro ao importar insumos:', error);
-            throw error;
-        }
-    },
+  /**
+   * Atualiza um insumo existente
+   */
+  async update(id: number, data: SupplyUpdateData): Promise<Supply> {
+    return this.put<Supply>(`${this.basePath}/${id}`, data);
+  }
 
-    export: async (): Promise<void> => {
-        try {
-            const response = await api.get('supplies/export/', {
-                responseType: 'blob',
-            });
-            
-            // Criar o objeto URL para o blob
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            
-            // Obter o nome do arquivo do header Content-Disposition, se disponível
-            const contentDisposition = response.headers['content-disposition'];
-            let filename = 'insumos.csv';
-            
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = filenameMatch[1].replace(/['"]/g, '');
-                }
-            }
-            
-            // Criar um link temporário e clicar nele para download
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            
-            // Limpar
-            link.remove();
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Erro ao exportar insumos:', error);
-            throw error;
-        }
-    },
+  /**
+   * Exclui um insumo
+   */
+  async delete(id: number): Promise<void> {
+    return this.delete(`${this.basePath}/${id}`);
+  }
 
-    getById: async (id: number): Promise<Supply> => {
-        try {
-            const response = await api.get<Supply>(`supplies/${id}/`);
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao buscar insumo:', error);
-            throw error;
-        }
-    },
+  /**
+   * Importa insumos a partir de um arquivo
+   */
+  async import(file: File, onProgress?: (percentage: number) => void): Promise<void> {
+    return this.uploadFile(
+      `${this.basePath}/import/`,
+      file,
+      onProgress
+    );
+  }
 
-    search: async (query: string, page: number = 1, pageSize: number = 10): Promise<PaginatedResponse> => {
-        try {
-            const response = await api.get<PaginatedResponse>('supplies/', {
-                params: {
-                    search: query,
-                    page,
-                    page_size: pageSize
-                }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao pesquisar insumos:', error);
-            throw error;
-        }
-    },
+  /**
+   * Exporta insumos para um arquivo CSV
+   */
+  async export(filename: string = 'insumos.csv'): Promise<void> {
+    return this.downloadAndSaveFile(
+      `${this.basePath}/export/`,
+      filename,
+      'csv'
+    );
+  }
 
-    bulkDelete: async (ids: number[]): Promise<void> => {
-        try {
-            await api.post('supplies/bulk_delete/', { ids });
-        } catch (error) {
-            console.error('Erro ao excluir insumos em massa:', error);
-            throw error;
-        }
-    }
+  /**
+   * Pesquisa insumos
+   */
+  async search(query: string, params?: Omit<SupplyFilterParams, 'search'>): Promise<PaginatedResponse<Supply>> {
+    return this.list({
+      ...params,
+      search: query
+    });
+  }
+
+  /**
+   * Exclui múltiplos insumos
+   */
+  async bulkDelete(ids: number[]): Promise<void> {
+    return this.post(`${this.basePath}/bulk-delete/`, { ids });
+  }
+}
+
+// Cria e exporta uma instância única do serviço
+export const supplyService = new SupplyService();
+
+// Tipos
+// src/services/api/modules/supply/types.ts
+export interface Supply {
+  id: number;
+  name: string;
+  code?: string;
+  description?: string;
+  category?: string;
+  unit_price: number;
+  unit: string;
+  enabled: boolean;
+  created: string;
+  updated: string;
+}
+
+export interface SupplyCreateData extends Omit<Supply, 'id' | 'created' | 'updated'> {
+  name: string;
+  unit_price: number;
+  unit: string;
+}
+
+export interface SupplyUpdateData extends Partial<SupplyCreateData> {}
+
+// Re-exporta os tipos
+export type { 
+  Supply,
+  SupplyCreateData,
+  SupplyUpdateData,
+  SupplyFilterParams
 };
-
-export default SupplyService;
