@@ -43,7 +43,7 @@ import { useToast } from '@/hooks/useToast';
 import { customerService, type CustomerImportResponse } from '@/services/api/modules/customer';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
-export const CustomerImport = () => {
+const CustomerImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<CustomerImportResponse | null>(null);
@@ -374,4 +374,4 @@ export const CustomerImport = () => {
   );
 };
 
-export default CustomerImport;
+export {CustomerImport};

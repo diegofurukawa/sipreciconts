@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig(({ mode }) => {
-  // Carrega as variáveis de ambiente com base no modo
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
@@ -15,7 +14,6 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      // Expõe as variáveis de ambiente para o cliente
       'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
     },
     server: {
@@ -27,6 +25,24 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
+    },
+    // Adicionar otimizações de build
+    build: {
+      target: 'esnext',
+      minify: 'terser',
+      sourcemap: mode !== 'production',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-alert-dialog'],
+          },
+        },
+      },
+    },
+    // Otimizações de desenvolvimento
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-router-dom'],
     },
   };
 });

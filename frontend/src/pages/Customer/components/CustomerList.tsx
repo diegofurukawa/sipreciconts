@@ -1,4 +1,3 @@
-// src/pages/Customer/components/CustomerList.tsx
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -31,26 +30,23 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Search, 
-  Plus, 
-  Download, 
-  Upload,
-  Edit,
-  Trash,
+  Search,
   ArrowUpDown,
   Phone,
   Mail,
   FileText,
   Eye,
-  HelpCircle,
+  Edit,
+  Trash,
   X
 } from 'lucide-react';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 import { ImportHelpDialog } from './ImportHelpDialog';
 import { FeedbackMessage } from './FeedbackMessage';
+import { CustomerToolbar } from './CustomerToolbar';
 
-export const CustomerList = () => {
+const CustomerList = () => {
   const navigate = useNavigate();
   const {
     customers,
@@ -153,72 +149,53 @@ export const CustomerList = () => {
   return (
     <div className="space-y-4">
       {/* Cabeçalho com Ações */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <div className="relative flex items-center">
-            <Search className="absolute left-3 h-5 w-5 text-gray-500" />
-            <Input
-              placeholder="Pesquisar clientes..."
-              className="w-[320px] pl-10 pr-24"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <div className="absolute right-1 flex items-center space-x-1">
-              {searchTerm && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={handleSearchClear}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="relative flex items-center w-full md:w-auto">
+          <Search className="absolute left-3 h-5 w-5 text-gray-500" />
+          <Input
+            placeholder="Pesquisar clientes..."
+            className="w-full md:w-[320px] pl-10 pr-24"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <div className="absolute right-1 flex items-center space-x-1">
+            {searchTerm && (
               <Button
-                size="sm"
-                variant="secondary"
-                className="h-7"
-                onClick={handleSearchSubmit}
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleSearchClear}
               >
-                Pesquisar
+                <X className="h-4 w-4" />
               </Button>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            onClick={handleExportClick}
-            disabled={loading}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </Button>
-          <div className="relative">
+            )}
             <Button
-              variant="outline"
-              onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.IMPORT)}
+              size="sm"
+              variant="secondary"
+              className="h-7"
+              onClick={handleSearchSubmit}
             >
-              <Upload className="mr-2 h-4 w-4" />
-              Importar
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute -right-10 top-0"
-              onClick={() => setShowImportHelp(true)}
-            >
-              <HelpCircle size={20} />
+              Pesquisar
             </Button>
           </div>
-          <Button
-            onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.NEW)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Cliente
-          </Button>
         </div>
+
+        {/* Nova Toolbar */}
+        <CustomerToolbar 
+          onExport={handleExportClick}
+          onImport={() => document.getElementById('importInput')?.click()}
+          onHelpClick={() => setShowImportHelp(true)}
+          onNewCustomer={() => navigate(CADASTROS_ROUTES.CLIENTES.NEW)}
+        />
+
+        <input
+          id="importInput"
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          className="hidden"
+        />
       </div>
 
       {/* Tabela */}
@@ -383,4 +360,4 @@ export const CustomerList = () => {
   );
 };
 
-export default CustomerList;
+export {  CustomerList };

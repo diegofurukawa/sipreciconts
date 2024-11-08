@@ -11,7 +11,7 @@ const getPageTitle = (pathname: string) => {
   return 'Clientes';
 };
 
-const CustomerPage = () => {
+const Customer = () => {
   const location = useLocation();
   const title = getPageTitle(location.pathname);
   
@@ -29,4 +29,10 @@ const CustomerPage = () => {
   );
 };
 
-export default CustomerPage;
+// Exportação nomeada da função helper (caso seja necessária em outros lugares)
+export { getPageTitle };
+
+// Exportação nomeada do componente principal
+export {
+  Customer
+};

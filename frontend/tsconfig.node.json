@@ -3,15 +3,20 @@
     "target": "ES2022",
     "lib": ["ES2023"],
     "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
     "skipLibCheck": true,
     "composite": true,
+    "allowJs": true,
     "allowSyntheticDefaultImports": true,
-
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    
     /* Bundler mode */
-    "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
     "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
     "noEmit": true,
 
     /* Linting */
@@ -19,7 +24,18 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "useUnknownInCatchVariables": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "vitest.config.ts",
+    "cypress.config.ts",
+    "playwright.config.ts",
+    "*.d.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
 }

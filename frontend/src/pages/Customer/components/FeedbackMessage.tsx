@@ -4,7 +4,7 @@ interface FeedbackMessageProps {
     message: string;
   }
   
-  export const FeedbackMessage = ({ type, message }: FeedbackMessageProps) => {
+  const FeedbackMessage = ({ type, message }: FeedbackMessageProps) => {
     const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
     
     return (
@@ -14,3 +14,4 @@ interface FeedbackMessageProps {
     );
   };
   
+export {FeedbackMessage};

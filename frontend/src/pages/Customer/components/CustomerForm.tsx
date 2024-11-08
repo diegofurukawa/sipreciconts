@@ -104,4 +104,4 @@ return (
 };
 
 
-export default CustomerForm;
+export {CustomerForm};
