@@ -12,6 +12,21 @@ import {
   RetryState
 } from './types';
 
+// Interface estendida para configuração do retry
+interface ExtendedRetryConfig extends RetryConfig {
+  url?: string;
+  headers?: Record<string, string>;
+}
+
+/**
+ * Default configurations
+ */
+export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
+  maxAttempts: 3,
+  baseDelay: 1000,
+  statusCodes: [408, 429, 500, 502, 503, 504]
+};
+
 /**
  * API Error Utilities
  */
@@ -74,6 +89,29 @@ export const errorUtils = {
       case undefined: return 'NETWORK_ERROR';
       default: return 'SERVER_ERROR';
     }
+  },
+
+  handleApiError(error: unknown): ApiError {
+    if (error instanceof ApiError) {
+      return error;
+    }
+
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      const code = this.getErrorCode(axiosError.response?.status);
+
+      return new ApiError({
+        message: axiosError.response?.data?.message || 'Ocorreu um erro ao processar sua requisição',
+        code,
+        details: axiosError.response?.data?.details,
+        status: axiosError.response?.status
+      });
+    }
+
+    return new ApiError({
+      message: error instanceof Error ? error.message : 'Um erro inesperado ocorreu',
+      code: 'SERVER_ERROR'
+    });
   }
 };
 
@@ -81,18 +119,21 @@ export const errorUtils = {
  * Retry Utilities
  */
 export const retryUtils = {
-  createRetryDelay(retryState: RetryState): number {
-    const { attempt, baseDelay } = retryState;
+  calculateDelay(attempt: number, options: RetryOptions): number {
+    const baseDelay = options.baseDelay || DEFAULT_RETRY_OPTIONS.baseDelay;
     const jitter = Math.random() * 100;
-    return baseDelay * Math.pow(2, attempt) + jitter;
+    return Math.min(
+      baseDelay * Math.pow(2, attempt) + jitter,
+      30000 // max delay of 30 seconds
+    );
   },
 
   shouldRetry(
     error: any,
-    retryState: RetryState,
+    currentAttempt: number,
     options: RetryOptions = DEFAULT_RETRY_OPTIONS
   ): boolean {
-    if (retryState.attempt >= options.maxAttempts) {
+    if (currentAttempt >= options.maxAttempts) {
       return false;
     }
 
@@ -110,25 +151,22 @@ export const retryUtils = {
     instance.interceptors.response.use(
       response => response,
       async error => {
-        const config = error.config;
+        const config = error.config as ExtendedRetryConfig;
 
-        if (!config) {
+        if (!config || config.__isRetry) {
           return Promise.reject(error);
         }
 
-        const retryState: RetryState = {
-          attempt: config.retryAttempt || 0,
-          delay: options.baseDelay,
-          error
-        };
+        const currentAttempt = config.__retryCount || 0;
 
-        if (!this.shouldRetry(error, retryState, options)) {
+        if (!this.shouldRetry(error, currentAttempt, options)) {
           return Promise.reject(error);
         }
 
-        config.retryAttempt = retryState.attempt + 1;
-        const delay = this.createRetryDelay(retryState);
+        config.__retryCount = currentAttempt + 1;
+        config.__isRetry = true;
 
+        const delay = this.calculateDelay(currentAttempt, options);
         await new Promise(resolve => setTimeout(resolve, delay));
 
         return instance(config);
@@ -138,52 +176,13 @@ export const retryUtils = {
 };
 
 /**
- * Configuration Constants
+ * Error Handling with Callbacks
  */
-export const DEFAULT_CONFIG: ApiConfig = {
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  }
-};
-
-export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
-  maxAttempts: 3,
-  baseDelay: 1000,
-  statusCodes: [408, 429, 500, 502, 503, 504]
-};
-
-/**
- * Error Handling Functions
- */
-export const handleApiError = (error: unknown): ApiError => {
-  if (error instanceof ApiError) {
-    return error;
-  }
-
-  if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<ApiErrorResponse>;
-    const code = errorUtils.getErrorCode(axiosError.response?.status);
-
-    return new ApiError({
-      message: axiosError.response?.data?.message || 'Ocorreu um erro ao processar sua requisição',
-      code,
-      details: axiosError.response?.data?.details
-    });
-  }
-
-  return new ApiError({
-    message: error instanceof Error ? error.message : 'Um erro inesperado ocorreu',
-    code: 'SERVER_ERROR'
-  });
-};
-
 export const handleApiErrorWithCallback = (
   error: unknown,
   callbacks?: ErrorCallbacks
 ): ApiError => {
-  const apiError = handleApiError(error);
+  const apiError = errorUtils.handleApiError(error);
   
   if (callbacks) {
     switch (apiError.code) {
@@ -193,6 +192,7 @@ export const handleApiErrorWithCallback = (
       case 'VALIDATION_ERROR': callbacks.onValidationError?.(apiError.details); break;
       case 'SERVER_ERROR': callbacks.onServerError?.(); break;
       case 'NETWORK_ERROR': callbacks.onNetworkError?.(); break;
+      case 'TOKEN_EXPIRED': callbacks.onTokenExpired?.(); break;
       default: callbacks.onDefault?.(apiError);
     }
   }
@@ -209,62 +209,71 @@ export const setupInterceptors = (instance: AxiosInstance): void => {
     (config) => {
       const token = TokenService.getAccessToken();
       if (token) {
-        config.headers.authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },
-    (error) => Promise.reject(handleApiError(error))
+    (error) => Promise.reject(errorUtils.handleApiError(error))
   );
 
   // Response interceptor
   instance.interceptors.response.use(
     (response) => response,
     async (error: AxiosError) => {
-      const originalRequest = error.config;
+      const originalRequest = error.config as ExtendedRetryConfig;
       
-      if (!originalRequest || (originalRequest as RetryConfig).__isRetry) {
-        return Promise.reject(handleApiError(error));
+      if (!originalRequest || originalRequest.__isRetry) {
+        return Promise.reject(errorUtils.handleApiError(error));
       }
 
-      if (error.response?.status === 401 && !originalRequest.url?.includes('auth/refresh')) {
+      if (
+        error.response?.status === 401 && 
+        originalRequest?.url && 
+        !originalRequest.url.endsWith('/auth/refresh/')
+      ) {
         try {
-          const refresh_token = TokenService.getRefreshToken();
-          if (refresh_token) {
+          const refreshToken = TokenService.getRefreshToken();
+          if (refreshToken) {
             const response = await instance.post('/auth/refresh/', {
-              refresh: refresh_token
+              refresh: refreshToken
             });
-            const { access } = response.data;
             
-            TokenService.setTokens({ access, refresh: refresh_token });
-            originalRequest.headers.authorization = `Bearer ${access}`;
+            const { access } = response.data;
+            TokenService.setAccessToken(access);
+            
+            if (!originalRequest.headers) {
+              originalRequest.headers = {};
+            }
+            originalRequest.headers.Authorization = `Bearer ${access}`;
             
             return instance(originalRequest);
           }
         } catch (refreshError) {
           TokenService.clearAll();
           window.location.href = '/login';
-          return Promise.reject(handleApiError(refreshError));
+          return Promise.reject(errorUtils.handleApiError(refreshError));
         }
       }
 
-      return Promise.reject(handleApiError(error));
+      return Promise.reject(errorUtils.handleApiError(error));
     }
   );
 };
 
-// Export everything as named exports
+// Exportação do handleApiError separadamente
+export const handleApiError = errorUtils.handleApiError;
+
+// Export utilities
 export {
   errorUtils as errors,
   retryUtils as retry
 };
 
-// Export default for backwards compatibility
+// Default export
 export default {
   errors: errorUtils,
   retry: retryUtils,
   handleApiError,
   handleApiErrorWithCallback,
-  setupInterceptors,
-  DEFAULT_CONFIG,
-  DEFAULT_RETRY_OPTIONS
+  setupInterceptors
 };

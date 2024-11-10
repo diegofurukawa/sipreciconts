@@ -1,47 +1,14 @@
 // src/services/api/modules/customer.ts
 import { ApiService } from '../ApiService';
-import type { 
-  Customer, 
-  CustomerCreateData, 
-  CustomerUpdateData, 
-  PaginatedResponse, 
-  ApiResponse 
-} from '../types';
-
-export interface CustomerListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  sort_by?: string;
-  sort_order?: 'asc' | 'desc';
-  document?: string;
-  email?: string;
-  customer_type?: string;
-  enabled?: boolean;
-  created_after?: string;
-  created_before?: string;
-}
-
-export interface CustomerImportResponse extends ApiResponse {
-  total_processed: number;
-  success_count: number;
-  error_count: number;
-  errors?: Array<{
-    row: number;
-    message: string;
-    data: Record<string, any>;
-  }>;
-}
-
-export interface CustomerExportOptions {
-  format?: 'csv' | 'xlsx';
-  fields?: string[];
-  include_disabled?: boolean;
-  date_range?: {
-    start: string;
-    end: string;
-  };
-}
+import type { PaginatedResponse, ApiResponse } from '../types';
+import type {
+  Customer,
+  CustomerCreateData,
+  CustomerUpdateData,
+  CustomerListParams,
+  CustomerImportResponse,
+  CustomerExportOptions
+} from '@/pages/Customer/types';
 
 class CustomerApiService extends ApiService {
   private readonly baseUrl = '/customers';
@@ -50,7 +17,7 @@ class CustomerApiService extends ApiService {
    * Lista clientes com paginação e filtros
    */
   async list(params?: CustomerListParams): Promise<PaginatedResponse<Customer>> {
-    return this.getPaginated<Customer>(this.baseUrl, {
+    return this.getPaginated<Customer>(`${this.baseUrl}/`, {
       ...params,
       company_id: this.companyId
     });
@@ -60,64 +27,64 @@ class CustomerApiService extends ApiService {
    * Busca cliente por ID
    */
   async getById(id: number): Promise<Customer> {
-    return this.get<Customer>(`${this.baseUrl}/${id}`);
+    return this.get<Customer>(`${this.baseUrl}/${id}/`);
   }
 
   /**
    * Cria novo cliente
    */
   async create(data: CustomerCreateData): Promise<Customer> {
-    return this.post<Customer>(this.baseUrl, data);
+    return this.post<Customer>(`${this.baseUrl}/`, data);
   }
 
   /**
    * Atualiza cliente existente
    */
   async update(id: number, data: CustomerUpdateData): Promise<Customer> {
-    return this.put<Customer>(`${this.baseUrl}/${id}`, data);
+    return this.put<Customer>(`${this.baseUrl}/${id}/`, data);
   }
 
   /**
    * Atualiza campos específicos do cliente
    */
-  async patch(id: number, data: Partial<CustomerUpdateData>): Promise<Customer> {
-    return this.patch<Customer>(`${this.baseUrl}/${id}`, data);
+  async patchCustomer(id: number, data: Partial<CustomerUpdateData>): Promise<Customer> {
+    return super.patch<Customer>(`${this.baseUrl}/${id}/`, data);
   }
 
   /**
    * Exclui cliente (soft delete)
    */
   async delete(id: number): Promise<void> {
-    await this.delete(`${this.baseUrl}/${id}`);
+    await super.delete(`${this.baseUrl}/${id}/`);
   }
 
   /**
    * Restaura cliente excluído
    */
   async restore(id: number): Promise<Customer> {
-    return this.post<Customer>(`${this.baseUrl}/${id}/restore`);
+    return this.post<Customer>(`${this.baseUrl}/${id}/restore/`);
   }
 
   /**
    * Exclusão permanente do cliente
    */
   async hardDelete(id: number): Promise<void> {
-    await this.delete(`${this.baseUrl}/${id}/permanent`);
+    await super.delete(`${this.baseUrl}/${id}/permanent/`);
   }
 
   /**
    * Exclusão em lote
    */
   async bulkDelete(ids: number[]): Promise<void> {
-    await this.post(`${this.baseUrl}/bulk-delete`, { ids });
+    await this.post(`${this.baseUrl}/bulk-delete/`, { ids });
   }
 
   /**
    * Importa clientes de arquivo
    */
   async import(
-    file: File, 
-    options?: { 
+    file: File,
+    options?: {
       update_existing?: boolean;
       skip_errors?: boolean;
     },
@@ -125,7 +92,7 @@ class CustomerApiService extends ApiService {
   ): Promise<CustomerImportResponse> {
     const formData = new FormData();
     formData.append('file', file);
-    
+
     if (options) {
       Object.entries(options).forEach(([key, value]) => {
         formData.append(key, value.toString());
@@ -133,7 +100,7 @@ class CustomerApiService extends ApiService {
     }
 
     return this.uploadFile(
-      `${this.baseUrl}/import`,
+      `${this.baseUrl}/import/`,
       file,
       onProgress,
       { params: options }
@@ -157,7 +124,7 @@ class CustomerApiService extends ApiService {
    */
   async downloadTemplate(format: 'csv' | 'xlsx' = 'csv'): Promise<Blob> {
     return this.downloadFile(
-      `${this.baseUrl}/import-template`,
+      `${this.baseUrl}/import-template/`,
       `modelo_importacao_clientes.${format}`,
       format,
       { params: { format } }
@@ -169,7 +136,7 @@ class CustomerApiService extends ApiService {
    */
   async exportAndSave(options?: CustomerExportOptions): Promise<void> {
     await this.downloadAndSaveFile(
-      `${this.baseUrl}/export`,
+      `${this.baseUrl}/export/`,
       `clientes.${options?.format || 'csv'}`,
       options?.format,
       { params: options }
@@ -181,7 +148,7 @@ class CustomerApiService extends ApiService {
    */
   async downloadAndSaveTemplate(format: 'csv' | 'xlsx' = 'csv'): Promise<void> {
     await this.downloadAndSaveFile(
-      `${this.baseUrl}/import-template`,
+      `${this.baseUrl}/import-template/`,
       `modelo_importacao_clientes.${format}`,
       format,
       { params: { format } }
@@ -195,7 +162,7 @@ class CustomerApiService extends ApiService {
     valid: boolean;
     errors?: Record<string, string[]>;
   }> {
-    return this.post(`${this.baseUrl}/validate`, data);
+    return this.post(`${this.baseUrl}/validate/`, data);
   }
 
   /**
@@ -205,21 +172,21 @@ class CustomerApiService extends ApiService {
     exists: boolean;
     customer_id?: number;
   }> {
-    return this.get(`${this.baseUrl}/check-document`, { document });
+    return this.get(`${this.baseUrl}/check-document/`, { params: { document } });
   }
 
   /**
    * Busca clientes por termo
    */
   async search(term: string): Promise<Customer[]> {
-    return this.get(`${this.baseUrl}/search`, { term });
+    return this.get(`${this.baseUrl}/search/`, { params: { term } });
   }
 
   /**
    * Lista clientes recentes
    */
   async recent(limit: number = 5): Promise<Customer[]> {
-    return this.get(`${this.baseUrl}/recent`, { limit });
+    return this.get(`${this.baseUrl}/recent/`, { params: { limit } });
   }
 
   /**
@@ -232,7 +199,7 @@ class CustomerApiService extends ApiService {
     created_today: number;
     created_this_month: number;
   }> {
-    return this.get(`${this.baseUrl}/stats`);
+    return this.get(`${this.baseUrl}/stats/`);
   }
 }
 

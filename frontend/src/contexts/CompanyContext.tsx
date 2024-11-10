@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Company } from '@/pages/Company/types';
 import { apiService as api } from '@/services/api';
 import { useAuth } from './AuthContext';
+import { useToast } from '@/hooks/useToast';
 
 interface CompanyContextData {
   currentCompany: Company | null;
@@ -17,11 +18,12 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
 
   const refreshCompany = async () => {
-    // Se não estiver autenticado, não faz a chamada
-    if (!isAuthenticated) {
+    // Se não estiver autenticado ou não tiver company_id, não faz a chamada
+    if (!isAuthenticated || !user?.company_id) {
       setCurrentCompany(null);
       return;
     }
@@ -29,26 +31,37 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
     try {
       setLoading(true);
       setError(null);
-      const { data } = await api.get<Company>('/api/companies/current/');
+      
+      // Usando o company_id do usuário autenticado
+      const { data } = await api.get<Company>(`/companies/${user.company_id}/`);
+      
+      if (!data) {
+        throw new Error('Empresa não encontrada');
+      }
+      
       setCurrentCompany(data);
     } catch (err) {
       console.error('Erro ao carregar dados da empresa:', err);
       setError('Erro ao carregar dados da empresa');
       setCurrentCompany(null);
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Não foi possível carregar os dados da empresa'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Só busca a empresa se estiver autenticado
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.company_id) {
       refreshCompany();
     } else {
       setCurrentCompany(null);
       setLoading(false);
     }
-  }, [isAuthenticated]); // Agora depende da autenticação
+  }, [isAuthenticated, user?.company_id]); // Depende da autenticação e do company_id
 
   const value = {
     currentCompany,
@@ -72,7 +85,4 @@ const useCompany = () => {
   return context;
 };
 
-export {
-  useCompany
-  ,CompanyProvider
-};
+export { useCompany, CompanyProvider };

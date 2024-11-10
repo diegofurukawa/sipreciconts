@@ -1,6 +1,8 @@
 // src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authService, TokenService } from '@/services/api';
+import { useToast } from '@/hooks/useToast';
 import type { AuthUser, AuthCredentials, AuthResponse } from '@/services/api';
 
 interface AuthState {
@@ -54,7 +56,32 @@ function loadStorageData(): AuthState {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(loadStorageData);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+
+  // Carrega o estado inicial de autenticação
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        const storedAuth = loadStorageData();
+        if (storedAuth.token) {
+          // Verifica se o token ainda é válido
+          const isValid = await authService.validateToken(storedAuth.token);
+          if (!isValid) {
+            await signOut();
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar autenticação:', error);
+        await signOut();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
 
   const updateStorage = useCallback((data: AuthResponse) => {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
@@ -74,14 +101,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(newAuthState);
       updateStorage(response);
 
-      // TokenService já é atualizado dentro do authService.login
+      showToast({
+        type: 'success',
+        title: 'Login realizado',
+        message: 'Bem-vindo de volta!'
+      });
+
+      // Redireciona para home após login
+      navigate('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
+      showToast({
+        type: 'error',
+        title: 'Erro no login',
+        message: 'Credenciais inválidas'
+      });
       throw error;
     } finally {
       setLoading(false);
     }
-  }, [updateStorage]);
+  }, [updateStorage, navigate, showToast]);
 
   const signOut = useCallback(async () => {
     try {
@@ -100,8 +139,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       TokenService.clearAll();
       setAuthState({ user: null, token: null });
       setLoading(false);
+      navigate('/login');
     }
-  }, []);
+  }, [navigate]);
 
   const updateUser = useCallback((data: Partial<AuthUser>) => {
     setAuthState(prev => {
@@ -149,3 +189,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// export default AuthContext;

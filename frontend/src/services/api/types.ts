@@ -19,9 +19,11 @@ export interface ApiConfig {
 /**
  * Configuração para retry de requisições
  */
-export interface RetryConfig extends ApiConfig {
+export interface RetryConfig {
   __retryCount?: number;
   __isRetry?: boolean;
+  headers?: Record<string, string>;
+  url?: string;
 }
 
 /**
@@ -202,7 +204,8 @@ export namespace Auth {
 /**
  * Interface para headers de requisição customizados
  */
-export interface CustomRequestHeaders extends Record<string, string> {
+export interface CustomRequestHeaders {
+  [key: string]: string | undefined;
   Authorization?: string;
   'Content-Type'?: string;
   Accept?: string;

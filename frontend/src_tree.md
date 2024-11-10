@@ -1,133 +1,238 @@
 .
-├── App.css
-├── App.test.tsx
-├── App.tsx
-├── assets
-│   └── react.svg
-├── components
-│   ├── Company
-│   │   ├── CompanyForm
-│   │   │   └── index.tsx
-│   │   └── CompanyList
-│   │       └── index.tsx
-│   ├── Contract
-│   │   ├── ContractForm
-│   │   │   └── index.tsx
-│   │   └── ContractList
-│   │       └── index.tsx
-│   ├── Customer
-│   │   ├── CustomerForm.tsx
-│   │   ├── CustomerHeader.tsx
-│   │   ├── CustomerList.tsx
-│   │   ├── Feedback
-│   │   │   └── FeedbackMessage.tsx
-│   │   ├── ImportHelpDialog.tsx
-│   │   ├── ImportHelp.tsx
-│   │   ├── Modals
-│   │   │   └── DeleteConfirmationModal.tsx
-│   │   ├── Pagination
-│   │   │   └── CustomerPagination.tsx
-│   │   └── Table
-│   │       ├── CustomerTable.tsx
-│   │       └── CustomerToolbar.tsx
-│   ├── ErrorBoundary
-│   │   ├── ApiErrorBoundary.tsx
-│   │   └── LoadingFallback.tsx
-│   ├── FeatureCard.tsx
-│   ├── LayoutWrapper
-│   │   └── index.tsx
-│   ├── Login
-│   │   ├── index.tsx
-│   │   └── LoginForm.tsx
-│   ├── PrivateRoute
-│   │   └── index.tsx
-│   ├── PrivateRoute.tsx
-│   ├── Quote
-│   │   ├── QuoteForm
-│   │   │   └── index.tsx
-│   │   └── QuoteList
-│   │       └── index.tsx
-│   ├── Supply
-│   │   ├── SupplyForm.tsx
-│   │   ├── SupplyHeader.tsx
-│   │   ├── SupplyList.tsx
-│   │   └── __tests__
-│   │       └── SupplyList.test.tsx
-│   ├── Tax
-│   │   ├── TaxForm.tsx
-│   │   └── TaxList.tsx
-│   └── ui
-│       ├── accordion
-│       │   └── index.tsx
-│       ├── alert-dialog.tsx
-│       ├── TablePagination.tsx
-│       └── toast.tsx
-├── config
-│   └── api.ts
-├── contexts
-│   ├── AuthContext.tsx
-│   └── ToastContext.tsx
-├── hooks
-│   ├── useApi.ts
-│   └── useToast.ts
-├── index.css
-├── index.tsx
-├── layouts
-│   ├── MainLayout
-│   │   ├── components
-│   │   │   ├── Breadcrumb.tsx
-│   │   │   ├── Footer.tsx
-│   │   │   └── Navbar.tsx
-│   │   ├── index.tsx
-│   │   └── teste.tsx
-│   └── teste
-├── lib
-│   └── utils.ts
-├── logo.svg
-├── main.tsx
-├── pages
-│   ├── Help
-│   │   └── index.tsx
-│   ├── Home
-│   │   ├── components
-│   │   │   └── FeatureCard.tsx
-│   │   └── index.tsx
-│   ├── Login
-│   │   └── index.tsx
-│   ├── NotFound.tsx
-│   └── Supplies
-│       └── index.tsx
-├── react-app-env.d.ts
-├── reportWebVitals.ts
-├── routes
+├── eslint.config.js
+├── find_in_files.sh
+├── index.html
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── README.md
+├── src
+│   ├── App.css
+│   ├── App.test.tsx
+│   ├── App.tsx
+│   ├── assets
+│   │   └── react.svg
 │   ├── components
-│   │   ├── LayoutWrapper.tsx
-│   │   ├── PageLoader.tsx
-│   │   └── PrivateRoute.tsx
+│   │   ├── ErrorBoundary
+│   │   │   ├── ApiErrorBoundary.tsx
+│   │   │   └── LoadingFallback.tsx
+│   │   ├── FeatureCard.tsx
+│   │   ├── feedback
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── ErrorState.tsx
+│   │   │   └── LoadingState.tsx
+│   │   ├── LayoutWrapper
+│   │   │   └── index.tsx
+│   │   ├── LoadingSpinner
+│   │   │   ├── index.tsx
+│   │   │   └── LoadingFallback.tsx
+│   │   ├── PrivateRoute
+│   │   │   └── index.tsx
+│   │   ├── PrivateRoute.tsx
+│   │   ├── RouteDebug.tsx
+│   │   └── ui
+│   │       ├── accordion
+│   │       │   ├── accordion.test.tsx
+│   │       │   ├── accordion.tsx
+│   │       │   └── index.tsx
+│   │       ├── alert-dialog
+│   │       │   ├── alert-dialog.test.tsx
+│   │       │   ├── alert-dialog.tsx
+│   │       │   └── index.ts
+│   │       ├── avatar.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── date-formatters.tsx
+│   │       ├── dialog.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── form-field.tsx
+│   │       ├── index.ts
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── pagination.tsx
+│   │       ├── progress.tsx
+│   │       ├── sheet.tsx
+│   │       ├── simplealert
+│   │       │   ├── index.ts
+│   │       │   └── SimpleAlert.tsx
+│   │       ├── skeleton.tsx
+│   │       ├── switch.tsx
+│   │       ├── table-pagination
+│   │       │   ├── index.ts
+│   │       │   ├── table-pagination.test.tsx
+│   │       │   └── table-pagination.tsx
+│   │       ├── table.tsx
+│   │       └── toast
+│   │           ├── index.ts
+│   │           ├── toast.test.tsx
+│   │           └── toast.tsx
 │   ├── config
-│   │   └── route-paths.ts
+│   │   └── api.ts
+│   ├── contexts
+│   │   ├── AuthContext.tsx
+│   │   ├── CompanyContext.tsx
+│   │   └── ToastContext.tsx
+│   ├── env.d.ts
+│   ├── hooks
+│   │   ├── api
+│   │   │   ├── index.ts
+│   │   │   └── useCustomerApi.ts
+│   │   ├── useApi.ts
+│   │   ├── useAuth.ts
+│   │   └── useToast.ts
+│   ├── index.css
 │   ├── index.tsx
-│   └── modules
-│       ├── cadastros.routes.tsx
-│       ├── comercial.routes.tsx
-│       └── index.ts
-├── services
-│   └── api
-│       ├── auth.ts
-│       ├── auth.types.ts
-│       ├── base.ts
-│       ├── customer.ts
-│       ├── index.ts
-│       ├── supply.ts
-│       ├── tax.ts
-│       ├── token.ts
-│       ├── types.ts
-│       └── utils.ts
-├── setupTests.ts
-├── types
-│   ├── auth.types.ts
-│   ├── customer.ts
-│   ├── index.ts
-│   ├── supply.ts
-│   └── tax.ts
-└── vite-env.d.ts
+│   ├── layouts
+│   │   ├── AuthLayout
+│   │   │   └── index.tsx
+│   │   ├── CadastrosLayout
+│   │   │   ├── components
+│   │   │   │   └── CadastrosMenu.tsx
+│   │   │   └── index.tsx
+│   │   └── MainLayout
+│   │       ├── components
+│   │       │   ├── Footer.tsx
+│   │       │   ├── Header.tsx
+│   │       │   ├── index.ts
+│   │       │   ├── Navbar.tsx
+│   │       │   └── UserMenu.tsx
+│   │       ├── index.tsx
+│   │       └── teste.tsx
+│   ├── lib
+│   │   └── utils.ts
+│   ├── logo.svg
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── Company
+│   │   │   ├── components
+│   │   │   │   ├── CompanyForm.tsx
+│   │   │   │   ├── CompanyHeader.tsx
+│   │   │   │   └── CompanyList.tsx
+│   │   │   ├── hooks
+│   │   │   │   ├── useCompanyForm.ts
+│   │   │   │   └── useCompanyList.ts
+│   │   │   ├── index.tsx
+│   │   │   ├── routes.ts
+│   │   │   ├── types
+│   │   │   │   └── index.ts
+│   │   │   └── utils
+│   │   │       └── validators.ts
+│   │   ├── Contract
+│   │   │   ├── ContractForm
+│   │   │   │   └── index.tsx
+│   │   │   └── ContractList
+│   │   │       └── index.tsx
+│   │   ├── Customer
+│   │   │   ├── components
+│   │   │   │   ├── CustomerDetails.tsx
+│   │   │   │   ├── CustomerForm.tsx
+│   │   │   │   ├── CustomerHeader.tsx
+│   │   │   │   ├── CustomerImport.tsx
+│   │   │   │   ├── CustomerList.tsx
+│   │   │   │   ├── CustomerToolbar.tsx
+│   │   │   │   ├── DeleteConfirmation.tsx
+│   │   │   │   ├── FeedbackMessage.tsx
+│   │   │   │   └── ImportHelpDialog.tsx
+│   │   │   ├── hooks
+│   │   │   │   ├── useCustomerForm.ts
+│   │   │   │   └── useCustomerList.ts
+│   │   │   ├── index.tsx
+│   │   │   ├── routes
+│   │   │   │   └── index.tsx
+│   │   │   ├── types
+│   │   │   │   └── index.ts
+│   │   │   └── utils
+│   │   │       └── validators.ts
+│   │   ├── Help
+│   │   │   └── index.tsx
+│   │   ├── Home
+│   │   │   ├── components
+│   │   │   │   └── FeatureCard.tsx
+│   │   │   └── index.tsx
+│   │   ├── Login
+│   │   │   ├── components
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   └── LoginHeader.tsx
+│   │   │   ├── hooks
+│   │   │   │   └── useLoginForm.ts
+│   │   │   ├── index.tsx
+│   │   │   ├── types
+│   │   │   │   └── index.ts
+│   │   │   └── utils
+│   │   │       └── validators.ts
+│   │   ├── NotFound
+│   │   │   ├── index.tsx
+│   │   │   └── NotFound.tsx
+│   │   ├── Quote
+│   │   │   ├── QuoteForm
+│   │   │   │   └── index.tsx
+│   │   │   └── QuoteList
+│   │   │       └── index.tsx
+│   │   ├── Supplies
+│   │   │   └── index.tsx
+│   │   ├── Supply
+│   │   │   ├── index.tsx
+│   │   │   ├── SupplyForm.tsx
+│   │   │   ├── SupplyHeader.tsx
+│   │   │   ├── SupplyList.tsx
+│   │   │   └── __tests__
+│   │   │       └── SupplyList.test.tsx
+│   │   └── Tax
+│   │       ├── TaxForm.tsx
+│   │       └── TaxList.tsx
+│   ├── providers
+│   │   └── index.tsx
+│   ├── react-app-env.d.ts
+│   ├── reportWebVitals.ts
+│   ├── routes
+│   │   ├── components
+│   │   │   ├── LayoutWrapper.tsx
+│   │   │   ├── PageLoader.tsx
+│   │   │   └── PrivateRoute.tsx
+│   │   ├── config
+│   │   │   └── route-paths.ts
+│   │   ├── index.tsx
+│   │   ├── modules
+│   │   │   ├── cadastros.routes.tsx
+│   │   │   ├── comercial.routes.tsx
+│   │   │   ├── customer.routes.tsx
+│   │   │   └── index.ts
+│   │   └── types.ts
+│   ├── services
+│   │   └── api
+│   │       ├── ApiService.ts
+│   │       ├── auth.types.ts
+│   │       ├── base.ts
+│   │       ├── config.ts
+│   │       ├── constants.ts
+│   │       ├── index.ts
+│   │       ├── instance.ts
+│   │       ├── interceptors.ts
+│   │       ├── modules
+│   │       │   ├── auth.ts
+│   │       │   ├── company.ts
+│   │       │   ├── customer.ts
+│   │       │   └── tax.ts
+│   │       ├── supply.ts
+│   │       ├── token.ts
+│   │       ├── types.ts
+│   │       └── utils.ts
+│   ├── setupTests.ts
+│   ├── styles
+│   │   └── globals.css
+│   ├── types
+│   │   ├── auth.types.ts
+│   │   ├── company.ts
+│   │   ├── customer.ts
+│   │   ├── index.ts
+│   │   ├── supply.ts
+│   │   └── tax.ts
+│   ├── utils
+│   │   └── date.ts
+│   └── vite-env.d.ts
+├── src_tree.md
+├── tailwind.config.js
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
