@@ -10,7 +10,7 @@ from .asset_movement import AssetMovementViewSet
 from .company import CompanyViewSet
 from .user import UserViewSet
 from .login import LoginView, LogoutView, ValidateTokenView
-
+from .usersession import UserSessionViewSet
 
 __all__ = [
     'BaseViewSet',
@@ -21,6 +21,7 @@ __all__ = [
     'CompanyViewSet',
     
     'UserViewSet',
+    'UserSessionViewSet',
 
     'SupplyViewSet',
     

@@ -10,6 +10,7 @@ from .company import CompanyAdmin
 from .user import UserAdmin
 from .location import LocationAdmin
 from .asset_location import AssetLocationAdmin, AssetLocation
+from .usersession import UserSessionAdmin
 
 all__ = [
     'BaseAdmin', 

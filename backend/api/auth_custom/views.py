@@ -9,6 +9,9 @@ from django.utils import timezone
 from .backends import CustomAuthBackend
 from .handlers import TokenHandler
 from ..serializers.user import UserSerializer
+from rest_framework.permissions import IsAuthenticated
+from ..models.usersession import UserSession
+from ..serializers.usersession import UserSessionSerializer
 
 class LoginView(APIView):
     permission_classes = []
@@ -151,3 +154,47 @@ class TokenRefreshView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+
+from rest_framework.authentication import SessionAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+class SessionView(APIView):
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        token = request.auth if hasattr(request, 'auth') else None
+        if not token:
+            return Response({"detail": "No valid token found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        session = UserSession.objects.create(
+            user=request.user,
+            company_id=getattr(request.user, 'company_id', None),
+            token=str(token),
+            refresh_token=request.data.get('refresh_token'),
+            user_agent=request.META.get('HTTP_USER_AGENT'),
+            ip_address=request.META.get('REMOTE_ADDR')
+        )
+        serializer = UserSessionSerializer(session)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class EndSessionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Encerra a sessão atual"""
+        session = UserSession.objects.filter(
+            user=request.user,
+            token=request.auth.token,
+            is_active=True
+        ).first()
+
+        if not session:
+            return Response(
+                {"detail": "Sessão não encontrada"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        session.end_session()
+        return Response(status=status.HTTP_204_NO_CONTENT)

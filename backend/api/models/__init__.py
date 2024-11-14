@@ -13,11 +13,13 @@ from .company import Company
 from .user import User
 from .asset_location import AssetLocation
 from .location import Location
+from .usersession import UserSession
 
 __all__ = [
     'BaseModel',
     'Company',
     'User',
+    'UserSession',
     
     'Customer',
     'CustomerType',

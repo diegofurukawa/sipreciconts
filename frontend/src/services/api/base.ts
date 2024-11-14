@@ -64,7 +64,7 @@ export class BaseApiService {
           try {
             const refreshToken = TokenService.getRefreshToken();
             if (refreshToken) {
-              const response = await this.api.post('/token/refresh/', {
+              const response = await this.api.post('/refresh/', {
                 refresh: refreshToken,
               });
               

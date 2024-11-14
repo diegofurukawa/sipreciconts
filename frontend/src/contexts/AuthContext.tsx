@@ -1,23 +1,26 @@
-// src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService, TokenService } from '@/services/api';
+import { UserSession } from '@/services/api/UserSession';
 import { useToast } from '@/hooks/useToast';
 import type { AuthUser, AuthCredentials, AuthResponse } from '@/services/api';
 
 interface AuthState {
   user: AuthUser | null;
   token: string | null;
+  companyId?: number;
 }
 
 interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   user: AuthUser | null;
+  companyId?: number;
   signIn: (credentials: AuthCredentials) => Promise<void>;
   signOut: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (data: Partial<AuthUser>) => void;
+  switchCompany?: (companyId: number) => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -30,22 +33,36 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function loadStorageData(): AuthState {
   try {
+    // Tenta carregar a sessão do usuário primeiro
+    const session = UserSession.load();
+    if (session) {
+      return {
+        user: session.user as AuthUser,
+        token: session.token,
+        companyId: session.companyId
+      };
+    }
+
+    // Fallback para o storage antigo
     const storedData = localStorage.getItem(AUTH_STORAGE_KEY);
     if (storedData) {
       const parsedData = JSON.parse(storedData);
       
-      // Restaura os tokens no serviço
+      // Migra dados antigos para o novo formato de sessão
       if (parsedData.access && parsedData.refresh) {
-        TokenService.setTokens({
-          access: parsedData.access,
-          refresh: parsedData.refresh
+        const session = UserSession.createFromAuth({
+          user_id: parsedData.user?.id,
+          company_id: parsedData.user?.company_id,
+          token: parsedData.access,
+          refresh_token: parsedData.refresh
         });
+
+        return {
+          user: parsedData.user,
+          token: parsedData.access,
+          companyId: parsedData.user?.company_id
+        };
       }
-      
-      return {
-        user: parsedData.user,
-        token: parsedData.access
-      };
     }
   } catch (error) {
     console.error('Erro ao carregar dados do storage:', error);
@@ -60,16 +77,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Carrega o estado inicial de autenticação
+  // Inicialização e validação da autenticação
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const storedAuth = loadStorageData();
-        if (storedAuth.token) {
-          // Verifica se o token ainda é válido
-          const isValid = await authService.validateToken(storedAuth.token);
+        const session = UserSession.load();
+        if (session) {
+          const isValid = await session.validate();
           if (!isValid) {
             await signOut();
+          } else {
+            // Atualiza o estado com os dados da sessão
+            setAuthState({
+              user: session.user as AuthUser,
+              token: session.token,
+              companyId: session.companyId
+            });
           }
         }
       } catch (error) {
@@ -83,23 +106,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const updateStorage = useCallback((data: AuthResponse) => {
-    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(data));
-  }, []);
-
   const signIn = useCallback(async (credentials: AuthCredentials) => {
     try {
       setLoading(true);
       const response = await authService.login(credentials);
       
-      const newAuthState = {
-        user: response.user,
-        token: response.access
-      };
+      // Cria nova sessão
+      const session = UserSession.createFromAuth({
+        user_id: response.user.id,
+        company_id: response.user.company_id,
+        token: response.access,
+        refresh_token: response.refresh,
+        expires_in: 3600 // 1 hora, ajuste conforme necessário
+      });
 
-      // Atualiza o estado e o storage
-      setAuthState(newAuthState);
-      updateStorage(response);
+      // Atualiza o estado
+      setAuthState({
+        user: response.user,
+        token: response.access,
+        companyId: response.user.company_id
+      });
 
       showToast({
         type: 'success',
@@ -107,7 +133,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         message: 'Bem-vindo de volta!'
       });
 
-      // Redireciona para home após login
       navigate('/');
     } catch (error) {
       console.error('Erro ao fazer login:', error);
@@ -120,23 +145,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [updateStorage, navigate, showToast]);
+  }, [navigate, showToast]);
 
   const signOut = useCallback(async () => {
     try {
       setLoading(true);
       
-      // Tenta fazer logout no servidor
-      await authService.logout().catch((error) => {
-        console.warn('Erro ao fazer logout no servidor:', error);
-      });
+      const session = UserSession.load();
+      if (session) {
+        // Tenta fazer logout no servidor
+        await authService.logout().catch((error) => {
+          console.warn('Erro ao fazer logout no servidor:', error);
+        });
 
+        // Encerra a sessão
+        session.end();
+      }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     } finally {
-      // Sempre limpa os dados locais, mesmo se houver erro no servidor
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      // Limpa todos os dados
+      UserSession.clear();
       TokenService.clearAll();
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       setAuthState({ user: null, token: null });
       setLoading(false);
       navigate('/login');
@@ -152,19 +183,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: { ...prev.user, ...data }
       };
 
-      // Atualiza também no storage
-      const storedData = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
-          ...parsedData,
-          user: { ...parsedData.user, ...data }
-        }));
+      // Atualiza a sessão
+      const session = UserSession.load();
+      if (session) {
+        session.update({ user: { ...session.user, ...data } });
       }
 
       return newState;
     });
   }, []);
+
+  const switchCompany = useCallback(async (companyId: number) => {
+    try {
+      const session = UserSession.load();
+      if (session) {
+        session.switchCompany(companyId);
+        setAuthState(prev => ({
+          ...prev,
+          companyId
+        }));
+
+        showToast({
+          type: 'success',
+          title: 'Empresa alterada',
+          message: 'Empresa selecionada com sucesso'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao trocar empresa:', error);
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Não foi possível trocar de empresa'
+      });
+    }
+  }, [showToast]);
 
   // Alias para signOut
   const logout = useCallback(() => signOut(), [signOut]);
@@ -173,10 +226,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!authState.user,
     loading,
     user: authState.user,
+    companyId: authState.companyId,
     signIn,
     signOut,
     logout,
-    updateUser
+    updateUser,
+    switchCompany
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -190,4 +245,4 @@ export const useAuth = () => {
   return context;
 };
 
-// export default AuthContext;
+export type { AuthContextType, AuthState };

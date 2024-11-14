@@ -54,6 +54,38 @@ export const TokenService = {
   },
 
   /**
+   * Renovação de token
+   * @param refreshToken Token de refresh para obter novo access token
+   * @returns Promise com novo access token ou null em caso de erro
+   */
+  async getNewToken(refreshToken: string): Promise<string | null> {
+    try {
+      const response = await fetch('/api/auth/refresh/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refresh: refreshToken }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to refresh token');
+      }
+
+      const data = await response.json();
+      if (data.access) {
+        this.setAccessToken(data.access);
+        return data.access;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+    }
+  },
+
+  /**
    * Operações com os dados do usuário
    */
   setUserData(user: Auth.UserData): void {
@@ -127,6 +159,25 @@ export const TokenService = {
   },
 
   /**
+   * Validação de token
+   */
+  async validateToken(token: string): Promise<boolean> {
+    try {
+      const response = await fetch('/api/auth/token/verify/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token }),
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
    * Estado completo da autenticação
    */
   getAuthState(): Auth.AuthStatus {
@@ -160,3 +211,5 @@ export const TokenService = {
     }
   }
 };
+
+export default TokenService;

@@ -28,7 +28,7 @@ export const setupInterceptors = (api: AxiosInstance) => {
         try {
           const refreshToken = TokenService.getRefreshToken();
           if (refreshToken) {
-            const response = await api.post('/token/refresh/', {
+            const response = await api.post('/refresh/', {
               refresh: refreshToken,
             });
             

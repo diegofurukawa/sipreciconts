@@ -19,6 +19,7 @@ from .asset_group import AssetGroupSerializer
 from .asset_category import AssetCategorySerializer
 from .asset_movement import AssetMovementSerializer
 from .user import UserSerializer
+from .usersession import UserSessionSerializer
 # from .contract import ContractSerializer, ContractDetailSerializer, ContractListSerializer
 # from .quote import QuoteSerializer, QuoteDetailSerializer, QuoteListSerializer
 
@@ -38,6 +39,7 @@ __all__ = [
 
     # User
     'UserSerializer',
+    'UserSessionSerializer',
 
     # Tax
     'TaxSerializer',

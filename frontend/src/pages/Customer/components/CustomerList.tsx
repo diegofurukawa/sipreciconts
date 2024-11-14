@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Table,
@@ -45,9 +45,33 @@ import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 import { ImportHelpDialog } from './ImportHelpDialog';
 import { FeedbackMessage } from './FeedbackMessage';
 import { CustomerToolbar } from './CustomerToolbar';
+import { useCompany } from '@/contexts/CompanyContext';
+
+// Utility para logs consistentes
+const logInfo = (component: string, action: string, data?: any) => {
+  console.log(`[CustomerList/${component}]`, action, data || '');
+};
+
+const logError = (component: string, action: string, error: any) => {
+  console.error(`[CustomerList/${component}] Error in ${action}:`, error);
+};
 
 const CustomerList = () => {
   const navigate = useNavigate();
+  const { currentCompany } = useCompany();
+  
+  // Log inicial do componente
+  useEffect(() => {
+    logInfo('Mount', 'Component mounted', { 
+      companyId: currentCompany?.id,
+      timestamp: new Date().toISOString()
+    });
+    
+    return () => {
+      logInfo('Unmount', 'Component will unmount');
+    };
+  }, []);
+
   const {
     customers,
     loading,
@@ -62,17 +86,30 @@ const CustomerList = () => {
     reloadCustomers
   } = useCustomerList();
 
+  // Log de mudanças no estado dos customers
+  useEffect(() => {
+    logInfo('Data', 'Customers state updated', {
+      customersCount: customers.length,
+      loading,
+      paginationState: pagination,
+      searchParams: params
+    });
+  }, [customers, loading, pagination, params]);
+
   const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
   const [showImportHelp, setShowImportHelp] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Handlers
+  // Handlers com logs
   const handleExportClick = async () => {
     try {
+      logInfo('Export', 'Starting export');
       await handleExport();
       showFeedback('success', 'Arquivo exportado com sucesso');
+      logInfo('Export', 'Export completed successfully');
     } catch (error) {
+      logError('Export', 'Export failed', error);
       showFeedback('error', 'Erro ao exportar clientes');
     }
   };
@@ -81,10 +118,13 @@ const CustomerList = () => {
     const file = event.target.files?.[0];
     if (file) {
       try {
+        logInfo('Import', 'Starting import', { fileName: file.name, fileSize: file.size });
         await handleImport(file);
         showFeedback('success', 'Clientes importados com sucesso');
         await reloadCustomers();
+        logInfo('Import', 'Import completed successfully');
       } catch (error) {
+        logError('Import', 'Import failed', error);
         showFeedback('error', 'Erro ao importar clientes');
       }
     }
@@ -93,10 +133,13 @@ const CustomerList = () => {
   const confirmDelete = async () => {
     if (customerToDelete) {
       try {
+        logInfo('Delete', 'Starting delete', { customerId: customerToDelete });
         await handleDelete(customerToDelete);
         showFeedback('success', 'Cliente excluído com sucesso');
         await reloadCustomers();
+        logInfo('Delete', 'Delete completed successfully');
       } catch (error) {
+        logError('Delete', 'Delete failed', error);
         showFeedback('error', 'Erro ao excluir cliente');
       }
       setCustomerToDelete(null);
@@ -106,13 +149,16 @@ const CustomerList = () => {
   const showFeedback = (type: 'success' | 'error', message: string) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 3000);
+    logInfo('Feedback', 'Showing feedback', { type, message });
   };
 
   const handleSearchSubmit = useCallback(() => {
+    logInfo('Search', 'Submitting search', { searchTerm });
     handleSearch(searchTerm);
   }, [handleSearch, searchTerm]);
 
   const handleSearchClear = useCallback(() => {
+    logInfo('Search', 'Clearing search');
     setSearchTerm('');
     handleSearch('');
   }, [handleSearch]);
@@ -123,8 +169,14 @@ const CustomerList = () => {
     }
   };
 
+  // Log do estado de loading
+  useEffect(() => {
+    logInfo('Loading', 'Loading state changed', { loading, customersCount: customers.length });
+  }, [loading, customers.length]);
+
   // Renderiza o esqueleto de carregamento
   if (loading && !customers.length) {
+    logInfo('Render', 'Rendering loading skeleton');
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -146,10 +198,16 @@ const CustomerList = () => {
     );
   }
 
+  logInfo('Render', 'Rendering main component', { 
+    customersCount: customers.length,
+    searchTerm,
+    paginationState: pagination
+  });
+
   return (
     <div className="space-y-4">
-      {/* Cabeçalho com Ações */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+{/* Cabeçalho com Ações */}
+<div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative flex items-center w-full md:w-auto">
           <Search className="absolute left-3 h-5 w-5 text-gray-500" />
           <Input
@@ -360,4 +418,4 @@ const CustomerList = () => {
   );
 };
 
-export {  CustomerList };
+export { CustomerList };

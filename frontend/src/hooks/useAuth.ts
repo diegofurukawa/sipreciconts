@@ -75,7 +75,7 @@ export const useAuth = () => {
         
         try {
           const refreshToken = localStorage.getItem('refreshToken');
-          const response = await api.post('/auth/token/refresh/', { refresh: refreshToken });
+          const response = await api.post('/auth/refresh/', { refresh: refreshToken });
           const { access } = response.data;
           
           localStorage.setItem('token', access);

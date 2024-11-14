@@ -3,6 +3,7 @@ import { ApiService } from '../ApiService';
 import { TokenService } from '../token';
 import type { ApiResponse } from '../types';
 
+// Types
 export interface AuthCredentials {
   username: string;
   password: string;
@@ -24,6 +25,7 @@ export interface AuthResponse {
   access: string;
   refresh: string;
   user: AuthUser;
+  session_id: string;
 }
 
 export interface TokenResponse {
@@ -35,6 +37,20 @@ export interface AuthState {
   user: AuthUser | null;
   company_id?: number;
   loading: boolean;
+  session_id?: string;
+}
+
+export interface UserSession {
+  id?: number;
+  user_id: number;
+  company_id: number;
+  session_id: string;
+  token: string;
+  ip_address?: string;
+  user_agent?: string;
+  started_at: Date;
+  last_activity_at: Date;
+  ended_at?: Date;
 }
 
 class AuthApiService extends ApiService {
@@ -45,20 +61,46 @@ class AuthApiService extends ApiService {
    */
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
+      // 1. Faz login e obtém tokens
       const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, credentials);
       
-      // Armazena tokens
+      // 2. Armazena tokens
       TokenService.setTokens({
         access: response.access,
         refresh: response.refresh
       });
+
+      // 3. Configura token no header para todas as requisições futuras
+      this.api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
       
+      // 4. Registra sessão do usuário
+      await this.createUserSession({
+        user_id: response.user.id,
+        company_id: response.user.company_id,
+        session_id: response.session_id,
+        token: response.access,
+        started_at: new Date(),
+        last_activity_at: new Date()
+      });
+
       return response;
     } catch (error) {
-      // Limpa tokens em caso de erro
+      // Limpa dados em caso de erro
       TokenService.clearAll();
+      delete this.api.defaults.headers.common['Authorization'];
       throw error;
     }
+  }
+
+  /**
+   * Cria registro de sessão do usuário
+   */
+  private async createUserSession(session: Omit<UserSession, 'id'>): Promise<UserSession> {
+    return this.post<UserSession>(`${this.baseUrl}/sessions/`, {
+      ...session,
+      ip_address: window.location.hostname,
+      user_agent: navigator.userAgent
+    });
   }
 
   /**
@@ -66,12 +108,22 @@ class AuthApiService extends ApiService {
    */
   async logout(): Promise<void> {
     try {
-      const refreshToken = TokenService.getRefreshToken();
-      if (refreshToken) {
-        await this.post(`${this.baseUrl}/logout`, { refresh: refreshToken });
+      const token = TokenService.getAccessToken();
+      const sessionId = localStorage.getItem('session_id');
+
+      if (token && sessionId) {
+        // Finaliza a sessão no backend
+        await this.post(`${this.baseUrl}/logout/`, {
+          token,
+          session_id: sessionId,
+          ended_at: new Date()
+        });
       }
     } finally {
+      // Limpa dados locais
       TokenService.clearAll();
+      localStorage.removeItem('session_id');
+      delete this.api.defaults.headers.common['Authorization'];
     }
   }
 
@@ -80,16 +132,21 @@ class AuthApiService extends ApiService {
    */
   async refreshToken(refresh: string): Promise<TokenResponse> {
     try {
-      const response = await this.post<TokenResponse>(`${this.baseUrl}/token/refresh`, {
-        refresh
+      const sessionId = localStorage.getItem('session_id');
+      const response = await this.post<TokenResponse>(`${this.baseUrl}/refresh/`, {
+        refresh,
+        session_id: sessionId
       });
 
-      // Atualiza apenas o token de acesso
+      // Atualiza token
       TokenService.setAccessToken(response.access);
+      this.api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
       
       return response;
     } catch (error) {
       TokenService.clearAll();
+      localStorage.removeItem('session_id');
+      delete this.api.defaults.headers.common['Authorization'];
       throw error;
     }
   }
@@ -99,7 +156,11 @@ class AuthApiService extends ApiService {
    */
   async validateToken(token: string): Promise<boolean> {
     try {
-      await this.post(`${this.baseUrl}/token/verify`, { token });
+      const sessionId = localStorage.getItem('session_id');
+      await this.post(`${this.baseUrl}/token/verify/`, { 
+        token,
+        session_id: sessionId
+      });
       return true;
     } catch {
       return false;
@@ -120,14 +181,14 @@ class AuthApiService extends ApiService {
     current_password: string;
     new_password: string;
   }): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password`, data);
+    return this.post(`${this.baseUrl}/password/`, data);
   }
 
   /**
    * Solicita redefinição de senha
    */
   async requestPasswordReset(email: string): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password/reset`, { email });
+    return this.post(`${this.baseUrl}/password/reset/`, { email });
   }
 
   /**
@@ -137,7 +198,32 @@ class AuthApiService extends ApiService {
     token: string;
     new_password: string;
   }): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password/reset/confirm`, data);
+    return this.post(`${this.baseUrl}/password/reset/confirm/`, data);
+  }
+
+  /**
+   * Lista sessões ativas do usuário
+   */
+  async getActiveSessions(): Promise<Array<{
+    session_id: string;
+    created_at: string;
+    user_agent?: string;
+    ip_address?: string;
+    is_current: boolean;
+  }>> {
+    return this.get(`${this.baseUrl}/sessions/active/`);
+  }
+
+  /**
+   * Encerra outras sessões ativas
+   */
+  async endOtherSessions(): Promise<void> {
+    const currentSessionId = localStorage.getItem('session_id');
+    if (currentSessionId) {
+      await this.post(`${this.baseUrl}/sessions/end-others/`, {
+        current_session_id: currentSessionId
+      });
+    }
   }
 
   /**
@@ -145,21 +231,25 @@ class AuthApiService extends ApiService {
    */
   async checkAuth(): Promise<boolean> {
     try {
-      const accessToken = TokenService.getAccessToken();
-      const refreshToken = TokenService.getRefreshToken();
+      const token = TokenService.getAccessToken();
+      const sessionId = localStorage.getItem('session_id');
 
-      if (!accessToken || !refreshToken) {
+      if (!token || !sessionId) {
         return false;
       }
 
-      // Tenta validar o token atual
-      const isValid = await this.validateToken(accessToken);
-      if (isValid) {
-        return true;
+      // Valida token atual
+      const isValid = await this.validateToken(token);
+      if (!isValid) {
+        // Tenta refresh
+        const refreshToken = TokenService.getRefreshToken();
+        if (refreshToken) {
+          await this.refreshToken(refreshToken);
+          return true;
+        }
+        return false;
       }
 
-      // Se o token não é válido, tenta refresh
-      await this.refreshToken(refreshToken);
       return true;
     } catch {
       return false;
@@ -181,10 +271,13 @@ class AuthApiService extends ApiService {
       }
 
       const user = await this.getCurrentUser();
+      const sessionId = localStorage.getItem('session_id');
+
       return {
         isAuthenticated: true,
         user,
         company_id: user.company_id,
+        session_id: sessionId || undefined,
         loading: false
       };
     } catch {
@@ -195,7 +288,23 @@ class AuthApiService extends ApiService {
       };
     }
   }
+
+  /**
+   * Troca a empresa do usuário
+   */
+  async switchCompany(companyId: number): Promise<void> {
+    const sessionId = localStorage.getItem('session_id');
+    if (sessionId) {
+      await this.post(`${this.baseUrl}/switch-company/`, {
+        company_id: companyId,
+        session_id: sessionId
+      });
+    }
+  }
 }
 
+// Exporta instância única do serviço
 export const authService = new AuthApiService();
+
+// Exporta classe para casos específicos
 export default AuthApiService;
