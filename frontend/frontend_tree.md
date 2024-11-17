@@ -5,6 +5,13 @@
 ├── package.json
 ├── package-lock.json
 ├── postcss.config.js
+├── public
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
 ├── README.md
 ├── src
 │   ├── App.css
@@ -98,8 +105,6 @@
 │   │       │   └── UserMenu.tsx
 │   │       ├── index.tsx
 │   │       └── teste.tsx
-│   ├── lib
-│   │   └── utils.ts
 │   ├── logo.svg
 │   ├── main.tsx
 │   ├── pages
@@ -199,24 +204,30 @@
 │   │   │   └── index.ts
 │   │   └── types.ts
 │   ├── services
-│   │   └── api
-│   │       ├── ApiService.ts
-│   │       ├── auth.types.ts
-│   │       ├── base.ts
-│   │       ├── config.ts
-│   │       ├── constants.ts
-│   │       ├── index.ts
-│   │       ├── instance.ts
-│   │       ├── interceptors.ts
-│   │       ├── modules
-│   │       │   ├── auth.ts
-│   │       │   ├── company.ts
-│   │       │   ├── customer.ts
-│   │       │   └── tax.ts
-│   │       ├── supply.ts
-│   │       ├── token.ts
-│   │       ├── types.ts
-│   │       └── utils.ts
+│   │   ├── api
+│   │   │   ├── ApiService copy.ts
+│   │   │   ├── ApiService.ts
+│   │   │   ├── auth.types.ts
+│   │   │   ├── base.ts
+│   │   │   ├── config.ts
+│   │   │   ├── constants.ts
+│   │   │   ├── index.ts
+│   │   │   ├── instance.ts
+│   │   │   ├── interceptors.ts
+│   │   │   ├── modules
+│   │   │   │   ├── auth copy.ts
+│   │   │   │   ├── auth.ts
+│   │   │   │   ├── company.ts
+│   │   │   │   ├── customer.ts
+│   │   │   │   └── tax.ts
+│   │   │   ├── supply.ts
+│   │   │   ├── token.ts
+│   │   │   ├── types.ts
+│   │   │   ├── UserSession.ts
+│   │   │   └── utils.ts
+│   │   ├── auth
+│   │   │   └── AuthService.ts
+│   │   └── other
 │   ├── setupTests.ts
 │   ├── styles
 │   │   └── globals.css
@@ -236,3 +247,74 @@
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

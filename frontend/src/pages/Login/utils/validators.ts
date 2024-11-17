@@ -4,8 +4,8 @@ import { LoginFormData, LoginFormErrors } from '../types';
 export const validateLoginForm = (data: LoginFormData): LoginFormErrors => {
   const errors: LoginFormErrors = {};
   
-  if (!data.username.trim()) {
-    errors.username = 'Usuário é obrigatório';
+  if (!data.login.trim()) {
+    errors.login = 'Usuário é obrigatório';
   }
   
   if (!data.password) {

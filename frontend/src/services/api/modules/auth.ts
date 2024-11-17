@@ -1,258 +1,207 @@
 // src/services/api/modules/auth.ts
 import { ApiService } from '../ApiService';
 import { TokenService } from '../token';
+import { UserSession } from '../UserSession';
 import type { ApiResponse } from '../types';
 
-// Types
+// Enum para códigos de erro
+export enum AuthErrorCode {
+  INVALID_CREDENTIALS = 'CREDENCIAIS_INVALIDAS',
+  SERVER_ERROR = 'ERRO_SERVIDOR',
+  NETWORK_ERROR = 'ERRO_CONEXAO'
+}
+
+// Interface para erro customizado
+export class AuthenticationError extends Error {
+  constructor(
+    public code: AuthErrorCode,
+    message: string,
+    public details?: any
+  ) {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
+}
+
+// Interfaces
 export interface AuthCredentials {
-  username: string;
+  login: string;
   password: string;
 }
 
 export interface AuthUser {
   id: number;
-  username: string;
+  login: string;
+  user_name: string;
   name: string;
   email: string;
-  role: string;
-  company_id: number;
+  type: string;
+  company_id: string;
   company_name?: string;
-  enabled: boolean;
   last_login?: string;
 }
 
 export interface AuthResponse {
+  user: AuthUser;
   access: string;
   refresh: string;
-  user: AuthUser;
   session_id: string;
-}
-
-export interface TokenResponse {
-  access: string;
+  expires_in: number;
 }
 
 export interface AuthState {
   isAuthenticated: boolean;
   user: AuthUser | null;
-  company_id?: number;
+  company_id?: string;
   loading: boolean;
   session_id?: string;
 }
 
-export interface UserSession {
-  id?: number;
-  user_id: number;
-  company_id: number;
-  session_id: string;
-  token: string;
-  ip_address?: string;
-  user_agent?: string;
-  started_at: Date;
-  last_activity_at: Date;
-  ended_at?: Date;
+export interface TokenResponse {
+  access: string;
+  refresh?: string;
 }
 
 class AuthApiService extends ApiService {
   private readonly baseUrl = '/auth';
 
   /**
-   * Realiza login do usuário
+   * Realiza o login do usuário
    */
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
-      // 1. Faz login e obtém tokens
-      const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, credentials);
-      
-      // 2. Armazena tokens
+      const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, {
+        login: credentials.login,
+        password: credentials.password
+      });
+
+      if (!response || !response.access || !response.user) {
+        throw new AuthenticationError(
+          AuthErrorCode.SERVER_ERROR,
+          'Resposta de autenticação incompleta'
+        );
+      }
+
+      const normalizedUser = {
+        ...response.user,
+        name: response.user.user_name
+      };
+
       TokenService.setTokens({
         access: response.access,
         refresh: response.refresh
       });
 
-      // 3. Configura token no header para todas as requisições futuras
-      this.api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
-      
-      // 4. Registra sessão do usuário
-      await this.createUserSession({
-        user_id: response.user.id,
-        company_id: response.user.company_id,
-        session_id: response.session_id,
+      this.setAuthHeaders({
         token: response.access,
-        started_at: new Date(),
-        last_activity_at: new Date()
+        companyId: normalizedUser.company_id,
+        sessionId: response.session_id
       });
 
-      return response;
-    } catch (error) {
-      // Limpa dados em caso de erro
-      TokenService.clearAll();
-      delete this.api.defaults.headers.common['Authorization'];
-      throw error;
+      UserSession.createFromAuth({
+        session_id: response.session_id,
+        user_id: normalizedUser.id,
+        company_id: normalizedUser.company_id,
+        token: response.access,
+        refresh_token: response.refresh,
+        expires_in: response.expires_in,
+        user: normalizedUser
+      });
+
+      return {
+        ...response,
+        user: normalizedUser
+      };
+
+    } catch (error: any) {
+      this.clearAuthData();
+      
+      if (error.response) {
+        throw new AuthenticationError(
+          AuthErrorCode.INVALID_CREDENTIALS,
+          error.response.data?.detail || 'Erro de autenticação',
+          error.response.data
+        );
+      }
+
+      throw new AuthenticationError(
+        AuthErrorCode.SERVER_ERROR,
+        'Erro ao realizar login',
+        error
+      );
     }
   }
 
   /**
-   * Cria registro de sessão do usuário
-   */
-  private async createUserSession(session: Omit<UserSession, 'id'>): Promise<UserSession> {
-    return this.post<UserSession>(`${this.baseUrl}/sessions/`, {
-      ...session,
-      ip_address: window.location.hostname,
-      user_agent: navigator.userAgent
-    });
-  }
-
-  /**
-   * Realiza logout do usuário
+   * Realiza o logout do usuário
    */
   async logout(): Promise<void> {
     try {
       const token = TokenService.getAccessToken();
-      const sessionId = localStorage.getItem('session_id');
+      const session = UserSession.load();
 
-      if (token && sessionId) {
-        // Finaliza a sessão no backend
-        await this.post(`${this.baseUrl}/logout/`, {
-          token,
-          session_id: sessionId,
-          ended_at: new Date()
+      if (token && session) {
+        await this.post(`${this.baseUrl}/logout/`, null, {
+          headers: this.getAuthHeaders(token, session)
         });
       }
-    } finally {
-      // Limpa dados locais
-      TokenService.clearAll();
-      localStorage.removeItem('session_id');
-      delete this.api.defaults.headers.common['Authorization'];
-    }
-  }
-
-  /**
-   * Atualiza o token de acesso
-   */
-  async refreshToken(refresh: string): Promise<TokenResponse> {
-    try {
-      const sessionId = localStorage.getItem('session_id');
-      const response = await this.post<TokenResponse>(`${this.baseUrl}/refresh/`, {
-        refresh,
-        session_id: sessionId
-      });
-
-      // Atualiza token
-      TokenService.setAccessToken(response.access);
-      this.api.defaults.headers.common['Authorization'] = `Bearer ${response.access}`;
-      
-      return response;
     } catch (error) {
-      TokenService.clearAll();
-      localStorage.removeItem('session_id');
-      delete this.api.defaults.headers.common['Authorization'];
-      throw error;
+      console.error('Erro ao fazer logout:', error);
+    } finally {
+      this.clearAuthData();
+      window.location.href = '/login';
     }
   }
 
   /**
    * Valida o token atual
    */
-  async validateToken(token: string): Promise<boolean> {
-    try {
-      const sessionId = localStorage.getItem('session_id');
-      await this.post(`${this.baseUrl}/token/verify/`, { 
-        token,
-        session_id: sessionId
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Obtém o usuário atual
-   */
-  async getCurrentUser(): Promise<AuthUser> {
-    return this.get<AuthUser>(`${this.baseUrl}/me`);
-  }
-
-  /**
-   * Atualiza senha do usuário
-   */
-  async updatePassword(data: {
-    current_password: string;
-    new_password: string;
-  }): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password/`, data);
-  }
-
-  /**
-   * Solicita redefinição de senha
-   */
-  async requestPasswordReset(email: string): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password/reset/`, { email });
-  }
-
-  /**
-   * Redefine a senha com token
-   */
-  async resetPassword(data: {
-    token: string;
-    new_password: string;
-  }): Promise<ApiResponse> {
-    return this.post(`${this.baseUrl}/password/reset/confirm/`, data);
-  }
-
-  /**
-   * Lista sessões ativas do usuário
-   */
-  async getActiveSessions(): Promise<Array<{
-    session_id: string;
-    created_at: string;
-    user_agent?: string;
-    ip_address?: string;
-    is_current: boolean;
-  }>> {
-    return this.get(`${this.baseUrl}/sessions/active/`);
-  }
-
-  /**
-   * Encerra outras sessões ativas
-   */
-  async endOtherSessions(): Promise<void> {
-    const currentSessionId = localStorage.getItem('session_id');
-    if (currentSessionId) {
-      await this.post(`${this.baseUrl}/sessions/end-others/`, {
-        current_session_id: currentSessionId
-      });
-    }
-  }
-
-  /**
-   * Verifica o estado da autenticação
-   */
-  async checkAuth(): Promise<boolean> {
+  async validate(): Promise<boolean> {
     try {
       const token = TokenService.getAccessToken();
-      const sessionId = localStorage.getItem('session_id');
+      const session = UserSession.load();
 
-      if (!token || !sessionId) {
+      if (!token || !session) {
         return false;
       }
 
-      // Valida token atual
-      const isValid = await this.validateToken(token);
-      if (!isValid) {
-        // Tenta refresh
-        const refreshToken = TokenService.getRefreshToken();
-        if (refreshToken) {
-          await this.refreshToken(refreshToken);
-          return true;
-        }
-        return false;
-      }
+      await this.post(`${this.baseUrl}/validate/`, null, {
+        headers: this.getAuthHeaders(token, session)
+      });
 
       return true;
-    } catch {
+    } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * Atualiza o token expirado
+   */
+  async refreshToken(refresh: string): Promise<string> {
+    try {
+      const session = UserSession.load();
+      
+      const response = await this.post<TokenResponse>(`${this.baseUrl}/refresh/`, {
+        refresh,
+        session_id: session?.sessionId
+      });
+
+      const newToken = response.access;
+
+      if (session) {
+        this.setAuthHeaders({
+          token: newToken,
+          companyId: session.companyId,
+          sessionId: session.sessionId
+        });
+        session.updateTokens(newToken, refresh);
+      }
+
+      return newToken;
+    } catch (error) {
+      this.clearAuthData();
+      throw error;
     }
   }
 
@@ -261,7 +210,8 @@ class AuthApiService extends ApiService {
    */
   async initializeAuth(): Promise<AuthState> {
     try {
-      const isAuthenticated = await this.checkAuth();
+      const isAuthenticated = await this.validate();
+      
       if (!isAuthenticated) {
         return {
           isAuthenticated: false,
@@ -270,17 +220,25 @@ class AuthApiService extends ApiService {
         };
       }
 
-      const user = await this.getCurrentUser();
-      const sessionId = localStorage.getItem('session_id');
+      const session = UserSession.load();
+      const user = session?.user || null;
+
+      if (session && user) {
+        this.setAuthHeaders({
+          token: session.token,
+          companyId: session.companyId,
+          sessionId: session.sessionId
+        });
+      }
 
       return {
         isAuthenticated: true,
         user,
-        company_id: user.company_id,
-        session_id: sessionId || undefined,
+        company_id: session?.companyId,
+        session_id: session?.sessionId,
         loading: false
       };
-    } catch {
+    } catch (error) {
       return {
         isAuthenticated: false,
         user: null,
@@ -290,21 +248,50 @@ class AuthApiService extends ApiService {
   }
 
   /**
-   * Troca a empresa do usuário
+   * Verifica se o usuário está autenticado
    */
-  async switchCompany(companyId: number): Promise<void> {
-    const sessionId = localStorage.getItem('session_id');
-    if (sessionId) {
-      await this.post(`${this.baseUrl}/switch-company/`, {
-        company_id: companyId,
-        session_id: sessionId
-      });
-    }
+  isAuthenticated(): boolean {
+    return TokenService.hasValidAccessToken() && UserSession.hasActiveSession();
+  }
+
+  /**
+   * Obtém os headers de autenticação
+   */
+  private getAuthHeaders(token: string, session: UserSession): Record<string, string> {
+    return {
+      'Authorization': `Bearer ${token}`,
+      'X-Company-ID': session.companyId,
+      'X-Session-ID': session.sessionId
+    };
+  }
+
+  /**
+   * Define os headers de autenticação
+   */
+  private setAuthHeaders(params: {
+    token: string;
+    companyId: string;
+    sessionId: string;
+  }): void {
+    const { token, companyId, sessionId } = params;
+    
+    this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.api.defaults.headers.common['X-Company-ID'] = companyId;
+    this.api.defaults.headers.common['X-Session-ID'] = sessionId;
+  }
+
+  /**
+   * Limpa todos os dados de autenticação
+   */
+  private clearAuthData(): void {
+    TokenService.clearAll();
+    UserSession.clear();
+    
+    delete this.api.defaults.headers.common['Authorization'];
+    delete this.api.defaults.headers.common['X-Company-ID'];
+    delete this.api.defaults.headers.common['X-Session-ID'];
   }
 }
 
-// Exporta instância única do serviço
 export const authService = new AuthApiService();
-
-// Exporta classe para casos específicos
 export default AuthApiService;

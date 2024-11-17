@@ -1,5 +1,4 @@
 // src/pages/Login/components/LoginForm.tsx
-import { Loader2 } from 'lucide-react';
 import { SimpleAlert } from '../../../components/ui/simplealert';
 import type { UseLoginFormReturn } from '../types';
 
@@ -19,22 +18,22 @@ export const LoginForm = ({ form }: LoginFormProps) => {
       )}
 
       <div>
-        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="login" className="block text-sm font-medium text-gray-700">
           Usuário
         </label>
         <div className="mt-1">
           <input
-            id="username"
-            name="username"
+            id="login"
+            name="login"
             type="text"
-            value={formData.username}
+            value={formData.login}
             onChange={handleChange}
             className={`appearance-none block w-full px-3 py-2 border ${
-              errors.username ? 'border-red-300' : 'border-gray-300'
+              errors.login ? 'border-red-300' : 'border-gray-300'
             } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm`}
           />
-          {errors.username && (
-            <p className="mt-1 text-sm text-red-600">{errors.username}</p>
+          {errors.login && (
+            <p className="mt-1 text-sm text-red-600">{errors.login}</p>
           )}
         </div>
       </div>
@@ -96,3 +95,5 @@ export const LoginForm = ({ form }: LoginFormProps) => {
     </form>
   );
 };
+
+export default LoginForm;

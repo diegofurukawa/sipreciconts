@@ -24,13 +24,14 @@ class CustomerViewSet(BaseViewSet):
         """
         Retorna queryset filtrado por company e enabled
         """
-        return Customer.get_company_queryset(self.request.user.company_id)
+        # return Customer.get_company_queryset(self.request.user.company_id)
+        return Customer.get_company_queryset(self.request.user.company.id if self.request.user.company else None)
 
     def perform_create(self, serializer):
         """
         Sobrescreve criação para incluir company automaticamente
         """
-        serializer.save(company_id=self.request.user.company_id)
+        serializer.save(company_id= self.request.user.company.id if self.request.user.company else None)
 
     def perform_destroy(self, instance):
         """

@@ -6,7 +6,7 @@ interface BaseUserData {
     id: number;
     name: string;
     email: string;
-    username: string;
+    login: string;
     company_id: number;
     company_name?: string;
     role?: string;

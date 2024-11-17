@@ -1,24 +1,52 @@
-# api/auth_custom/views.py
-
+from django.utils import timezone
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
-from django.utils import timezone
-from .backends import CustomAuthBackend
+from rest_framework_simplejwt.exceptions import TokenError
+from django.contrib.auth import get_user_model
+from typing import Dict, Any
+
 from .handlers import TokenHandler
 from ..serializers.user import UserSerializer
-from rest_framework.permissions import IsAuthenticated
 from ..models.usersession import UserSession
 from ..serializers.usersession import UserSessionSerializer
+from ..services.usersession import UserSessionService
 
-class LoginView(APIView):
-    permission_classes = []
+
+User = get_user_model()
+
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
+
+class LoginView(TokenObtainPairView):
+    permission_classes = [AllowAny]
+    
+    def get_token(self, user) -> RefreshToken:
+        refresh = RefreshToken.for_user(user)
+        
+        # Adiciona claims customizados
+        refresh['user_id'] = user.id
+        refresh['login'] = user.login
+        refresh['type'] = user.type
+        refresh['company_id'] = user.company.company_id if user.company else None  # Mudou de .id para .company_id
+        
+        # Adiciona os mesmos claims ao token de acesso
+        refresh.access_token['user_id'] = user.id
+        refresh.access_token['login'] = user.login
+        refresh.access_token['type'] = user.type
+        refresh.access_token['company_id'] = user.company.company_id if user.company else None  # Mudou aqui também
+        
+        return refresh
 
     def post(self, request, *args, **kwargs):
         try:
-            login = request.data.get('username')
+            # Verifica credenciais
+            login = request.data.get('login')
             password = request.data.get('password')
 
             if not login or not password:
@@ -27,37 +55,49 @@ class LoginView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Usa o backend customizado para autenticação
-            auth_backend = CustomAuthBackend()
-            user = auth_backend.authenticate(request, username=login, password=password)
+            try:
+                user = User.objects.get(login=login, enabled=True)
+                if not user.check_password(password):
+                    return Response(
+                        {'error': 'Credenciais inválidas'},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
 
-            if not user:
-                return Response(
-                    {'error': 'Usuário não encontrado ou inativo'},
-                    status=status.HTTP_401_UNAUTHORIZED
+                # Gera o token diretamente
+                refresh = self.get_token(user)
+                
+                # Cria sessão
+                session = UserSessionService.create_session(
+                    user=user,
+                    token=str(refresh.access_token),
+                    refresh_token=str(refresh),
+                    request=request
                 )
 
-            # Atualiza último login
-            user.last_login = timezone.now()
-            user.save(update_fields=['last_login'])
+                # Atualiza último login
+                user.last_login = timezone.now()
+                user.save(update_fields=['last_login'])
 
-            try:
-                # Usa o handler para gerar os tokens
-                tokens = TokenHandler.generate_tokens(user)
-                
-                # Serializa os dados do usuário
-                user_data = UserSerializer(user).data
-
+                # Retorna resposta com dados do usuário e empresa
                 return Response({
-                    **tokens,
-                    'user': user_data
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'session_id': str(session.session_id),
+                    'user': {
+                        'id': user.id,
+                        'login': user.login,
+                        'email': user.email,
+                        'type': user.type,
+                        'company_id': user.company.company_id if user.company else None,
+                        'company_name': user.company.name if user.company else None
+                    },
+                    'expires_in': int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
                 })
 
-            except Exception as token_error:
-                print(f"Erro ao gerar token: {str(token_error)}")
+            except User.DoesNotExist:
                 return Response(
-                    {'error': 'Erro ao gerar token de acesso'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    {'error': 'Usuário não encontrado'},
+                    status=status.HTTP_401_UNAUTHORIZED
                 )
 
         except Exception as e:
@@ -67,9 +107,20 @@ class LoginView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+        except Exception as e:
+            print(f"Login error: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
-class LogoutView(APIView):
-    def post(self, request, *args, **kwargs):
+class LogoutView(TokenObtainPairView):
+    """
+    View para logout e invalidação de tokens
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs) -> Response:
         try:
             auth_header = request.headers.get('Authorization', '')
             if not auth_header.startswith('Bearer '):
@@ -81,8 +132,8 @@ class LogoutView(APIView):
             token = auth_header.split(' ')[1]
             
             try:
-                # Usa o handler para fazer o blacklist do token
                 TokenHandler.blacklist_token(token)
+                UserSessionService.end_all_user_sessions(request.user)
                 
                 return Response(
                     {'message': 'Logout realizado com sucesso'},
@@ -102,31 +153,61 @@ class LogoutView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from ..serializers.user import UserSerializer
+from ..services.usersession import UserSessionService
 
 class ValidateTokenView(APIView):
-    def post(self, request, *args, **kwargs):
+    """
+    View para validação de tokens JWT
+    """
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]  # Agora JWTAuthentication está importado corretamente
+
+    def post(self, request, *args, **kwargs) -> Response:
         try:
             user = request.user
             if not user.enabled:
-                raise ValueError('Usuário desativado')
-                
+                return Response(
+                    {'error': 'Usuário desativado'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
+            session_id = request.headers.get('X-Session-ID')
+            if session_id:
+                session = UserSessionService.get_active_session(session_id)
+                if not session:
+                    return Response(
+                        {'error': 'Sessão inválida ou expirada'},
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+
             user_data = UserSerializer(user).data
             
             return Response({
                 'is_valid': True,
-                'user': user_data
+                'user': user_data,
+                'token_type': 'Bearer'
             })
+
         except Exception as e:
             print(f"Token validation error: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-class TokenRefreshView(APIView):
-    permission_classes = []
 
-    def post(self, request, *args, **kwargs):
+class TokenRefreshView(TokenObtainPairView):
+    """
+    View para renovação de tokens JWT
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs) -> Response:
         try:
             refresh_token = request.data.get('refresh')
             if not refresh_token:
@@ -136,11 +217,8 @@ class TokenRefreshView(APIView):
                 )
 
             try:
-                # Usa o handler para gerar novo token de acesso
                 tokens = TokenHandler.refresh_tokens(refresh_token)
-                
                 return Response(tokens)
-
             except Exception as token_error:
                 print(f"Erro ao renovar token: {str(token_error)}")
                 return Response(
@@ -154,23 +232,24 @@ class TokenRefreshView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
 
-from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
-class SessionView(APIView):
-    authentication_classes = [JWTAuthentication, SessionAuthentication]
+class SessionView(TokenObtainPairView):
+    """
+    View para gerenciamento de sessões
+    """
     permission_classes = [IsAuthenticated]
     
-    def post(self, request, *args, **kwargs):
-        token = request.auth if hasattr(request, 'auth') else None
+    def post(self, request, *args, **kwargs) -> Response:
+        token = getattr(request.auth, 'token', None)
         if not token:
-            return Response({"detail": "No valid token found"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {"detail": "Token não encontrado"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         session = UserSession.objects.create(
             user=request.user,
-            company_id=getattr(request.user, 'company_id', None),
+            company=request.user.company if hasattr(request.user, 'company') else None,
             token=str(token),
             refresh_token=request.data.get('refresh_token'),
             user_agent=request.META.get('HTTP_USER_AGENT'),
@@ -179,14 +258,17 @@ class SessionView(APIView):
         serializer = UserSessionSerializer(session)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class EndSessionView(APIView):
+class EndSessionView(TokenObtainPairView):
+    """
+    View para encerrar sessões
+    """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        """Encerra a sessão atual"""
+    def post(self, request) -> Response:
+        token = getattr(request.auth, 'token', None)
         session = UserSession.objects.filter(
             user=request.user,
-            token=request.auth.token,
+            token=token,
             is_active=True
         ).first()
 

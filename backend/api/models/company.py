@@ -1,10 +1,8 @@
 # api/models/company.py
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 from .base import BaseModel
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 class Company(BaseModel):
     """
@@ -43,13 +41,13 @@ class Company(BaseModel):
         blank=True
     )
     administrators = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,  # Única mudança aqui: usando settings.AUTH_USER_MODEL ao invés de importar User
         verbose_name='Administradores',
         related_name='administered_companies',
         blank=True
     )
     employees = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,  # E aqui também
         verbose_name='Funcionários',
         related_name='employed_companies',
         blank=True

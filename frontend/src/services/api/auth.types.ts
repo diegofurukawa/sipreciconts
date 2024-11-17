@@ -9,7 +9,7 @@ export interface LoginCredentials {
       id: string;
       name: string;
       email: string;
-      username: string;
+      login: string;
       company_id: number;
       company_name?: string;
       role?: string;
@@ -23,7 +23,7 @@ export interface LoginCredentials {
   
   export interface AuthContextType {
     user: LoginResponse['user'] | null;
-    login: (username: string, password: string) => Promise<void>;
+    login: (login: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
   }

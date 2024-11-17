@@ -64,11 +64,11 @@ def reset_db():
         # Recria as migrations
         print("\nRecriando migrations...")
         manage_py_path = project_root / 'manage.py'
-        os.system(f'python {manage_py_path} makemigrations')
+        os.system(f'python {manage_py_path} makemigrations 2>&1 | tee migrations.log')
         
         # Aplica as migrations
         print("\nAplicando migrations...")
-        os.system(f'python {manage_py_path} migrate')
+        os.system(f'python {manage_py_path} migrate 2>&1 | tee migrate.log')
         
         print('\nBanco de dados resetado com sucesso!')
         

@@ -1,17 +1,29 @@
 # api/models.py
+from .user import User
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import uuid
 
+
 class UserSession(models.Model):
     session_id = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='sessions'
+        User, 
+        on_delete=models.PROTECT,
+        related_name='users',
+        verbose_name='sessao de usuarios'
     )
-    company_id = models.IntegerField(null=True, blank=True)
+    # user = models.ForeignKey(
+    #     settings.AUTH_USER_MODEL,
+    #     on_delete=models.CASCADE,
+    #     related_name='sessions'
+    # )
+    company_id = models.CharField(  # Mudando de IntegerField para CharField
+        max_length=30,
+        null=True, 
+        blank=True
+    )
     token = models.CharField(max_length=255)
     refresh_token = models.CharField(max_length=255, null=True, blank=True)  # Permitindo null
     date_start = models.DateTimeField(auto_now_add=True)
@@ -31,6 +43,7 @@ class UserSession(models.Model):
         ]
 
     def __str__(self):
+        # return f"Session {self.session_id}"
         return f"Session {self.session_id} - {self.user.username}"
 
     def end_session(self):

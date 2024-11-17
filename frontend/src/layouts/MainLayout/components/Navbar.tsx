@@ -146,7 +146,7 @@ const Navbar = () => {
   const [activeDropdown, setActiveDropdown] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
   const { showToast } = useToast();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -160,26 +160,26 @@ const Navbar = () => {
     setActiveDropdown(prev => prev === menu ? '' : menu);
   }, []);
 
-  const handleLogout = useCallback(async () => {
+  const handlesignOut = useCallback(async () => {
     try {
-      await logout();
+      await signOut();
       showToast({
         type: 'success',
-        title: 'Logout realizado',
+        title: 'signOut realizado',
         message: 'Você foi desconectado com sucesso'
       });
       navigate(ROUTES.PUBLIC.LOGIN);
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('Erro ao fazer signOut:', error);
       showToast({
         type: 'error',
-        title: 'Erro no logout',
+        title: 'Erro no signOut',
         message: 'Ocorreu um erro ao tentar desconectar'
       });
     } finally {
       setIsMenuOpen(false);
     }
-  }, [logout, showToast, navigate]);
+  }, [signOut, showToast, navigate]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -245,7 +245,7 @@ const Navbar = () => {
             ))}
             <UserMenu 
               isMobile={false} 
-              onLogout={handleLogout} 
+              onLogout={handlesignOut} 
             />
           </div>
 
@@ -292,7 +292,7 @@ const Navbar = () => {
           </div>
           <UserMenu 
             isMobile={true} 
-            onLogout={handleLogout} 
+            onLogout={handlesignOut} 
           />
         </div>
       )}

@@ -1,15 +1,21 @@
 import os
 from pathlib import Path
+from datetime import timedelta
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-4fa7s&2y)4--s94ff1f#@0_d$tpmfr536_k%6l8#eqm_xxa#6c"
 
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Application definition
 INSTALLED_APPS = [
+    'api.apps.ApiConfig',  # Registra a app usando a classe de configuração
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -18,16 +24,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'api',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
 ]
 
-# Desabilitar APPEND_SLASH
-APPEND_SLASH = False
-
-# AUTH_USER_MODEL = 'api.User'
+# Configuração do modelo de usuário customizado
+AUTH_USER_MODEL = 'api.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -68,18 +71,11 @@ DATABASES = {
     }
 }
 
-
-# # Nova configuração para PostgreSQL
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',
-#         'USER': 'postgres',
-#         'PASSWORD': 'HVZs2vXE6XtLm2VC',
-#         'HOST': 'rigorously-evolved-thornbill.data-1.use1.tembo.io',
-#         'PORT': '5432',
-#     }
-# }
+# Configurações de autenticação
+AUTHENTICATION_BACKENDS = [
+    'api.auth_custom.backends.CustomAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -96,23 +92,29 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Configurações de internacionalização
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
 USE_TZ = True
 
+# Configurações de arquivos estáticos
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
+# Configurações de mídia
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuração padrão para campos de chave primária automática
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-# Configurações do CORS
 # Configurações do CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Seu frontend React
-    "http://localhost:5173",  # Vite default port
+    "http://localhost:3000",  # Frontend React
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Frontend Vite
     "http://127.0.0.1:5173",
 ]
 
@@ -127,35 +129,6 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-AUTHENTICATION_BACKENDS = [
-    #'api.auth.CustomAuthBackend',
-    'django.contrib.auth.backends.ModelBackend',
-]
-
-# Configurações do REST Framework
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-        # Adicione o CSVRenderer se quiser torná-lo disponível globalmente
-    ],
-    'DEFAULT_PARSER_CLASSES': [
-        'rest_framework.parsers.JSONParser',
-        'rest_framework.parsers.FormParser',
-        'rest_framework.parsers.MultiPartParser',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'UNICODE_JSON': True,
-}
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -166,13 +139,35 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'x-session-id',  # Adicionando header personalizado
+    'x-session-id',
 ]
-CORS_EXPOSE_HEADERS = ['Content-Disposition']  # Importante para o download
 
+CORS_EXPOSE_HEADERS = ['Content-Disposition']
 
-from datetime import timedelta
+# Configurações do REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Mudamos para usar a classe base do JWT
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'UNICODE_JSON': True,
+}
 
+# Configurações do JWT
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -194,19 +189,12 @@ SIMPLE_JWT = {
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
-
     'JTI_CLAIM': 'jti',
 
-    'TOKEN_USER_CLASS': 'api.models.user.User',  # Aponte para seu modelo customizado
+    'TOKEN_USER_CLASS': 'api.models.user.User',
 }
 
-# MEDIA_URL = '/media/'
-# MEDIA_ROOT = BASE_DIR / 'media'
-
-MEDIA_URL = 'media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-
+# Configurações do Swagger
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {

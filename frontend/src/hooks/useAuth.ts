@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import axios from 'axios';
 
 interface LoginCredentials {
-  username: string;
+  login: string;
   password: string;
 }
 

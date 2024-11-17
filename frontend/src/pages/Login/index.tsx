@@ -17,16 +17,16 @@ export const LoginPage = () => {
     setError('');
 
     const formData = new FormData(event.currentTarget);
-    const username = formData.get('username') as string;
+    const login = formData.get('login') as string;
     const password = formData.get('password') as string;
 
-    if (!username || !password) {
+    if (!login || !password) {
       setError('Preencha todos os campos');
       return;
     }
     
     try {
-      await signIn({ username, password });
+      await signIn({ login, password });
       navigate(from, { replace: true });
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || err.message || 'Erro ao realizar login';
@@ -62,10 +62,10 @@ export const LoginPage = () => {
 
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="username" className="sr-only">Usuário</label>
+              <label htmlFor="login" className="sr-only">Usuário</label>
               <input
-                id="username"
-                name="username"
+                id="login"
+                name="login"
                 type="text"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"

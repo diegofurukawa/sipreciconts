@@ -28,11 +28,11 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.WARNING('Empresa já existe'))
 
                 # Criar usuário API
-                if not User.objects.filter(login='user_co002').exists():
+                if not User.objects.filter(login='user_co003').exists():
                     user = User.objects.create(
-                        login='user_co002',
+                        login='user_co003',
                         user_name='co002 - user',
-                        email='user_co002@empresa.com',
+                        email='user_co003@empresa.com',
                         type='User',
                         company=company,
                         enabled=True
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'\nUsuário API criado com sucesso:'
-                            f'\nLogin: user_co002'
+                            f'\nLogin: user_co003'
                             f'\nSenha: dgo@2337'
                             f'\nEmpresa: {company.name}'
                         )
