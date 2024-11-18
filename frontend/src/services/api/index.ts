@@ -1,7 +1,6 @@
 // src/services/api/index.ts
 // Core exports
 export { ApiService, apiService, createApiService } from './ApiService';
-export { UserSession } from './UserSession';
 // Service instances exports
 export { authService } from './modules/auth';
 export { customerService } from './modules/customer';
@@ -9,7 +8,7 @@ export { companyService } from './modules/company';
 export { taxService } from './modules/tax';
 
 // Token service
-export { TokenService } from './token';
+import { TokenService, UserSessionService, useAuth } from '@/core/auth';
 
 // Utils exports
 export { 

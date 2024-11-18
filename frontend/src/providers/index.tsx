@@ -1,6 +1,6 @@
 // src/providers/index.tsx
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from "@/core/auth";
 import { CompanyProvider } from '@/contexts/CompanyContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ReactNode } from 'react';

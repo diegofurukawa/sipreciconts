@@ -1,6 +1,6 @@
 // src/pages/Login/hooks/useLoginForm.ts
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/core/auth";
 import type { AuthCredentials } from '@/services/api/modules/auth';
 
 interface LoginFormData extends AuthCredentials {

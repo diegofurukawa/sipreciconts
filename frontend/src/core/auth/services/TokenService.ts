@@ -1,5 +1,5 @@
 // src/services/api/token.ts
-import { Auth } from './types';
+import { Auth } from '../types';
 
 interface StorageKeys {
   readonly ACCESS: string;
@@ -13,7 +13,7 @@ const STORAGE_KEYS: StorageKeys = {
   USER: '@SiPreciConts:user'
 } as const;
 
-export const TokenService = {
+const TokenService = {
   /**
    * Gerenciamento de Access Token
    */
@@ -212,4 +212,4 @@ export const TokenService = {
   }
 };
 
-export default TokenService;
+export {TokenService};

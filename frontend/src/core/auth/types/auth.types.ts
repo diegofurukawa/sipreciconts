@@ -21,10 +21,13 @@ export interface LoginCredentials {
     };
   }
   
-  export interface AuthContextType {
+  interface AuthContextType {
     user: LoginResponse['user'] | null;
     login: (login: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
   }
   
+export type {
+  AuthContextType
+};

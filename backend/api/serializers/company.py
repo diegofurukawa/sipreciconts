@@ -8,7 +8,7 @@ User = get_user_model()
 class UserMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'email']
+        fields = ['company_id', 'name', 'email']
 
 class CompanySerializer(serializers.ModelSerializer):
     """
@@ -17,7 +17,6 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id',
             'company_id',
             'name',
             'document',
@@ -40,7 +39,6 @@ class CompanyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id',
             'company_id',
             'name',
             'document',
@@ -72,7 +70,6 @@ class CompanyDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id',
             'company_id',
             'name',
             'document',
@@ -182,4 +179,4 @@ class CompanyBasicSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Company
-        fields = ['id', 'company_id', 'name', 'document']
+        fields = ['company_id', 'name', 'document']

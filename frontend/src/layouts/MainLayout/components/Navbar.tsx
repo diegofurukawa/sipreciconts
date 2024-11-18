@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/core/auth";
 import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/routes/config/route-paths';
 import { UserMenu } from './UserMenu';

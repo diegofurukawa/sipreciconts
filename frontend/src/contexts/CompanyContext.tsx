@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company } from '@/pages/Company/types';
 import { apiService as api } from '@/services/api';
-import { useAuth } from './AuthContext';
+import { useAuth } from "@/core/auth";
 import { useToast } from '@/hooks/useToast';
 
 interface CompanyContextData {
@@ -22,7 +22,6 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
   const { showToast } = useToast();
 
   const refreshCompany = async () => {
-    // Se não estiver autenticado ou não tiver company_id, não faz a chamada
     if (!isAuthenticated || !user?.company_id) {
       setCurrentCompany(null);
       return;
@@ -32,22 +31,36 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Usando o company_id do usuário autenticado
-      const { data } = await api.get<Company>(`/companies/${user.company_id}/`);
+      // 1. Garante que o company_id está em lowercase
+      const companyId = user.company_id.toLowerCase();
+      
+      // 2. Corrige a URL para incluir /api
+      const { data } = await api.get<Company>(`/companies/${companyId}/`);
       
       if (!data) {
         throw new Error('Empresa não encontrada');
       }
       
       setCurrentCompany(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao carregar dados da empresa:', err);
-      setError('Erro ao carregar dados da empresa');
+      
+      // 3. Melhor tratamento de erro
+      let errorMessage = 'Não foi possível carregar os dados da empresa';
+      
+      if (err.response?.status === 404) {
+        errorMessage = 'Empresa não encontrada';
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+      
+      setError(errorMessage);
       setCurrentCompany(null);
+      
       showToast({
         type: 'error',
         title: 'Erro',
-        message: 'Não foi possível carregar os dados da empresa'
+        message: errorMessage
       });
     } finally {
       setLoading(false);
@@ -61,7 +74,7 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
       setCurrentCompany(null);
       setLoading(false);
     }
-  }, [isAuthenticated, user?.company_id]); // Depende da autenticação e do company_id
+  }, [isAuthenticated, user?.company_id]);
 
   const value = {
     currentCompany,
@@ -84,60 +97,5 @@ const useCompany = () => {
   }
   return context;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export { useCompany, CompanyProvider };

@@ -1,5 +1,5 @@
 // src/services/api/UserSession.ts
-import { TokenService } from './token';
+import { TokenService } from './TokenService';
 
 // Types
 interface BaseUserData {
@@ -53,7 +53,7 @@ export interface CreateAuthData {
 
 const SESSION_STORAGE_KEY = '@SiPreciConts:session';
 
-export class UserSession {
+class UserSessionService {
     private data: UserSessionData;
 
     constructor(initialData: Partial<UserSessionData>) {
@@ -169,7 +169,7 @@ export class UserSession {
     }
 
     // Static Methods
-    static load(): UserSession | null {
+    static load(): UserSessionService | null {
         try {
             const stored = localStorage.getItem(SESSION_STORAGE_KEY);
             if (!stored) return null;
@@ -181,7 +181,7 @@ export class UserSession {
             if (data.date_end) data.date_end = new Date(data.date_end);
             if (data.expired_token) data.expired_token = new Date(data.expired_token);
 
-            return new UserSession(data);
+            return new UserSessionService(data);
         } catch (error) {
             console.error('Erro ao carregar sessão:', error);
             return null;
@@ -194,16 +194,16 @@ export class UserSession {
     }
 
     static hasActiveSession(): boolean {
-        const session = UserSession.load();
+        const session = UserSessionService.load();
         return !!session?.isActive;
     }
 
-    static createFromAuth(authData: CreateAuthData): UserSession {
+    static createFromAuth(authData: CreateAuthData): UserSessionService {
         const expiredToken = authData.expires_in
             ? new Date(Date.now() + authData.expires_in * 1000)
             : undefined;
 
-        return new UserSession({
+        return new UserSessionService({
             user_id: authData.user_id,
             company_id: authData.company_id,
             token: authData.token,
@@ -215,4 +215,6 @@ export class UserSession {
 }
 
 // Default export
-export default UserSession;
+export {
+    UserSessionService
+};

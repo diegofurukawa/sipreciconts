@@ -1,7 +1,6 @@
 // src/services/api/modules/auth.ts
 import { ApiService } from '../ApiService';
-import { TokenService } from '../token';
-import { UserSession } from '../UserSession';
+import { TokenService, UserSessionService, useAuth } from '@/core/auth';
 import type { ApiResponse } from '../types';
 
 // Enum para códigos de erro
@@ -98,7 +97,7 @@ class AuthApiService extends ApiService {
         sessionId: response.session_id
       });
 
-      UserSession.createFromAuth({
+      UserSessionService.createFromAuth({
         session_id: response.session_id,
         user_id: normalizedUser.id,
         company_id: normalizedUser.company_id,
@@ -138,7 +137,7 @@ class AuthApiService extends ApiService {
   async logout(): Promise<void> {
     try {
       const token = TokenService.getAccessToken();
-      const session = UserSession.load();
+      const session = UserSessionService.load();
 
       if (token && session) {
         await this.post(`${this.baseUrl}/logout/`, null, {
@@ -159,7 +158,7 @@ class AuthApiService extends ApiService {
   async validate(): Promise<boolean> {
     try {
       const token = TokenService.getAccessToken();
-      const session = UserSession.load();
+      const session = UserSessionService.load();
 
       if (!token || !session) {
         return false;
@@ -180,7 +179,7 @@ class AuthApiService extends ApiService {
    */
   async refreshToken(refresh: string): Promise<string> {
     try {
-      const session = UserSession.load();
+      const session = UserSessionService.load();
       
       const response = await this.post<TokenResponse>(`${this.baseUrl}/refresh/`, {
         refresh,
@@ -220,7 +219,7 @@ class AuthApiService extends ApiService {
         };
       }
 
-      const session = UserSession.load();
+      const session = UserSessionService.load();
       const user = session?.user || null;
 
       if (session && user) {
@@ -251,13 +250,13 @@ class AuthApiService extends ApiService {
    * Verifica se o usuário está autenticado
    */
   isAuthenticated(): boolean {
-    return TokenService.hasValidAccessToken() && UserSession.hasActiveSession();
+    return TokenService.hasValidAccessToken() && UserSessionService.hasActiveSession();
   }
 
   /**
    * Obtém os headers de autenticação
    */
-  private getAuthHeaders(token: string, session: UserSession): Record<string, string> {
+  private getAuthHeaders(token: string, session: UserSessionService): Record<string, string> {
     return {
       'Authorization': `Bearer ${token}`,
       'X-Company-ID': session.companyId,
@@ -285,7 +284,7 @@ class AuthApiService extends ApiService {
    */
   private clearAuthData(): void {
     TokenService.clearAll();
-    UserSession.clear();
+    UserSessionService.clear();
     
     delete this.api.defaults.headers.common['Authorization'];
     delete this.api.defaults.headers.common['X-Company-ID'];

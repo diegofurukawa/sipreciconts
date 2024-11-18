@@ -1,7 +1,8 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService, TokenService } from '@/services/api';
+import { TokenService, UserSessionService } from '@/core/auth';
+import { authService} from '@/services/api/modules/auth';
 import { useToast } from '@/hooks/useToast';
 import type { AuthUser, AuthCredentials, AuthState as ApiAuthState } from '@/services/api/modules/auth';
 

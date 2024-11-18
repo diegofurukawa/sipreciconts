@@ -1,4 +1,3 @@
-// src/pages/Company/types/index.ts
 export interface CompanyFormData {
   name: string;
   document: string;
@@ -8,10 +7,15 @@ export interface CompanyFormData {
 }
 
 export interface Company extends CompanyFormData {
-  id: number;
-  created_at: string;
-  updated_at: string;
+  company_id: string;
+  // name: string;
+  // document?: string;
+  // phone?: string;
+  // email?: string;
+  // address?: string;
   enabled: boolean;
+  created?: string;
+  updated?: string;
 }
 
 export type CompanyActionType = 'create' | 'edit' | 'delete' | 'view';

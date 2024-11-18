@@ -1,7 +1,6 @@
 // src/services/api/ApiService.ts
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
-import { TokenService } from './token';
-import { UserSession } from './UserSession';
+import { TokenService, UserSessionService, useAuth } from '@/core/auth';
 import { errorUtils, retryUtils } from './utils';
 import { API_CONFIG } from './constants';
 import type { 
@@ -46,7 +45,7 @@ class ApiService {
         }
 
         // Adiciona session_id se existir
-        const session = UserSession.load();
+        const session = UserSessionService.load();
         if (session?.sessionId) {
           headers.set('X-Session-ID', session.sessionId);
         }
@@ -81,7 +80,7 @@ class ApiService {
           originalRequest._retry = true;
           
           try {
-            const session = UserSession.load();
+            const session = UserSessionService.load();
             const refreshToken = TokenService.getRefreshToken();
 
             if (refreshToken && session) {
@@ -108,7 +107,7 @@ class ApiService {
             }
           } catch (refreshError) {
             TokenService.clearAll();
-            UserSession.clear();
+            UserSessionService.clear();
             window.location.href = '/login';
             return Promise.reject(refreshError);
           }
@@ -134,7 +133,7 @@ class ApiService {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const session = UserSession.load();
+    const session = UserSessionService.load();
     if (session?.sessionId) {
       headers['X-Session-ID'] = session.sessionId;
     }
@@ -161,7 +160,7 @@ class ApiService {
     this.companyId = id;
     
     // Atualiza o company_id na sessão
-    const session = UserSession.load();
+    const session = UserSessionService.load();
     if (session && id) {
       session.switchCompany(id);
     }
@@ -182,7 +181,7 @@ class ApiService {
       console.group('API Request Test');
       console.log('Headers:', headers);
       console.log('Token:', TokenService.getAccessToken());
-      console.log('Session:', UserSession.load());
+      console.log('Session:', UserSessionService.load());
       console.groupEnd();
     } catch (error) {
       console.error('Test Request Error:', error);

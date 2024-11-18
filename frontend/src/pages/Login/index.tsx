@@ -1,6 +1,6 @@
 // src/pages/Login/index.tsx
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/core/auth";
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const LoginPage = () => {
