@@ -33,10 +33,12 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'api.User'
 
 MIDDLEWARE = [
+    # Deve vir antes do CommonMiddleware
+    'corsheaders.middleware.CorsMiddleware',  
+    'django.middleware.common.CommonMiddleware',
+    # ... outros middlewares
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -140,9 +142,13 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-session-id',
+    'x-company-id',  # Adicionando o header personalizado
 ]
 
-CORS_EXPOSE_HEADERS = ['Content-Disposition']
+CORS_EXPOSE_HEADERS = [
+    'Content-Disposition',
+    'x-company-id'  # Expondo o header
+]
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {

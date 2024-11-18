@@ -7,7 +7,8 @@ import type { ApiResponse } from '../types';
 export enum AuthErrorCode {
   INVALID_CREDENTIALS = 'CREDENCIAIS_INVALIDAS',
   SERVER_ERROR = 'ERRO_SERVIDOR',
-  NETWORK_ERROR = 'ERRO_CONEXAO'
+  NETWORK_ERROR = 'ERRO_CONEXAO',
+  SESSION_EXPIRED = 'SESSAO_EXPIRADA'
 }
 
 // Interface para erro customizado
@@ -65,6 +66,57 @@ class AuthApiService extends ApiService {
   private readonly baseUrl = '/auth';
 
   /**
+   * Inicializa o estado de autenticação
+   */
+  async initializeAuth(): Promise<AuthState> {
+    try {
+      const token = TokenService.getAccessToken();
+      const session = UserSessionService.load();
+
+      if (!token || !session) {
+        return {
+          isAuthenticated: false,
+          user: null,
+          loading: false
+        };
+      }
+
+      try {
+        const isValid = await this.validate();
+
+        if (!isValid) {
+          this.clearAuthData();
+          return {
+            isAuthenticated: false,
+            user: null,
+            loading: false
+          };
+        }
+
+        return {
+          isAuthenticated: true,
+          user: session.user || null,
+          company_id: session.companyId,
+          session_id: session.sessionId,
+          loading: false
+        };
+
+      } catch (error) {
+        this.clearAuthData();
+        throw error;
+      }
+
+    } catch (error) {
+      console.error('Erro ao inicializar autenticação:', error);
+      return {
+        isAuthenticated: false,
+        user: null,
+        loading: false
+      };
+    }
+  }
+
+  /**
    * Realiza o login do usuário
    */
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
@@ -86,26 +138,7 @@ class AuthApiService extends ApiService {
         name: response.user.user_name
       };
 
-      TokenService.setTokens({
-        access: response.access,
-        refresh: response.refresh
-      });
-
-      this.setAuthHeaders({
-        token: response.access,
-        companyId: normalizedUser.company_id,
-        sessionId: response.session_id
-      });
-
-      UserSessionService.createFromAuth({
-        session_id: response.session_id,
-        user_id: normalizedUser.id,
-        company_id: normalizedUser.company_id,
-        token: response.access,
-        refresh_token: response.refresh,
-        expires_in: response.expires_in,
-        user: normalizedUser
-      });
+      this.setupAuthData(response, normalizedUser);
 
       return {
         ...response,
@@ -140,9 +173,12 @@ class AuthApiService extends ApiService {
       const session = UserSessionService.load();
 
       if (token && session) {
-        await this.post(`${this.baseUrl}/logout/`, null, {
-          headers: this.getAuthHeaders(token, session)
-        });
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'X-Session-ID': session.sessionId
+        };
+
+        await this.post(`${this.baseUrl}/logout/`, null, { headers });
       }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
@@ -164,12 +200,17 @@ class AuthApiService extends ApiService {
         return false;
       }
 
-      await this.post(`${this.baseUrl}/validate/`, null, {
-        headers: this.getAuthHeaders(token, session)
-      });
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'X-Session-ID': session.sessionId
+      };
 
+      await this.post(`${this.baseUrl}/validate/`, null, { headers });
       return true;
     } catch (error) {
+      if (error instanceof AuthenticationError && error.code === AuthErrorCode.SESSION_EXPIRED) {
+        await this.handleSessionExpired();
+      }
       return false;
     }
   }
@@ -181,20 +222,26 @@ class AuthApiService extends ApiService {
     try {
       const session = UserSessionService.load();
       
-      const response = await this.post<TokenResponse>(`${this.baseUrl}/refresh/`, {
-        refresh,
-        session_id: session?.sessionId
-      });
+      const headers = {
+        'X-Session-ID': session?.sessionId || ''
+      };
+
+      const response = await this.post<TokenResponse>(
+        `${this.baseUrl}/refresh/`,
+        { refresh },
+        { headers }
+      );
 
       const newToken = response.access;
 
       if (session) {
+        session.updateTokens(newToken, refresh);
+        
         this.setAuthHeaders({
           token: newToken,
           companyId: session.companyId,
           sessionId: session.sessionId
         });
-        session.updateTokens(newToken, refresh);
       }
 
       return newToken;
@@ -205,63 +252,87 @@ class AuthApiService extends ApiService {
   }
 
   /**
-   * Inicializa o estado de autenticação
+   * Verifica se o usuário está autenticado
    */
-  async initializeAuth(): Promise<AuthState> {
-    try {
-      const isAuthenticated = await this.validate();
-      
-      if (!isAuthenticated) {
-        return {
-          isAuthenticated: false,
-          user: null,
-          loading: false
-        };
-      }
+  isAuthenticated(): boolean {
+    const token = TokenService.getAccessToken();
+    const session = UserSessionService.load();
+    return !!token && !!session?.isActive;
+  }
 
-      const session = UserSessionService.load();
-      const user = session?.user || null;
+  /**
+   * Obtém o usuário atual
+   */
+  getCurrentUser(): AuthUser | null {
+    const session = UserSessionService.load();
+    return session?.user || null;
+  }
 
-      if (session && user) {
-        this.setAuthHeaders({
-          token: session.token,
-          companyId: session.companyId,
-          sessionId: session.sessionId
-        });
-      }
-
-      return {
-        isAuthenticated: true,
-        user,
-        company_id: session?.companyId,
-        session_id: session?.sessionId,
-        loading: false
-      };
-    } catch (error) {
-      return {
-        isAuthenticated: false,
-        user: null,
-        loading: false
-      };
+  /**
+   * Atualiza os dados do usuário
+   */
+  async updateUserData(userData: Partial<AuthUser>): Promise<void> {
+    const session = UserSessionService.load();
+    if (session) {
+      session.updateUser(userData);
     }
   }
 
   /**
-   * Verifica se o usuário está autenticado
+   * Verifica e renova o token se necessário
    */
-  isAuthenticated(): boolean {
-    return TokenService.hasValidAccessToken() && UserSessionService.hasActiveSession();
+  async checkAndRenewToken(): Promise<boolean> {
+    const token = TokenService.getAccessToken();
+    const refresh = TokenService.getRefreshToken();
+    const session = UserSessionService.load();
+
+    if (!token || !refresh || !session) {
+      return false;
+    }
+
+    try {
+      const isValid = await this.validate();
+      if (!isValid && refresh) {
+        await this.refreshToken(refresh);
+      }
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
-   * Obtém os headers de autenticação
+   * Trata expiração da sessão
    */
-  private getAuthHeaders(token: string, session: UserSessionService): Record<string, string> {
-    return {
-      'Authorization': `Bearer ${token}`,
-      'X-Company-ID': session.companyId,
-      'X-Session-ID': session.sessionId
-    };
+  private async handleSessionExpired(): Promise<void> {
+    this.clearAuthData();
+    window.location.href = '/login?session=expired';
+  }
+
+  /**
+   * Configura dados de autenticação
+   */
+  private setupAuthData(response: AuthResponse, user: AuthUser): void {
+    TokenService.setTokens({
+      access: response.access,
+      refresh: response.refresh
+    });
+
+    this.setAuthHeaders({
+      token: response.access,
+      companyId: user.company_id,
+      sessionId: response.session_id
+    });
+
+    UserSessionService.createFromAuth({
+      session_id: response.session_id,
+      user_id: user.id,
+      company_id: user.company_id,
+      token: response.access,
+      refresh_token: response.refresh,
+      expires_in: response.expires_in,
+      user
+    });
   }
 
   /**
@@ -275,8 +346,19 @@ class AuthApiService extends ApiService {
     const { token, companyId, sessionId } = params;
     
     this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    this.api.defaults.headers.common['X-Company-ID'] = companyId;
     this.api.defaults.headers.common['X-Session-ID'] = sessionId;
+    
+    if (!this.isAuthRoute(this.api.defaults.url || '')) {
+      this.api.defaults.headers.common['X-Company-ID'] = companyId;
+    }
+  }
+
+  /**
+   * Verifica se é uma rota de autenticação
+   */
+  private isAuthRoute(url: string): boolean {
+    const authRoutes = ['/auth/login', '/auth/logout', '/auth/refresh', '/auth/validate'];
+    return authRoutes.some(route => url.includes(route));
   }
 
   /**

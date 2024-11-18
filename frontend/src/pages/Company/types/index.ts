@@ -8,6 +8,7 @@ export interface CompanyFormData {
 
 export interface Company extends CompanyFormData {
   company_id: string;
+  company: string;
   // name: string;
   // document?: string;
   // phone?: string;

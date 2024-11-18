@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 company, created = Company.objects.get_or_create(
                     name='MAGALU LTDA',
                     defaults={
-                        'company_id': 'co002',
+                        'company_id': 'CO002',
                         'document': '03.250.731/0001-83',
                         'email': 'admin@empresa.com',
                         'phone': '(00) 0000-0000',
@@ -28,11 +28,11 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.WARNING('Empresa já existe'))
 
                 # Criar usuário API
-                if not User.objects.filter(login='user_co002').exists():
+                if not User.objects.filter(login='user_CO002').exists():
                     user = User.objects.create(
-                        login='user_co002',
-                        user_name='co002 - user',
-                        email='user_co002@empresa.com',
+                        login='user_CO002',
+                        user_name='CO002 - user',
+                        email='user_CO002@empresa.com',
                         type='User',
                         company=company,
                         enabled=True
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'\nUsuário API criado com sucesso:'
-                            f'\nLogin: user_co002'
+                            f'\nLogin: user_CO002'
                             f'\nSenha: dgo@2337'
                             f'\nEmpresa: {company.name}'
                         )

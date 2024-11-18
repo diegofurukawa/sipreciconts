@@ -10,6 +10,33 @@
 
 ## Backend (Django)
 
+### Execução da aplicação
+#### Frontend
+```bash
+# Execução Normal
+python manage.py makemigrations 
+python manage.py migrate
+python manage.py runserver
+
+# Execução com Log
+python manage.py makemigrations 2>&1 | tee error_migrations.log
+python manage.py migrate 2>&1 | tee error_migrate.log
+python manage.py runserver 2>&1 | tee error_runserver.log
+```
+
+#### Frontend
+```bash
+# Execução Normal
+npm run dev
+npm run build
+npm run test
+
+
+# Execução com Log
+npm run dev 2>&1 | tee error_frontend.log
+
+```
+
 ### 🔄 Gerenciamento de Migrações
 ```bash
 # Resetar migrações
@@ -213,51 +240,51 @@ ps aux | grep python
 ## 💡 Sugestões de Melhorias
 
 1. **Scripts de Automação**
-   ```bash
-   # Script para setup completo do ambiente
-   ./setup_environment.sh
-   
-   # Script para backup do banco
-   ./backup_database.sh
-   ```
+```bash
+# Script para setup completo do ambiente
+./setup_environment.sh
+
+# Script para backup do banco
+./backup_database.sh
+```
 
 2. **Aliases Úteis** (adicionar ao .bashrc ou .zshrc)
-   ```bash
-   alias drun="python manage.py runserver"
-   alias dmake="python manage.py makemigrations && python manage.py migrate"
-   alias dshell="python manage.py shell"
-   alias venv="source venv/bin/activate"
-   ```
+```bash
+alias drun="python manage.py runserver"
+alias dmake="python manage.py makemigrations && python manage.py migrate"
+alias dshell="python manage.py shell"
+alias venv="source venv/bin/activate"
+```
 
 3. **Make File**
-   ```makefile
-   setup:
-       python -m venv venv
-       source venv/bin/activate
-       pip install -r requirements.txt
-   
-   migrate:
-       python manage.py makemigrations
-       python manage.py migrate
-   
-   test:
-       python manage.py test
-   ```
+```makefile
+setup:
+      python -m venv venv
+      source venv/bin/activate
+      pip install -r requirements.txt
+
+migrate:
+      python manage.py makemigrations
+      python manage.py migrate
+
+test:
+      python manage.py test
+```
 
 4. **Docker Scripts**
-   ```bash
-   # Script para limpar volumes e containers antigos
-   ./docker_cleanup.sh
-   
-   # Script para backup de volumes
-   ./backup_volumes.sh
-   ```
+```bash
+# Script para limpar volumes e containers antigos
+./docker_cleanup.sh
+
+# Script para backup de volumes
+./backup_volumes.sh
+```
 
 5. **VS Code Snippets**
+```bash
    - Criar snippets personalizados para componentes React
    - Snippets para testes Django
    - Snippets para models e serializers
-
 ---
 
 > 📝 **Nota**: Mantenha este documento atualizado conforme novos comandos e scripts forem adicionados ao projeto.

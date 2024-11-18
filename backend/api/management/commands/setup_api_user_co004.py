@@ -11,7 +11,7 @@ v_user_email = f'{v_user_login}@empresa.com',
 v_user_type ='User',
 v_user_enabled = True
 
-v_company_id = 'co002',
+v_company_id = 'CO002',
 v_company_name = 'MAGALU LTDA',
 v_company_document = '03.250.731/0001-83',
 v_company_email = 'admin@empresa.com',

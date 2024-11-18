@@ -1,7 +1,7 @@
 // src/contexts/CompanyContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company } from '@/pages/Company/types';
-import { apiService as api } from '@/services/api';
+import { apiService } from '@/services/api';
 import { useAuth } from "@/core/auth";
 import { useToast } from '@/hooks/useToast';
 
@@ -14,7 +14,11 @@ interface CompanyContextData {
 
 const CompanyContext = createContext<CompanyContextData>({} as CompanyContextData);
 
-const CompanyProvider = ({ children }: { children: ReactNode }) => {
+interface CompanyProviderProps {
+  children: ReactNode;
+}
+
+export const CompanyProvider = ({ children }: CompanyProviderProps) => {
   const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,21 +35,20 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // 1. Garante que o company_id está em lowercase
-      const companyId = user.company_id.toLowerCase();
+      const companyId = user.company_id;
       
-      // 2. Corrige a URL para incluir /api
-      const { data } = await api.get<Company>(`/companies/${companyId}/`);
-      
-      if (!data) {
+      // Usando o método público get do apiService
+      const company = await apiService.get<Company>(`/companies/${companyId}/`);
+
+      if (!company) {
         throw new Error('Empresa não encontrada');
       }
       
-      setCurrentCompany(data);
+      setCurrentCompany(company);
+
     } catch (err: any) {
       console.error('Erro ao carregar dados da empresa:', err);
       
-      // 3. Melhor tratamento de erro
       let errorMessage = 'Não foi possível carregar os dados da empresa';
       
       if (err.response?.status === 404) {
@@ -76,7 +79,7 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isAuthenticated, user?.company_id]);
 
-  const value = {
+  const contextValue: CompanyContextData = {
     currentCompany,
     loading,
     error,
@@ -84,18 +87,21 @@ const CompanyProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CompanyContext.Provider value={value}>
+    <CompanyContext.Provider value={contextValue}>
       {children}
     </CompanyContext.Provider>
   );
 };
 
-const useCompany = () => {
+export const useCompany = (): CompanyContextData => {
   const context = useContext(CompanyContext);
+  
   if (!context) {
     throw new Error('useCompany must be used within a CompanyProvider');
   }
+  
   return context;
 };
 
-export { useCompany, CompanyProvider };
+// Se precisar exportar o contexto para testes
+export { CompanyContext };

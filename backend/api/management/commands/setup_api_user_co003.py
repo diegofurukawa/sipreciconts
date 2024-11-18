@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 company, created = Company.objects.get_or_create(
                     name='MAGALU LTDA',
                     defaults={
-                        'company_id': 'co002',
+                        'company_id': 'CO002',
                         'document': '03.250.731/0001-83',
                         'email': 'admin@empresa.com',
                         'phone': '(00) 0000-0000',
@@ -31,7 +31,7 @@ class Command(BaseCommand):
                 if not User.objects.filter(login='user_co003').exists():
                     user = User.objects.create(
                         login='user_co003',
-                        user_name='co002 - user',
+                        user_name='CO002 - user',
                         email='user_co003@empresa.com',
                         type='User',
                         company=company,
