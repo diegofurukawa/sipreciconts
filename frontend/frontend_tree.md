@@ -1,6 +1,8 @@
 .
+├── error_frontend.log
 ├── eslint.config.js
 ├── find_in_files.sh
+├── frontend_tree.md
 ├── index.html
 ├── package.json
 ├── package-lock.json
@@ -76,9 +78,21 @@
 │   ├── config
 │   │   └── api.ts
 │   ├── contexts
-│   │   ├── AuthContext.tsx
 │   │   ├── CompanyContext.tsx
 │   │   └── ToastContext.tsx
+│   ├── core
+│   │   └── auth
+│   │       ├── context
+│   │       │   ├── AuthContext.tsx
+│   │       │   └── index.ts
+│   │       ├── index.ts
+│   │       ├── services
+│   │       │   ├── index.ts
+│   │       │   ├── TokenService.ts
+│   │       │   └── UserSessionService.ts
+│   │       └── types
+│   │           ├── auth.types.ts
+│   │           └── index.ts
 │   ├── env.d.ts
 │   ├── hooks
 │   │   ├── api
@@ -205,9 +219,7 @@
 │   │   └── types.ts
 │   ├── services
 │   │   ├── api
-│   │   │   ├── ApiService copy.ts
 │   │   │   ├── ApiService.ts
-│   │   │   ├── auth.types.ts
 │   │   │   ├── base.ts
 │   │   │   ├── config.ts
 │   │   │   ├── constants.ts
@@ -215,18 +227,13 @@
 │   │   │   ├── instance.ts
 │   │   │   ├── interceptors.ts
 │   │   │   ├── modules
-│   │   │   │   ├── auth copy.ts
 │   │   │   │   ├── auth.ts
 │   │   │   │   ├── company.ts
 │   │   │   │   ├── customer.ts
 │   │   │   │   └── tax.ts
 │   │   │   ├── supply.ts
-│   │   │   ├── token.ts
 │   │   │   ├── types.ts
-│   │   │   ├── UserSession.ts
 │   │   │   └── utils.ts
-│   │   ├── auth
-│   │   │   └── AuthService.ts
 │   │   └── other
 │   ├── setupTests.ts
 │   ├── styles
@@ -241,80 +248,8 @@
 │   ├── utils
 │   │   └── date.ts
 │   └── vite-env.d.ts
-├── src_tree.md
 ├── tailwind.config.js
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
 └── vite.config.ts
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -11,7 +11,7 @@ from .company import (
     CompanyBasicSerializer,
     CompanySerializer
 )
-from .customer import CustomerSerializer, CustomerTypeSerializer
+from .customer import CustomerSerializer
 from .tax import TaxSerializer
 from .supply import SupplySerializer
 from .asset import AssetSerializer

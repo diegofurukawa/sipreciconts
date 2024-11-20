@@ -22,17 +22,18 @@ class UserSessionMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Extrai o session_id do header
         session_id = request.META.get('HTTP_X_SESSION_ID')
         
         if session_id:
-            # Tenta obter a sessão
             session = UserSessionService.get_active_session(session_id)
             if session:
-                # Atualiza última atividade
                 session.update_activity()
-                # Adiciona a sessão ao request
                 request.user_session = session
+                
+                # Garantir que o usuário tem acesso à empresa
+                if hasattr(request, 'user') and request.user.is_authenticated:
+                    if not request.user.company:
+                        return HttpResponse('Usuário sem empresa associada', status=403)
             else:
                 request.user_session = None
         else:

@@ -28,6 +28,7 @@
 │   ├── auth_custom
 │   │   ├── authentication.py
 │   │   ├── backends.py
+│   │   ├── bkp
 │   │   ├── handlers.py
 │   │   ├── __init__.py
 │   │   ├── __pycache__
@@ -52,10 +53,14 @@
 │   │       ├── create_test_user.py
 │   │       ├── __pycache__
 │   │       │   ├── setup_api_user_co001.cpython-312.pyc
-│   │       │   └── setup_api_user_co002.cpython-312.pyc
+│   │       │   ├── setup_api_user_co002.cpython-312.pyc
+│   │       │   ├── setup_api_user_co003.cpython-312.pyc
+│   │       │   └── setup_api_user_co004.cpython-312.pyc
 │   │       ├── setup_api_user_admin.py
 │   │       ├── setup_api_user_co001.py
 │   │       ├── setup_api_user_co002.py
+│   │       ├── setup_api_user_co003.py
+│   │       ├── setup_api_user_co004.py
 │   │       ├── test_login_django.py
 │   │       └── test_login.py
 │   ├── middleware
@@ -66,13 +71,9 @@
 │   │   └── usersession.py
 │   ├── migrations
 │   │   ├── 0001_initial.py
-│   │   ├── 0002_usersession.py
-│   │   ├── 0003_alter_usersession_refresh_token.py
 │   │   ├── __init__.py
 │   │   └── __pycache__
 │   │       ├── 0001_initial.cpython-312.pyc
-│   │       ├── 0002_usersession.cpython-312.pyc
-│   │       ├── 0003_alter_usersession_refresh_token.cpython-312.pyc
 │   │       └── __init__.cpython-312.pyc
 │   ├── models
 │   │   ├── asset_category.py
@@ -85,6 +86,7 @@
 │   │   ├── customer.py
 │   │   ├── __init__.py
 │   │   ├── location.py
+│   │   ├── managers.py
 │   │   ├── __pycache__
 │   │   │   ├── asset_category.cpython-312.pyc
 │   │   │   ├── asset.cpython-312.pyc
@@ -96,6 +98,7 @@
 │   │   │   ├── customer.cpython-312.pyc
 │   │   │   ├── __init__.cpython-312.pyc
 │   │   │   ├── location.cpython-312.pyc
+│   │   │   ├── managers.cpython-312.pyc
 │   │   │   ├── supply.cpython-312.pyc
 │   │   │   ├── tax.cpython-312.pyc
 │   │   │   ├── types.cpython-312.pyc
@@ -115,6 +118,7 @@
 │   │   ├── asset_group.py
 │   │   ├── asset_movement.py
 │   │   ├── asset.py
+│   │   ├── auth.py
 │   │   ├── base.py
 │   │   ├── company.py
 │   │   ├── customer.py
@@ -124,6 +128,7 @@
 │   │   │   ├── asset.cpython-312.pyc
 │   │   │   ├── asset_group.cpython-312.pyc
 │   │   │   ├── asset_movement.cpython-312.pyc
+│   │   │   ├── auth.cpython-312.pyc
 │   │   │   ├── base.cpython-312.pyc
 │   │   │   ├── company.cpython-312.pyc
 │   │   │   ├── customer.cpython-312.pyc
@@ -198,9 +203,10 @@
 │       └── __pycache__
 │           ├── __init__.cpython-312.pyc
 │           └── mixins.cpython-312.pyc
-├── db.sqlite3
-├── error.log
+├── find_in_files.sh
 ├── manage.py
+├── migrate.log
+├── migrations.log
 ├── requirements
 │   ├── base.txt
 │   ├── local.txt
@@ -209,6 +215,7 @@
 │   │   ├── create_superuser.py
 │   │   └── reset_db.py
 │   └── test.txt
+├── server.log
 ├── staticfiles
 │   ├── admin
 │   │   ├── css

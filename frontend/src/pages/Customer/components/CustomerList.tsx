@@ -60,17 +60,10 @@ const CustomerList = () => {
   const navigate = useNavigate();
   const { currentCompany } = useCompany();
   
-  // Log inicial do componente
-  useEffect(() => {
-    logInfo('Mount', 'Component mounted', { 
-      companyId: currentCompany?.id,
-      timestamp: new Date().toISOString()
-    });
-    
-    return () => {
-      logInfo('Unmount', 'Component will unmount');
-    };
-  }, []);
+  const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
+  const [showImportHelp, setShowImportHelp] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const {
     customers,
@@ -86,6 +79,18 @@ const CustomerList = () => {
     reloadCustomers
   } = useCustomerList();
 
+  // Log inicial do componente
+  useEffect(() => {
+    logInfo('Mount', 'Component mounted', { 
+      companyId: currentCompany?.company_id,
+      timestamp: new Date().toISOString()
+    });
+    
+    return () => {
+      logInfo('Unmount', 'Component will unmount');
+    };
+  }, [currentCompany?.company_id]);
+
   // Log de mudanças no estado dos customers
   useEffect(() => {
     logInfo('Data', 'Customers state updated', {
@@ -94,12 +99,7 @@ const CustomerList = () => {
       paginationState: pagination,
       searchParams: params
     });
-  }, [customers, loading, pagination, params]);
-
-  const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
-  const [showImportHelp, setShowImportHelp] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  }, [customers.length, loading, pagination, params]);
 
   // Handlers com logs
   const handleExportClick = async () => {
@@ -169,14 +169,8 @@ const CustomerList = () => {
     }
   };
 
-  // Log do estado de loading
-  useEffect(() => {
-    logInfo('Loading', 'Loading state changed', { loading, customersCount: customers.length });
-  }, [loading, customers.length]);
-
-  // Renderiza o esqueleto de carregamento
+  // Renderização condicional para loading
   if (loading && !customers.length) {
-    logInfo('Render', 'Rendering loading skeleton');
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -198,16 +192,10 @@ const CustomerList = () => {
     );
   }
 
-  logInfo('Render', 'Rendering main component', { 
-    customersCount: customers.length,
-    searchTerm,
-    paginationState: pagination
-  });
-
   return (
     <div className="space-y-4">
-{/* Cabeçalho com Ações */}
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Cabeçalho com Ações */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="relative flex items-center w-full md:w-auto">
           <Search className="absolute left-3 h-5 w-5 text-gray-500" />
           <Input
@@ -239,7 +227,6 @@ const CustomerList = () => {
           </div>
         </div>
 
-        {/* Nova Toolbar */}
         <CustomerToolbar 
           onExport={handleExportClick}
           onImport={() => document.getElementById('importInput')?.click()}
@@ -266,7 +253,7 @@ const CustomerList = () => {
                   <Button 
                     variant="ghost" 
                     className="p-0 hover:bg-transparent"
-                    onClick={() => handleSort('name', params.sort_order === 'asc' ? 'desc' : 'asc')}
+                    onClick={() => handleSort('name', params.ordering === 'name' ? '-name' : 'name')}
                   >
                     Nome
                     <ArrowUpDown className="ml-2 h-4 w-4" />

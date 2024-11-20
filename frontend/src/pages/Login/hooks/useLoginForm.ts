@@ -1,4 +1,3 @@
-// src/pages/Login/hooks/useLoginForm.ts
 import { useState } from 'react';
 import { useAuth } from "@/core/auth";
 import type { AuthCredentials } from '@/services/api/modules/auth';
@@ -38,12 +37,12 @@ export const useLoginForm = (): UseLoginFormReturn => {
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
     
-    const trimmedlogin = formData.login.trim();
+    const trimmedLogin = formData.login.trim();
     const trimmedPassword = formData.password.trim();
     
-    if (!trimmedlogin) {
+    if (!trimmedLogin) {
       newErrors.login = 'Usuário é obrigatório';
-    } else if (trimmedlogin.length < 3) {
+    } else if (trimmedLogin.length < 3) {
       newErrors.login = 'Usuário deve ter no mínimo 3 caracteres';
     }
     
@@ -60,7 +59,7 @@ export const useLoginForm = (): UseLoginFormReturn => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    // Remove espaços em branco no início e fim
+    // Remove espaços em branco no início e fim para validação
     const trimmedValue = value.trim();
     
     setFormData(prev => ({ 
@@ -92,38 +91,53 @@ export const useLoginForm = (): UseLoginFormReturn => {
     setIsSubmitting(true);
 
     try {
-      // Log para debug
-      console.log('Tentando login com:', {
-        login: formData.login.trim(),
+      // Prepara os dados conforme esperado pelo backend
+      const credentials = {
+        username: formData.login.trim(), // Alterado para username conforme esperado pelo backend
+        password: formData.password.trim()
+      };
+
+      // Log para debug (remover em produção)
+      console.debug('Enviando credenciais:', {
+        username: credentials.username,
         password: '[PROTEGIDO]'
       });
 
       // Envia credenciais para o signIn
       await signIn({
-        login: formData.login.trim(),
-        password: formData.password.trim()
+        login: credentials.username, // Mantém compatibilidade com a interface AuthCredentials
+        password: credentials.password
       });
 
       // Limpa o formulário após o sucesso
       resetForm();
       
     } catch (err: any) {
-      console.error('Erro no formulário de login:', err);
+      console.error('Erro no login:', err);
       
-      // Define mensagem de erro apropriada
+      // Tratamento de erros melhorado
       let errorMessage = 'Erro ao realizar login. Tente novamente.';
       
-      if (err.response?.status === 400) {
-        errorMessage = 'Dados de login inválidos';
-      } else if (err.response?.status === 401) {
+      if (err.code === 'INVALID_CREDENTIALS') {
         errorMessage = 'Usuário ou senha inválidos';
+      } else if (err.code === 'NETWORK_ERROR') {
+        errorMessage = 'Erro de conexão. Verifique sua internet.';
+      } else if (err.code === 'SERVER_ERROR') {
+        errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
       } else if (err.response?.data?.detail) {
         errorMessage = err.response.data.detail;
-      } else if (err.message) {
+      } else if (err.message && typeof err.message === 'string') {
         errorMessage = err.message;
       }
       
+      // Define o erro para exibição
       setError(errorMessage);
+      
+      // Limpa a senha em caso de erro
+      setFormData(prev => ({
+        ...prev,
+        password: ''
+      }));
       
     } finally {
       setIsSubmitting(false);

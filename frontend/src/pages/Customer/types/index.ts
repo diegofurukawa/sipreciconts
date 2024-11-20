@@ -4,7 +4,8 @@
  * Interface base do Cliente
  */
 export interface Customer {
-  customer_id?: number;
+  company_id?: string; // Added company field
+  customer_id?: string;
   name: string;
   document?: string;
   customer_type?: string;
@@ -15,6 +16,7 @@ export interface Customer {
   enabled?: boolean;
   created?: string;
   updated?: string;
+  
 }
 
 /**
@@ -31,6 +33,7 @@ export interface CustomerUpdateData extends Partial<CustomerCreateData> {}
  * Parâmetros para listagem de clientes
  */
 export interface CustomerListParams {
+  company_id?: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -42,6 +45,13 @@ export interface CustomerListParams {
   enabled?: boolean;
   created_after?: string;
   created_before?: string;
+}
+
+export interface CustomerResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Customer[];
 }
 
 /**

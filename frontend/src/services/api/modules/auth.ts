@@ -8,7 +8,8 @@ export enum AuthErrorCode {
   INVALID_CREDENTIALS = 'CREDENCIAIS_INVALIDAS',
   SERVER_ERROR = 'ERRO_SERVIDOR',
   NETWORK_ERROR = 'ERRO_CONEXAO',
-  SESSION_EXPIRED = 'SESSAO_EXPIRADA'
+  SESSION_EXPIRED = 'SESSAO_EXPIRADA',
+  TOKEN_INVALID = 'TOKEN_INVALIDO'
 }
 
 // Interface para erro customizado
@@ -60,6 +61,17 @@ export interface AuthState {
 export interface TokenResponse {
   access: string;
   refresh?: string;
+}
+
+export interface ValidateResponse {
+  is_valid: boolean;
+  detail?: string;
+  code?: string;
+  messages?: Array<{
+    token_class: string;
+    token_type: string;
+    message: string;
+  }>;
 }
 
 class AuthApiService extends ApiService {
@@ -122,7 +134,7 @@ class AuthApiService extends ApiService {
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
       const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, {
-        login: credentials.login,
+        login: credentials.login, // Alterado para login conforme backend espera
         password: credentials.password
       });
 
@@ -197,20 +209,51 @@ class AuthApiService extends ApiService {
       const session = UserSessionService.load();
 
       if (!token || !session) {
+        await this.handleInvalidToken();
         return false;
       }
 
-      const headers = {
-        'Authorization': `Bearer ${token}`,
-        'X-Session-ID': session.sessionId
-      };
+      // Configura os headers para a validação
+      this.setAuthHeaders({
+        token,
+        companyId: session.companyId,
+        sessionId: session.sessionId
+      });
 
-      await this.post(`${this.baseUrl}/validate/`, null, { headers });
-      return true;
-    } catch (error) {
-      if (error instanceof AuthenticationError && error.code === AuthErrorCode.SESSION_EXPIRED) {
-        await this.handleSessionExpired();
+      try {
+        const response = await this.post<ValidateResponse>(`${this.baseUrl}/validate/`);
+
+        // Verifica se o token é inválido
+        if (response.code === 'token_not_valid' || !response.is_valid) {
+          await this.handleInvalidToken(response.detail);
+          return false;
+        }
+
+        return response.is_valid === true;
+
+      } catch (error: any) {
+        // Trata erro específico de token inválido
+        if (error.response?.data?.code === 'token_not_valid') {
+          await this.handleInvalidToken(error.response?.data?.detail);
+          return false;
+        }
+
+        // Trata erro de autorização
+        if (error.response?.status === 401) {
+          await this.handleInvalidToken('Sessão expirada');
+          return false;
+        }
+
+        throw new AuthenticationError(
+          AuthErrorCode.TOKEN_INVALID,
+          error.response?.data?.detail || 'Token inválido',
+          error.response?.data
+        );
       }
+
+    } catch (error) {
+      console.error('Erro na validação do token:', error);
+      await this.handleInvalidToken();
       return false;
     }
   }
@@ -222,14 +265,17 @@ class AuthApiService extends ApiService {
     try {
       const session = UserSessionService.load();
       
-      const headers = {
-        'X-Session-ID': session?.sessionId || ''
-      };
+      if (session) {
+        this.setAuthHeaders({
+          token: refresh,
+          companyId: session.companyId,
+          sessionId: session.sessionId
+        });
+      }
 
       const response = await this.post<TokenResponse>(
         `${this.baseUrl}/refresh/`,
-        { refresh },
-        { headers }
+        { refresh }
       );
 
       const newToken = response.access;
@@ -302,6 +348,25 @@ class AuthApiService extends ApiService {
   }
 
   /**
+   * Trata token inválido
+   */
+  private async handleInvalidToken(message?: string): Promise<void> {
+    this.clearAuthData();
+    
+    if (message) {
+      console.warn('Token inválido:', message);
+    }
+    
+    const searchParams = new URLSearchParams();
+    searchParams.append('session', 'expired');
+    if (message) {
+      searchParams.append('message', message);
+    }
+    
+    window.location.href = `/login?${searchParams.toString()}`;
+  }
+
+  /**
    * Trata expiração da sessão
    */
   private async handleSessionExpired(): Promise<void> {
@@ -345,7 +410,11 @@ class AuthApiService extends ApiService {
   }): void {
     const { token, companyId, sessionId } = params;
     
-    this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // Garante formato Bearer no token
+    this.api.defaults.headers.common['Authorization'] = token.startsWith('Bearer ') 
+      ? token 
+      : `Bearer ${token}`;
+      
     this.api.defaults.headers.common['X-Session-ID'] = sessionId;
     
     if (!this.isAuthRoute(this.api.defaults.url || '')) {
