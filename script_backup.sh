@@ -5,8 +5,8 @@ BACKUP_DIR="$HOME/GitHub/sipreciconts/backup/backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
 # Padrões de exclusão (diretórios e arquivos)
-EXCLUDE_DIRS=( "documentation" "backup" "migrations" ".pytest_cache" "__pycache__" "logs" "Logs" "old" "import" ".venv" "venv" "backup" "export" "documentation" "node_modules" )
-EXCLUDE_FILES=( "*.log" "*.sh" "__init__.py" "*.sqlite3" "*.ico" "*.png" "*.svg" "*.sample" "*.idx" "*." "*.md" "FETCH_HEAD" "HEAD" "ORIG_HEAD" "COMMIT_EDITMSG" "packed-refs" "*.rev" "*.pack" "3f4300ba61354baef9f5b9ada4ad9c9ce749a9" "7714bd891f28b8c5a3e6875ee8eb1b7aca532d" "97638cb81c74bfb1315972b60380cc6dde7681" ".gitignore" ".gitattributes" ".env.example")
+EXCLUDE_DIRS=( "backup" "migrations" "Feature_Requests" "Diversos" "diagrams" "Dev_Diary" ".pytest_cache" "__pycache__" "logs" "Logs" "old" "import" ".venv" "venv" "backup" "export" "documentation" "node_modules" )
+EXCLUDE_FILES=( "*.log" "*.sh" "__init__.py" "*.sqlite3" "*.ico" "*.png" "*.svg" "*.sample" "*.idx" "*." "FETCH_HEAD" "HEAD" "ORIG_HEAD" "COMMIT_EDITMSG" "packed-refs" "*.rev" "*.pack" "3f4300ba61354baef9f5b9ada4ad9c9ce749a9" "7714bd891f28b8c5a3e6875ee8eb1b7aca532d" "97638cb81c74bfb1315972b60380cc6dde7681" ".gitignore" ".gitattributes" ".env.example")
 # Construir o parâmetro `-not -path` para `find` ignorar os diretórios
 EXCLUDE_PATHS=()
 for dir in "${EXCLUDE_DIRS[@]}"; do
@@ -23,9 +23,14 @@ done
 CMD="find . -type f ${EXCLUDE_PATHS[*]} ${EXCLUDE_NAMES[*]}"
 echo "Executando: $CMD"
 
-# Executar o comando `find` e copiar os arquivos filtrados para a pasta de backup
+# Executar o comando `find`, ignorando arquivos com nomes aleatórios
 eval $CMD | while read -r file; do
-    cp "$file" "$BACKUP_DIR"
+    filename=$(basename "$file")
+
+    # Ignorar arquivos que sejam apenas letras e números (exemplo: "ce0998ca9ff5448be8a402a67ae250d7bd6f44")
+    if [[ ! "$filename" =~ ^[a-fA-F0-9]{32,40}$ ]]; then
+        cp "$file" "$BACKUP_DIR"
+    fi
 done
 
 echo "Backup concluído em $BACKUP_DIR"
