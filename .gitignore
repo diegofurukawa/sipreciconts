@@ -63,3 +63,4 @@ frontend/build/
 # Sistema operacional
 .DS_Store
 Thumbs.db
+frontend/package-lock.json
