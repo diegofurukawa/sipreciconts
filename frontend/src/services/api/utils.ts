@@ -1,15 +1,16 @@
 // src/services/api/utils.ts
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import { TokenService, UserSessionService, useAuth } from '@/core/auth';
+import { useAuth } from "@/contexts/AuthContext";
+import { TokenService, UserSessionService } from "@/services/api";
 import { 
   ApiError, 
-  ApiConfig, 
+  // ApiConfig, 
   ApiErrorCode, 
   ApiErrorResponse, 
   ErrorCallbacks,
   RetryConfig,
   RetryOptions,
-  RetryState
+  // RetryState
 } from '../../types/api.types';
 
 // Interface estendida para configuração do retry

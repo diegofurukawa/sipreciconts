@@ -1,12 +1,12 @@
 // src/routes/index.tsx
 import { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from '@/layouts/MainLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 
 // Import direto das páginas principais usando named imports
-import { LoginPage } from '@/pages/Login';
+import { LoginPage } from '@/pages/Auth';
 import { HomePage } from '@/pages/Home';
 import { NotFoundPage } from '@/pages/NotFound';
 

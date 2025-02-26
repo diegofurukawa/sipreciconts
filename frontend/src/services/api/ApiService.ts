@@ -1,12 +1,15 @@
-// src/services/api/ApiService.ts
-import axios, { 
+import axios from 'axios';
+// Corrigir importação de tipos para ser compatível com Axios v1.x
+import type { 
   AxiosInstance, 
-  AxiosRequestConfig,
   AxiosResponse, 
-  AxiosHeaders,
   InternalAxiosRequestConfig 
 } from 'axios';
-import { TokenService, UserSessionService, useAuth } from '@/core/auth';
+import { AxiosHeaders } from 'axios';
+// Adicionar definição local para compatibilidade
+import type { AxiosRequestConfig } from '@/types/axios.types';
+import { useAuth } from "@/contexts/AuthContext";
+import { TokenService, UserSessionService } from "@/services/api";
 import { errorUtils, retryUtils } from './utils';
 import { API_CONFIG } from './constants';
 import type { 

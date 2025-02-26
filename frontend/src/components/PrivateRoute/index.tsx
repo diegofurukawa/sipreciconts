@@ -1,7 +1,7 @@
 // src/components/PrivateRoute/index.tsx
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoadingSpinner: React.FC = () => (
   <div className="flex items-center justify-center min-h-screen">

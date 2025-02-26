@@ -1,6 +1,6 @@
 // src/pages/Login/components/LoginForm.tsx
 import { SimpleAlert } from '../../../components/ui/simplealert';
-import type { UseLoginFormReturn } from '../types';
+import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 
 interface LoginFormProps {
   form: UseLoginFormReturn;

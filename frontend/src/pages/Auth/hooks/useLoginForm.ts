@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from "@/core/auth";
-import type { AuthCredentials } from '@/services/api/modules/auth';
+import { useAuth } from "@/contexts/AuthContext";
+import type { AuthCredentials } from '@/services/modules/auth';
 
 interface LoginFormData extends AuthCredentials {
   login: string;

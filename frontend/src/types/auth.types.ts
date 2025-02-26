@@ -1,3 +1,38 @@
+// src/types/auth.types.ts
+
+export interface AuthUser {
+  id: number;
+  login: string;
+  user_name: string;
+  name: string;
+  email: string;
+  type: string;
+  company_id: string;
+  company_name?: string;
+  last_login?: string;
+}
+
+export interface AuthCredentials {
+  login: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: AuthUser;
+  access: string;
+  refresh: string;
+  session_id: string;
+  expires_in: number;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: AuthUser | null;
+  company_id?: string;
+  loading: boolean;
+  session_id?: string;
+}
+
 export interface LoginCredentials {
   login: string;
   password: string;

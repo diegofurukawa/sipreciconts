@@ -181,18 +181,10 @@
 │   │   ├── config
 │   │   │   └── api.ts
 │   │   ├── contexts
+│   │   │   ├── AuthContext.tsx
 │   │   │   ├── CompanyContext.tsx
+│   │   │   ├── index.ts
 │   │   │   └── ToastContext.tsx
-│   │   ├── core
-│   │   │   └── auth
-│   │   │       ├── context
-│   │   │       │   ├── AuthContext.tsx
-│   │   │       │   └── index.ts
-│   │   │       ├── index.ts
-│   │   │       └── services
-│   │   │           ├── index.ts
-│   │   │           ├── TokenService.ts
-│   │   │           └── UserSessionService.ts
 │   │   ├── env.d.ts
 │   │   ├── hooks
 │   │   │   ├── api
@@ -221,6 +213,13 @@
 │   │   │       └── teste.tsx
 │   │   ├── main.tsx
 │   │   ├── pages
+│   │   │   ├── Auth
+│   │   │   │   ├── components
+│   │   │   │   │   ├── LoginForm.tsx
+│   │   │   │   │   └── LoginHeader.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useLoginForm.ts
+│   │   │   │   └── index.tsx
 │   │   │   ├── Company
 │   │   │   │   ├── components
 │   │   │   │   │   ├── CompanyForm.tsx
@@ -269,12 +268,6 @@
 │   │   │   │   │   └── FeatureCard.tsx
 │   │   │   │   └── index.tsx
 │   │   │   ├── Login
-│   │   │   │   ├── components
-│   │   │   │   │   ├── LoginForm.tsx
-│   │   │   │   │   └── LoginHeader.tsx
-│   │   │   │   ├── hooks
-│   │   │   │   │   └── useLoginForm.ts
-│   │   │   │   ├── index.tsx
 │   │   │   │   ├── types
 │   │   │   │   │   └── index.ts
 │   │   │   │   └── utils
@@ -290,15 +283,18 @@
 │   │   │   ├── Supplies
 │   │   │   │   └── index.tsx
 │   │   │   ├── Supply
+│   │   │   │   ├── components
+│   │   │   │   │   ├── SupplyForm.tsx
+│   │   │   │   │   ├── SupplyHeader.tsx
+│   │   │   │   │   └── SupplyList.tsx
 │   │   │   │   ├── index.tsx
-│   │   │   │   ├── SupplyForm.tsx
-│   │   │   │   ├── SupplyHeader.tsx
-│   │   │   │   ├── SupplyList.tsx
 │   │   │   │   └── __tests__
 │   │   │   │       └── SupplyList.test.tsx
 │   │   │   └── Tax
-│   │   │       ├── TaxForm.tsx
-│   │   │       └── TaxList.tsx
+│   │   │       ├── components
+│   │   │       │   ├── TaxForm.tsx
+│   │   │       │   └── TaxList.tsx
+│   │   │       └── index.tsx
 │   │   ├── providers
 │   │   │   └── index.tsx
 │   │   ├── react-app-env.d.ts
@@ -317,21 +313,23 @@
 │   │   │       ├── customer.routes.tsx
 │   │   │       └── index.ts
 │   │   ├── services
-│   │   │   └── api
-│   │   │       ├── ApiService.ts
-│   │   │       ├── base.ts
-│   │   │       ├── config.ts
-│   │   │       ├── constants.ts
-│   │   │       ├── index.ts
-│   │   │       ├── instance.ts
-│   │   │       ├── interceptors.ts
-│   │   │       ├── modules
-│   │   │       │   ├── auth.ts
-│   │   │       │   ├── company.ts
-│   │   │       │   ├── customer.ts
-│   │   │       │   └── tax.ts
-│   │   │       ├── supply.ts
-│   │   │       └── utils.ts
+│   │   │   ├── api
+│   │   │   │   ├── ApiService.ts
+│   │   │   │   ├── base.ts
+│   │   │   │   ├── config.ts
+│   │   │   │   ├── constants.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── instance.ts
+│   │   │   │   ├── interceptors.ts
+│   │   │   │   ├── supply.ts
+│   │   │   │   ├── TokenService.ts
+│   │   │   │   ├── UserSessionService.ts
+│   │   │   │   └── utils.ts
+│   │   │   └── modules
+│   │   │       ├── auth.ts
+│   │   │       ├── company.ts
+│   │   │       ├── customer.ts
+│   │   │       └── tax.ts
 │   │   ├── setupTests.ts
 │   │   ├── styles
 │   │   │   └── globals.css
@@ -357,4 +355,4 @@
 ├── LICENSE
 └── README.md
 
-94 directories, 263 files
+93 directories, 262 files

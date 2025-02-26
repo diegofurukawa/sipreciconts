@@ -1,7 +1,7 @@
-// src/services/api/modules/auth.ts
-import { ApiService } from '../ApiService';
-import { TokenService, UserSessionService, useAuth } from '@/core/auth';
-import type { ApiResponse } from '../../../types/api.types';
+// src/services/modules/auth.ts
+import { ApiService } from "../api/ApiService";
+import { TokenService, UserSessionService } from "../api";
+import type { AuthUser } from '../../types/auth.types';
 
 // Enum para códigos de erro
 export enum AuthErrorCode {
@@ -28,18 +28,6 @@ export class AuthenticationError extends Error {
 export interface AuthCredentials {
   login: string;
   password: string;
-}
-
-export interface AuthUser {
-  id: number;
-  login: string;
-  user_name: string;
-  name: string;
-  email: string;
-  type: string;
-  company_id: string;
-  company_name?: string;
-  last_login?: string;
 }
 
 export interface AuthResponse {
@@ -105,11 +93,14 @@ class AuthApiService extends ApiService {
           };
         }
 
+        // Determinar se está autenticado com base no token e sessão
+        const isAuthenticated = !!token && !!session?.isActive;
+        
         return {
-          isAuthenticated: true,
-          user: session.user || null,
-          company_id: session.companyId,
-          session_id: session.sessionId,
+          isAuthenticated,
+          user: session?.user || null,
+          company_id: session?.companyId || undefined,
+          session_id: session?.sessionId,
           loading: false
         };
 
@@ -321,6 +312,7 @@ class AuthApiService extends ApiService {
     const session = UserSessionService.load();
     if (session) {
       session.updateUser(userData);
+      UserSessionService.save(session);
     }
   }
 
@@ -378,10 +370,8 @@ class AuthApiService extends ApiService {
    * Configura dados de autenticação
    */
   private setupAuthData(response: AuthResponse, user: AuthUser): void {
-    TokenService.setTokens({
-      access: response.access,
-      refresh: response.refresh
-    });
+    TokenService.setAccessToken(response.access);
+    TokenService.setRefreshToken(response.refresh);
 
     this.setAuthHeaders({
       token: response.access,
@@ -405,7 +395,7 @@ class AuthApiService extends ApiService {
    */
   private setAuthHeaders(params: {
     token: string;
-    companyId: string;
+    companyId: string | null;
     sessionId: string;
   }): void {
     const { token, companyId, sessionId } = params;
@@ -417,7 +407,7 @@ class AuthApiService extends ApiService {
       
     this.api.defaults.headers.common['X-Session-ID'] = sessionId;
     
-    if (!this.isAuthRoute(this.api.defaults.url || '')) {
+    if (companyId && !this.isAuthRoute(this.api.defaults.url || '')) {
       this.api.defaults.headers.common['X-Company-ID'] = companyId;
     }
   }

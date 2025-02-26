@@ -1,7 +1,23 @@
 // src/services/api/modules/tax.ts
-import { ApiService } from '../ApiService';
-import type { PaginatedResponse, ApiResponse } from '../../../types/api.types';
-import type { Tax } from '@/types/tax';
+import { ApiService } from "../api/ApiService";
+import type { PaginatedResponse, ApiResponse } from '@/types/api.types';
+
+// Tipos
+export interface Tax {
+  customer_id: number;
+  name: string;
+  document?: string;
+  customer_type?: string;
+  celphone: string;
+  email?: string;
+  address?: string;
+  complement?: string;
+  enabled?: boolean;
+  company_id?: number;
+  created?: string;
+  updated?: string;
+}
+
 
 export interface TaxCreateData extends Omit<Tax, 'id' | 'created' | 'updated'> {
   name: string;

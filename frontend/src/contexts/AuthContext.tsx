@@ -1,10 +1,11 @@
 // src/contexts/AuthContext.tsx
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TokenService, UserSessionService } from '@/core/auth';
-import { authService } from '@/services/api/modules/auth';
+import { TokenService } from '@/services/api/TokenService';
+import { UserSessionService } from '@/services/api/UserSessionService';
+import { authService } from '@/services/modules/auth';
 import { useToast } from '@/hooks/useToast';
-import type { AuthUser, AuthCredentials, AuthState as ApiAuthState } from '@/services/api/modules/auth';
+import type { AuthUser, AuthCredentials, AuthState as ApiAuthState } from '@/services/modules/auth';
 
 interface AuthState {
   user: AuthUser | null;
@@ -62,9 +63,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useToast();
+  
+  // Controle para evitar múltiplas notificações de sessão expirada
+  const sessionExpiryRef = useRef({
+    isHandling: false,
+    lastNotified: 0,
+    minInterval: 5000 // 5 segundos entre notificações
+  });
 
   // Função para lidar com sessões expiradas
   const handleSessionExpired = useCallback(() => {
+    const now = Date.now();
+    const { isHandling, lastNotified, minInterval } = sessionExpiryRef.current;
+    
+    // Evita múltiplas chamadas simultâneas e não notifica com muita frequência
+    if (isHandling || (now - lastNotified) < minInterval) {
+      return;
+    }
+    
+    // Atualiza o estado de controle
+    sessionExpiryRef.current = {
+      ...sessionExpiryRef.current,
+      isHandling: true,
+      lastNotified: now
+    };
+    
+    // Log para debug
+    console.log('Processando expiração de sessão', {
+      timestamp: new Date().toISOString(),
+      currentPath: location.pathname
+    });
+
     // Limpar armazenamento local
     TokenService.clearAll();
     UserSessionService.clear();
@@ -77,20 +106,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sessionId: undefined 
     });
     
-    // Redirecionar para a página de login com um parâmetro de query
-    navigate('/login?session=expired');
+    // Mostrar feedback ao usuário, apenas se não estiver na página de login
+    if (location.pathname !== '/login') {
+      showToast({
+        type: 'warning',
+        title: 'Sessão expirada',
+        message: 'Sua sessão expirou. Por favor, faça login novamente.'
+      });
+      
+      // Redirecionar para a página de login com um parâmetro de query
+      navigate('/login?session=expired', { replace: true });
+    }
     
-    // Mostrar feedback ao usuário
-    showToast({
-      type: 'warning',
-      title: 'Sessão expirada',
-      message: 'Sua sessão expirou. Por favor, faça login novamente.'
-    });
-  }, [navigate, showToast]);
+    // Libera o bloqueio após processamento
+    setTimeout(() => {
+      sessionExpiryRef.current.isHandling = false;
+    }, 500);
+    
+  }, [navigate, showToast, location.pathname]);
 
   // Adicionar event listener para o evento de sessão expirada
   useEffect(() => {
-    const handleSessionExpiredEvent = () => {
+    const handleSessionExpiredEvent = (event: Event) => {
+      // Prevenção de processamento múltiplo de eventos em sequência
+      event.stopPropagation();
       handleSessionExpired();
     };
     
@@ -108,15 +147,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const sessionExpired = params.get('session') === 'expired';
       
       if (sessionExpired) {
-        showToast({
-          type: 'warning',
-          title: 'Sessão expirada',
-          message: 'Sua sessão expirou. Por favor, faça login novamente.'
-        });
+        // Verificar se já mostrou recentemente
+        const now = Date.now();
+        if ((now - sessionExpiryRef.current.lastNotified) > sessionExpiryRef.current.minInterval) {
+          sessionExpiryRef.current.lastNotified = now;
+          
+          showToast({
+            type: 'warning',
+            title: 'Sessão expirada',
+            message: 'Sua sessão expirou. Por favor, faça login novamente.'
+          });
+        }
         
         // Limpar o parâmetro da URL para evitar mensagens repetidas em refreshes
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+        window.history.replaceState({}, document.title, location.pathname);
       }
     }
   }, [location.pathname, location.search, showToast]);
@@ -126,7 +170,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const initialState = await authService.initializeAuth();
         if (!initialState.isAuthenticated) {
-          await signOut();
+          await signOut(true); // Logout silencioso - não mostra notificação
         } else {
           setAuthState({
             user: initialState.user,
@@ -137,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Erro ao inicializar autenticação:', error);
-        await signOut();
+        await signOut(true); // Logout silencioso
       } finally {
         setLoading(false);
       }
@@ -208,7 +252,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [navigate, showToast]);
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (silent: boolean = false) => {
     try {
       setLoading(true);
       
@@ -232,18 +276,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         sessionId: undefined 
       });
       
-      navigate('/login');
+      // Redireciona para login apenas se não for silencioso
+      if (!silent) {
+        if (!location.pathname.includes('/login')) {
+          navigate('/login');
+        }
+      } else {
+        // Para logout silencioso - apenas redireciona se não estiver na página de login
+        if (!location.pathname.includes('/login')) {
+          navigate('/login', { replace: true });
+        }
+      }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
-      showToast({
-        type: 'error',
-        title: 'Erro',
-        message: 'Erro ao fazer logout'
-      });
+      if (!silent) {
+        showToast({
+          type: 'error',
+          title: 'Erro',
+          message: 'Erro ao fazer logout'
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [navigate, showToast]);
+  }, [navigate, showToast, location.pathname]);
 
   const updateUser = useCallback((data: Partial<AuthUser>) => {
     setAuthState(prev => {
@@ -266,7 +322,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user: authState.user,
     companyId: authState.companyId,
     signIn,
-    signOut,
+    signOut: () => signOut(false), // Versão pública sempre não-silenciosa
     updateUser
   };
 

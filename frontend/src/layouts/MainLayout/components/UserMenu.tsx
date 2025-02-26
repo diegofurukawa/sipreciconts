@@ -1,6 +1,6 @@
 // src/layouts/MainLayout/components/UserMenu.tsx
 import { User, LogOut } from 'lucide-react';
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserMenuProps {
   isMobile: boolean;

@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company } from '@/pages/Company/types';
 import { apiService } from '@/services/api';
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from '@/hooks/useToast';
 
 interface CompanyContextData {

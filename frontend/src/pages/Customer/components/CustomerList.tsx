@@ -1,408 +1,206 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Search,
-  ArrowUpDown,
-  Phone,
-  Mail,
-  FileText,
-  Eye,
-  Edit,
-  Trash,
-  X
-} from 'lucide-react';
-import { useCustomerList } from '../hooks/useCustomerList';
-import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-import { ImportHelpDialog } from './ImportHelpDialog';
-import { FeedbackMessage } from './FeedbackMessage';
-import { CustomerToolbar } from './CustomerToolbar';
-import { useCompany } from '@/contexts/CompanyContext';
+import React, { useState, useEffect } from 'react';
+import { Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell } from 'react';
+import { Pencil, Trash, Eye, Plus, Search, X, Download, Upload } from 'lucide-react';
 
-// Utility para logs consistentes
-const logInfo = (component: string, action: string, data?: any) => {
-  console.log(`[CustomerList/${component}]`, action, data || '');
-};
-
-const logError = (component: string, action: string, error: any) => {
-  console.error(`[CustomerList/${component}] Error in ${action}:`, error);
-};
-
+// Componente principal de listagem de clientes
 const CustomerList = () => {
-  const navigate = useNavigate();
-  const { currentCompany } = useCompany();
-  
-  const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
-  const [showImportHelp, setShowImportHelp] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  
+  // Estado para feedback visual ao usuário
+  const [feedback, setFeedback] = useState(null);
 
-  const {
-    customers,
-    loading,
-    pagination,
-    params,
-    handleSearch,
-    handlePageChange,
-    handleSort,
-    handleExport,
-    handleDelete,
-    handleImport,
-    reloadCustomers
-  } = useCustomerList();
-
-  // Log inicial do componente
+  // Buscar dados de clientes (mock para demonstração)
   useEffect(() => {
-    logInfo('Mount', 'Component mounted', { 
-      companyId: currentCompany?.company_id,
-      timestamp: new Date().toISOString()
-    });
-    
-    return () => {
-      logInfo('Unmount', 'Component will unmount');
+    const fetchCustomers = async () => {
+      try {
+        setLoading(true);
+        // Em uma implementação real, isso seria uma chamada à API
+        
+        // Dados de exemplo para demonstração
+        const mockCustomers = [
+          { 
+            customer_id: 1, 
+            name: 'Empresa ABC Ltda', 
+            document: '12.345.678/0001-90', 
+            celphone: '(11) 98765-4321', 
+            email: 'contato@empresaabc.com.br' 
+          },
+          { 
+            customer_id: 2, 
+            name: 'João Silva', 
+            document: '123.456.789-00', 
+            celphone: '(11) 91234-5678', 
+            email: 'joao.silva@email.com' 
+          },
+          { 
+            customer_id: 3, 
+            name: 'Mercado Express', 
+            document: '87.654.321/0001-43', 
+            celphone: '(11) 97654-3210', 
+            email: 'contato@mercadoexpress.com' 
+          }
+        ];
+        
+        setCustomers(mockCustomers);
+      } catch (error) {
+        console.error('Erro ao carregar clientes:', error);
+        showFeedback('error', 'Erro ao carregar lista de clientes');
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [currentCompany?.company_id]);
 
-  // Log de mudanças no estado dos customers
-  useEffect(() => {
-    logInfo('Data', 'Customers state updated', {
-      customersCount: customers.length,
-      loading,
-      paginationState: pagination,
-      searchParams: params
-    });
-  }, [customers.length, loading, pagination, params]);
+    fetchCustomers();
+  }, []);
 
-  // Handlers com logs
-  const handleExportClick = async () => {
+  // Funções de manipulação
+  const handleSearch = () => {
+    // Implementar busca em uma aplicação real
+    console.log('Buscando por:', searchTerm);
+  };
+
+  const handleSearchClear = () => {
+    setSearchTerm('');
+    // Em uma aplicação real, recarregaria a lista completa
+  };
+
+  const confirmDelete = async (id) => {
     try {
-      logInfo('Export', 'Starting export');
-      await handleExport();
-      showFeedback('success', 'Arquivo exportado com sucesso');
-      logInfo('Export', 'Export completed successfully');
+      // Em uma implementação real, isso seria uma chamada à API
+      // await customerService.delete(id);
+      
+      // Remove o cliente do estado para simular exclusão
+      setCustomers(customers.filter(c => c.customer_id !== id));
+      showFeedback('success', 'Cliente excluído com sucesso');
     } catch (error) {
-      logError('Export', 'Export failed', error);
-      showFeedback('error', 'Erro ao exportar clientes');
+      console.error('Erro ao excluir cliente:', error);
+      showFeedback('error', 'Erro ao excluir cliente');
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        logInfo('Import', 'Starting import', { fileName: file.name, fileSize: file.size });
-        await handleImport(file);
-        showFeedback('success', 'Clientes importados com sucesso');
-        await reloadCustomers();
-        logInfo('Import', 'Import completed successfully');
-      } catch (error) {
-        logError('Import', 'Import failed', error);
-        showFeedback('error', 'Erro ao importar clientes');
-      }
-    }
-  };
-
-  const confirmDelete = async () => {
-    if (customerToDelete) {
-      try {
-        logInfo('Delete', 'Starting delete', { customerId: customerToDelete });
-        await handleDelete(customerToDelete);
-        showFeedback('success', 'Cliente excluído com sucesso');
-        await reloadCustomers();
-        logInfo('Delete', 'Delete completed successfully');
-      } catch (error) {
-        logError('Delete', 'Delete failed', error);
-        showFeedback('error', 'Erro ao excluir cliente');
-      }
-      setCustomerToDelete(null);
-    }
-  };
-
-  const showFeedback = (type: 'success' | 'error', message: string) => {
+  const showFeedback = (type, message) => {
     setFeedback({ type, message });
     setTimeout(() => setFeedback(null), 3000);
-    logInfo('Feedback', 'Showing feedback', { type, message });
   };
 
-  const handleSearchSubmit = useCallback(() => {
-    logInfo('Search', 'Submitting search', { searchTerm });
-    handleSearch(searchTerm);
-  }, [handleSearch, searchTerm]);
-
-  const handleSearchClear = useCallback(() => {
-    logInfo('Search', 'Clearing search');
-    setSearchTerm('');
-    handleSearch('');
-  }, [handleSearch]);
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearchSubmit();
-    }
-  };
-
-  // Renderização condicional para loading
-  if (loading && !customers.length) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-10 w-64" />
-          <div className="space-x-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-24" />
-          </div>
-        </div>
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // Renderização principal
   return (
-    <div className="space-y-4">
-      {/* Cabeçalho com Ações */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="relative flex items-center w-full md:w-auto">
-          <Search className="absolute left-3 h-5 w-5 text-gray-500" />
-          <Input
+    <div className="p-4">
+      {/* Feedback visual */}
+      {feedback && (
+        <div 
+          className={`fixed top-4 right-4 z-50 p-4 rounded shadow-lg text-white
+            ${feedback.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
+        >
+          {feedback.message}
+        </div>
+      )}
+      
+      {/* Cabeçalho com busca e ações */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="relative w-64">
+          <input
+            type="text"
             placeholder="Pesquisar clientes..."
-            className="w-full md:w-[320px] pl-10 pr-24"
+            className="w-full pl-8 pr-4 py-2 border rounded"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={handleKeyPress}
           />
-          <div className="absolute right-1 flex items-center space-x-1">
-            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7"
-                onClick={handleSearchClear}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7"
-              onClick={handleSearchSubmit}
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+          {searchTerm && (
+            <button
+              className="absolute right-2 top-2.5"
+              onClick={handleSearchClear}
             >
-              Pesquisar
-            </Button>
-          </div>
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        <CustomerToolbar 
-          onExport={handleExportClick}
-          onImport={() => document.getElementById('importInput')?.click()}
-          onHelpClick={() => setShowImportHelp(true)}
-          onNewCustomer={() => navigate(CADASTROS_ROUTES.CLIENTES.NEW)}
-        />
+        <div className="flex gap-2">
+          <button
+            className="flex items-center px-3 py-2 bg-white border rounded hover:bg-gray-50"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar
+          </button>
 
-        <input
-          id="importInput"
-          type="file"
-          accept=".csv"
-          onChange={handleFileChange}
-          className="hidden"
-        />
+          <button
+            className="flex items-center px-3 py-2 bg-white border rounded hover:bg-gray-50"
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Importar
+          </button>
+
+          <button
+            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Cliente
+          </button>
+        </div>
       </div>
 
-      {/* Tabela */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-64">
-                  <Button 
-                    variant="ghost" 
-                    className="p-0 hover:bg-transparent"
-                    onClick={() => handleSort('name', params.ordering === 'name' ? '-name' : 'name')}
-                  >
-                    Nome
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1">
-                    <FileText className="h-4 w-4" />
-                    <span>Documento</span>
+      {/* Tabela de clientes */}
+      <div className="bg-white rounded shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Celular</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+            </tr>
+          </thead>
+          
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1">
-                    <Phone className="h-4 w-4" />
-                    <span>Celular</span>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center space-x-1">
-                    <Mail className="h-4 w-4" />
-                    <span>Email</span>
-                  </div>
-                </TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {customers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <div className="space-y-2">
-                      <p className="text-lg font-medium">Nenhum cliente encontrado</p>
-                      <p className="text-sm text-gray-500">
-                        Comece adicionando um novo cliente ou ajuste seus filtros de busca.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                customers.map((customer) => (
-                  <TableRow key={customer.customer_id}>
-                    <TableCell className="font-medium">{customer.name}</TableCell>
-                    <TableCell>{customer.document || '-'}</TableCell>
-                    <TableCell>{customer.celphone}</TableCell>
-                    <TableCell>{customer.email || '-'}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(
-                          CADASTROS_ROUTES.CLIENTES.DETAILS(customer.customer_id.toString())
-                        )}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navigate(
-                          CADASTROS_ROUTES.CLIENTES.EDIT(customer.customer_id.toString())
-                        )}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setCustomerToDelete(customer.customer_id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Paginação */}
-      {customers.length > 0 && (
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-500">
-            Total de {pagination.total} clientes
-          </p>
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => handlePageChange(pagination.currentPage - 1)}
-                  disabled={pagination.currentPage === 1}
-                />
-              </PaginationItem>
-              <PaginationItem>
-                Página {pagination.currentPage} de {pagination.totalPages}
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => handlePageChange(pagination.currentPage + 1)}
-                  disabled={pagination.currentPage === pagination.totalPages}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
-
-      {/* Diálogo de Confirmação de Exclusão */}
-      <AlertDialog 
-        open={!!customerToDelete} 
-        onOpenChange={() => setCustomerToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este cliente? Esta ação pode ser desfeita
-              posteriormente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 text-white hover:bg-red-700"
-              onClick={confirmDelete}
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Modal de ajuda para importação */}
-      <ImportHelpDialog
-        open={showImportHelp}
-        onClose={() => setShowImportHelp(false)}
-      />
-
-      {/* Mensagem de feedback */}
-      {feedback && (
-        <FeedbackMessage
-          type={feedback.type}
-          message={feedback.message}
-        />
-      )}
+                </td>
+              </tr>
+            ) : customers.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center">
+                  <p className="text-gray-500">Nenhum cliente encontrado</p>
+                </td>
+              </tr>
+            ) : (
+              customers.map((customer) => (
+                <tr key={customer.customer_id}>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium">{customer.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{customer.document || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{customer.celphone}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{customer.email || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                    <button className="text-blue-600 hover:text-blue-900">
+                      <Eye className="inline h-4 w-4" />
+                    </button>
+                    <button className="text-gray-600 hover:text-gray-900 ml-2">
+                      <Pencil className="inline h-4 w-4" />
+                    </button>
+                    <button 
+                      className="text-red-600 hover:text-red-900 ml-2"
+                      onClick={() => confirmDelete(customer.customer_id)}
+                    >
+                      <Trash className="inline h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export { CustomerList };
+export default CustomerList;

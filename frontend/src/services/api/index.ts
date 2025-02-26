@@ -2,13 +2,15 @@
 // Core exports
 export { ApiService, apiService, createApiService } from './ApiService';
 // Service instances exports
-export { authService } from './modules/auth';
-export { customerService } from './modules/customer';
-export { companyService } from './modules/company';
-export { taxService } from './modules/tax';
+export { authService } from '../modules/auth';
+export { customerService } from '../modules/customer';
+export { companyService } from '../modules/company';
+export { taxService } from '../modules/tax';
 
 // Token service
-import { TokenService, UserSessionService, useAuth } from '@/core/auth';
+export { TokenService } from './TokenService';
+export { UserSessionService } from './UserSessionService';
+// import { useAuth } from '@/contexts/AuthContext';
 
 // Utils exports
 export { 
@@ -41,7 +43,7 @@ export type {
   ApiErrorCode,
   CustomRequestHeaders,
   PaginatedResponse,
-} from '../../types/api.types';
+} from '@/types/api.types';
 
 // Module types exports
 export type {
@@ -49,24 +51,24 @@ export type {
   AuthResponse,
   AuthState,
   AuthUser
-} from './modules/auth';
+} from '../modules/auth';
 
 export type {
   Customer,
   CustomerCreateData,
   CustomerUpdateData,
   CustomerListParams
-} from './modules/customer';
+} from '../modules/customer';
 
 export type {
   Company,
   CompanyCreateData,
   CompanyUpdateData,
   CompanySettings
-} from './modules/company';
+} from '../modules/company';
 
 export type {
   Tax,
   TaxCreateData,
   TaxUpdateData
-} from './modules/tax';
+} from '../modules/tax';

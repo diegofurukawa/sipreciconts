@@ -2,7 +2,7 @@
 import { ReactNode } from 'react';
 import { Header, Footer } from './components';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from "@/core/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import { ROUTES } from '@/routes/config/route-paths';
 
 interface MainLayoutProps {
