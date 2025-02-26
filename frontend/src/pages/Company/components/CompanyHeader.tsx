@@ -26,3 +26,6 @@ export const CompanyHeader = () => {
     </div>
   );
 };
+
+
+export default CompanyHeader;

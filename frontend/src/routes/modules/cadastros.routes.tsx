@@ -10,21 +10,17 @@ const CustomerForm = lazy(() => import('@/pages/Customer/components/CustomerForm
 const CustomerImport = lazy(() => import('@/pages/Customer/components/CustomerImport'));
 const CustomerDetails = lazy(() => import('@/pages/Customer/components/CustomerDetails'));
 
+// Fix: Correctly import Company components from the structure we have
 const CompanyPage = lazy(() => import('@/pages/Company'));
-const CompanyList = lazy(() => import('@/pages/Company/List'));
-const CompanyForm = lazy(() => import('@/pages/Company/Form'));
-const CompanyDetails = lazy(() => import('@/pages/Company/Details'));
+const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
+const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
 
 const TaxPage = lazy(() => import('@/pages/Tax'));
-const TaxList = lazy(() => import('@/pages/Tax/List'));
-const TaxForm = lazy(() => import('@/pages/Tax/Form'));
-const TaxDetails = lazy(() => import('@/pages/Tax/Details'));
+const TaxList = lazy(() => import('@/pages/Tax'));
 
 const SupplyPage = lazy(() => import('@/pages/Supply'));
-const SupplyList = lazy(() => import('@/pages/Supply/List'));
-const SupplyForm = lazy(() => import('@/pages/Supply/Form'));
-const SupplyDetails = lazy(() => import('@/pages/Supply/Details'));
-const SupplyCategories = lazy(() => import('@/pages/Supply/Categories'));
+const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
+const SupplyForm = lazy(() => import('@/pages/Supply/components/SupplyForm'));
 
 export const cadastrosRoutes: AppRouteObject[] = [
   // Rotas de Empresa
@@ -45,12 +41,12 @@ export const cadastrosRoutes: AppRouteObject[] = [
   },
   {
     path: 'empresa/:id',
-    element: <CompanyDetails />,
+    element: <CompanyList />,  // Changed from CompanyDetails to CompanyList as we don't have a Details component yet
     title: 'Detalhes da Empresa'
   },
 
-    // Rotas de Cliente
-    customerRoutes,
+  // Rotas de Cliente
+  customerRoutes,
 
   // Rotas de Impostos
   {
@@ -60,17 +56,17 @@ export const cadastrosRoutes: AppRouteObject[] = [
   },
   {
     path: 'impostos/novo',
-    element: <TaxForm />,
+    element: <TaxList />,
     title: 'Novo Imposto'
   },
   {
     path: 'impostos/:id/editar',
-    element: <TaxForm />,
+    element: <TaxList />,
     title: 'Editar Imposto'
   },
   {
     path: 'impostos/:id',
-    element: <TaxDetails />,
+    element: <TaxList />,
     title: 'Detalhes do Imposto'
   },
 
@@ -92,12 +88,12 @@ export const cadastrosRoutes: AppRouteObject[] = [
   },
   {
     path: 'insumos/:id',
-    element: <SupplyDetails />,
+    element: <SupplyList />,
     title: 'Detalhes do Insumo'
   },
   {
     path: 'insumos/categorias',
-    element: <SupplyCategories />,
+    element: <SupplyList />,
     title: 'Categorias de Insumos'
   },
 ];

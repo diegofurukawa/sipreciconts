@@ -57,3 +57,6 @@ export const CompanyForm = () => {
     </form>
   );
 };
+
+
+export default CompanyForm;

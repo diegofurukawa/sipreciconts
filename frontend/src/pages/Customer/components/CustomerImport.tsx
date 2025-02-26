@@ -374,4 +374,4 @@ const CustomerImport = () => {
   );
 };
 
-export {CustomerImport};
+export default CustomerImport;

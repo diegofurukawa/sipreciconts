@@ -64,41 +64,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const location = useLocation();
   const { showToast } = useToast();
   
-  // Controle para evitar múltiplas notificações de sessão expirada
+  // Prevent infinite loops when checking session
+  const initialCheckDone = useRef(false);
+  
+  // Control for avoiding multiple session expiry notifications
   const sessionExpiryRef = useRef({
     isHandling: false,
     lastNotified: 0,
-    minInterval: 5000 // 5 segundos entre notificações
+    minInterval: 5000 // 5 seconds between notifications
   });
 
-  // Função para lidar com sessões expiradas
+  // Handle expired sessions
   const handleSessionExpired = useCallback(() => {
     const now = Date.now();
     const { isHandling, lastNotified, minInterval } = sessionExpiryRef.current;
     
-    // Evita múltiplas chamadas simultâneas e não notifica com muita frequência
+    // Prevent multiple simultaneous calls and don't notify too frequently
     if (isHandling || (now - lastNotified) < minInterval) {
       return;
     }
     
-    // Atualiza o estado de controle
+    // Update control state
     sessionExpiryRef.current = {
       ...sessionExpiryRef.current,
       isHandling: true,
       lastNotified: now
     };
     
-    // Log para debug
-    console.log('Processando expiração de sessão', {
-      timestamp: new Date().toISOString(),
-      currentPath: location.pathname
-    });
-
-    // Limpar armazenamento local
+    // Clear local storage
     TokenService.clearAll();
     UserSessionService.clear();
     
-    // Definir estado de autenticação como falso
+    // Set authentication state to false
     setAuthState({ 
       user: null, 
       token: null,
@@ -106,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       sessionId: undefined 
     });
     
-    // Mostrar feedback ao usuário, apenas se não estiver na página de login
+    // Show feedback to user, only if not on login page
     if (location.pathname !== '/login') {
       showToast({
         type: 'warning',
@@ -114,21 +111,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         message: 'Sua sessão expirou. Por favor, faça login novamente.'
       });
       
-      // Redirecionar para a página de login com um parâmetro de query
+      // Redirect to login page with a query parameter
       navigate('/login?session=expired', { replace: true });
     }
     
-    // Libera o bloqueio após processamento
+    // Release lock after processing
     setTimeout(() => {
       sessionExpiryRef.current.isHandling = false;
     }, 500);
     
   }, [navigate, showToast, location.pathname]);
 
-  // Adicionar event listener para o evento de sessão expirada
+  // Add event listener for session expired event
   useEffect(() => {
     const handleSessionExpiredEvent = (event: Event) => {
-      // Prevenção de processamento múltiplo de eventos em sequência
+      // Prevent multiple processing of sequential events
       event.stopPropagation();
       handleSessionExpired();
     };
@@ -140,14 +137,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [handleSessionExpired]);
   
-  // Verificar parâmetro de sessão expirada na URL da página de login
+  // Check for session expired parameter in login page URL
   useEffect(() => {
     if (location.pathname === '/login') {
       const params = new URLSearchParams(location.search);
       const sessionExpired = params.get('session') === 'expired';
       
       if (sessionExpired) {
-        // Verificar se já mostrou recentemente
+        // Check if already shown recently
         const now = Date.now();
         if ((now - sessionExpiryRef.current.lastNotified) > sessionExpiryRef.current.minInterval) {
           sessionExpiryRef.current.lastNotified = now;
@@ -159,7 +156,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           });
         }
         
-        // Limpar o parâmetro da URL para evitar mensagens repetidas em refreshes
+        // Clear the URL parameter to avoid repeated messages on refreshes
         window.history.replaceState({}, document.title, location.pathname);
       }
     }
@@ -167,21 +164,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
+      // If we've already done the initial check, skip to prevent loops
+      if (initialCheckDone.current) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const initialState = await authService.initializeAuth();
-        if (!initialState.isAuthenticated) {
-          await signOut(true); // Logout silencioso - não mostra notificação
-        } else {
-          setAuthState({
-            user: initialState.user,
-            token: TokenService.getAccessToken(),
-            companyId: initialState.company_id,
-            sessionId: initialState.session_id
-          });
+        initialCheckDone.current = true;
+        
+        const token = TokenService.getAccessToken();
+        const session = UserSessionService.load();
+        
+        // If no credentials found, quietly sign out
+        if (!token || !session) {
+          await signOut(true); // Silent logout - no notification
+          return;
         }
+        
+        // If we already have a user in state, use it
+        if (authState.user) {
+          setLoading(false);
+          return;
+        }
+        
+        // Otherwise set from storage
+        setAuthState({
+          user: session.user,
+          token: token,
+          companyId: session.companyId,
+          sessionId: session.sessionId
+        });
       } catch (error) {
-        console.error('Erro ao inicializar autenticação:', error);
-        await signOut(true); // Logout silencioso
+        console.error('Error initializing authentication:', error);
+        await signOut(true); // Silent logout
       } finally {
         setLoading(false);
       }
@@ -194,7 +210,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
   
-      console.log('Credenciais recebidas:', { 
+      console.log('Credentials received:', { 
         login: credentials.login,
         hasPassword: !!credentials.password 
       });
@@ -204,13 +220,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password: credentials.password
       });
 
-      console.log('Resposta do login:', { 
+      console.log('Login response:', { 
         success: !!response,
         hasUser: !!response?.user,
         hasToken: !!response?.access
       });
 
-      // Atualiza o estado
+      // Update state
       setAuthState({
         user: response.user,
         token: response.access,
@@ -226,7 +242,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       navigate('/');
     } catch (error: any) {
-      console.error('Erro detalhado do login:', error);
+      console.error('Detailed login error:', error);
       
       let errorMessage = 'Erro ao realizar login. Tente novamente.';
       
@@ -261,11 +277,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           await authService.logout();
         } catch (error) {
-          console.warn('Erro ao fazer logout no servidor:', error);
+          console.warn('Error logging out from the server:', error);
         }
       }
 
-      // Reseta o estado e limpa o storage
+      // Reset state and clear storage
       TokenService.clearAll();
       UserSessionService.clear();
       
@@ -276,19 +292,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         sessionId: undefined 
       });
       
-      // Redireciona para login apenas se não for silencioso
+      // Redirect to login only if not silent
       if (!silent) {
         if (!location.pathname.includes('/login')) {
           navigate('/login');
         }
       } else {
-        // Para logout silencioso - apenas redireciona se não estiver na página de login
+        // For silent logout - only redirect if not on login page
         if (!location.pathname.includes('/login')) {
           navigate('/login', { replace: true });
         }
       }
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('Error during logout:', error);
       if (!silent) {
         showToast({
           type: 'error',
@@ -322,7 +338,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user: authState.user,
     companyId: authState.companyId,
     signIn,
-    signOut: () => signOut(false), // Versão pública sempre não-silenciosa
+    signOut: () => signOut(false), // Public version always not silent
     updateUser
   };
 

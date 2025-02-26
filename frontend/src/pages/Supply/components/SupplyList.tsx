@@ -419,6 +419,4 @@ const SupplyList: React.FC = () => {
   );
 };
 
-export{
-  SupplyList
-};
+export default SupplyList;

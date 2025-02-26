@@ -157,4 +157,4 @@ import {
     );
   };
   
-  export { CustomerForm };
+  export default CustomerForm ;

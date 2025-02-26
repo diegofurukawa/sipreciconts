@@ -32,6 +32,4 @@ const SupplyHeader = ({ title, subtitle }: SupplyHeaderProps) => {
   );
 };
 
-export {
-  SupplyHeader
-};
+export default SupplyHeader;
