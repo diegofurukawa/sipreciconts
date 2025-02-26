@@ -1,6 +1,6 @@
 // src/services/api/modules/customer.ts
 import { ApiService } from '../ApiService';
-import type { PaginatedResponse, ApiResponse } from '../types';
+import type { PaginatedResponse, ApiResponse } from '../../../types/api.types';
 import type {
   Customer,
   CustomerCreateData,

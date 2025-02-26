@@ -34,9 +34,45 @@ export interface RefreshTokenResponse {
   access: string;
 }
 
-// Interface para respostas de refresh de token
-export interface AuthContextType {
-  user: User;
+
+
+// src/types/auth.types.ts
+export interface LoginCredentials {
   login: string;
-  token: string;
+  password: string;
 }
+
+// export interface LoginResponse {
+//   user: {
+//     id: string;
+//     name: string;
+//     email: string;
+//     login: string;
+//     company_id: number;
+//     company_name?: string;
+//     role?: string;
+//     last_login?: string;
+//   };
+//   token: {
+//     access: string;
+//     refresh: string;
+//   };
+// }
+
+// // Interface para respostas de refresh de token
+// export interface AuthContextType {
+//   user: User;
+//   login: string;
+//   token: string;
+// }
+
+interface AuthContextType {
+  user: LoginResponse['user'] | null;
+  login: (login: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  isAuthenticated: boolean;
+}
+
+export type {
+AuthContextType
+};

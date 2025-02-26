@@ -1,6 +1,6 @@
 // src/routes/modules/cadastros.routes.tsx
 import { lazy } from 'react';
-import type { AppRouteObject } from '../types';
+import type { AppRouteObject } from '../../types/routes.types';
 import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 
 // Lazy imports para otimização de carregamento

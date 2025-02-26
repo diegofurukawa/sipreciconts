@@ -2,7 +2,7 @@
 import { Supply } from '../../types/supply';
 // src/services/api/modules/supply/index.ts
 import { ApiService } from '@/services/api';
-import type { Supply, SupplyCreateData, SupplyUpdateData } from './types';
+import type { Supply, SupplyCreateData, SupplyUpdateData } from '../../types/api.types';
 import type { PaginatedResponse } from '../../types';
 
 interface SupplyFilterParams {

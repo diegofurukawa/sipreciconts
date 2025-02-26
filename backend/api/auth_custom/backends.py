@@ -5,7 +5,10 @@ from ..models.user import User
 class CustomAuthBackend(BaseBackend):
     def authenticate(self, request, username=None, password=None):
         try:
-            user = User.objects.get(login=username, enabled=True)
+            # MODIFICAR PARA:
+            # Usar o parâmetro username para compatibilidade, mas buscar pelo campo login
+            login_value = username  # Aceita username como parâmetro mas busca por login
+            user = User.objects.get(login=login_value, enabled=True)
             if user.check_password(password):
                 return user
         except User.DoesNotExist:

@@ -6,7 +6,7 @@ import type {
   CompanyUpdateData,
   PaginatedResponse,
   ApiResponse 
-} from '../types';
+} from '../../../types/api.types';
 
 export interface CompanyListParams {
   page?: number;

@@ -1,7 +1,7 @@
 // src/pages/Customer/routes/index.tsx
 import { lazy } from 'react';
 import { useParams } from 'react-router-dom';
-import type { AppRouteObject } from '@/routes/types';
+import type { AppRouteObject } from '@/types/routes.types';
 
 // Wrapper para CustomerDetails para passar customerId
 const CustomerDetailsWrapper = () => {

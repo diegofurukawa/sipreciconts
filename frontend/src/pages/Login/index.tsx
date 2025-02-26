@@ -1,16 +1,36 @@
 // src/pages/Login/index.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from "@/core/auth";
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useToast } from '@/hooks/useToast';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, loading } = useAuth();
+  const { showToast } = useToast();
   const [error, setError] = useState('');
 
   // Pega a rota de redirecionamento da navegação ou usa a home como padrão
   const from = location.state?.from || '/';
+
+  // Verificar se há um parâmetro de sessão expirada na URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sessionExpired = params.get('session') === 'expired';
+    
+    if (sessionExpired) {
+      showToast({
+        type: 'warning',
+        title: 'Sessão expirada',
+        message: 'Sua sessão expirou. Por favor, faça login novamente.'
+      });
+      
+      // Limpar o parâmetro da URL para evitar mensagens repetidas em refreshes
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, [location.search, showToast]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -29,7 +49,23 @@ export const LoginPage = () => {
       await signIn({ login, password });
       navigate(from, { replace: true });
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.message || 'Erro ao realizar login';
+      console.error('Erro de login:', err);
+      
+      // Tratamento detalhado do erro
+      let errorMessage = 'Erro ao realizar login';
+      
+      if (err.response?.status === 401) {
+        errorMessage = 'Usuário ou senha inválidos';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Usuário sem permissão de acesso';
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
     }
   };
@@ -70,6 +106,7 @@ export const LoginPage = () => {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
                 placeholder="Usuário"
+                autoComplete="username"
               />
             </div>
             <div>
@@ -81,6 +118,7 @@ export const LoginPage = () => {
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 focus:z-10 sm:text-sm"
                 placeholder="Senha"
+                autoComplete="current-password"
               />
             </div>
           </div>

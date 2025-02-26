@@ -10,7 +10,7 @@ import {
   RetryConfig,
   RetryOptions,
   RetryState
-} from './types';
+} from '../../types/api.types';
 
 // Interface estendida para configuração do retry
 interface ExtendedRetryConfig extends RetryConfig {

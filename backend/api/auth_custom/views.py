@@ -78,7 +78,7 @@ class LoginView(TokenObtainPairView):
                 user.last_login = timezone.now()
                 user.save(update_fields=['last_login'])
 
-                # Retorna resposta com dados do usuário e empresa
+                # Resposta padronizada
                 return Response({
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
@@ -86,12 +86,15 @@ class LoginView(TokenObtainPairView):
                     'user': {
                         'id': user.id,
                         'login': user.login,
+                        'name': user.user_name if hasattr(user, 'user_name') else '',
                         'email': user.email,
                         'type': user.type,
                         'company_id': user.company.company_id if user.company else None,
-                        'company_name': user.company.name if user.company else None
+                        'company_name': user.company.name if user.company else None,
+                        'last_login': user.last_login.isoformat() if user.last_login else None
                     },
-                    'expires_in': int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
+                    'expires_in': int(settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds()),
+                    'token_type': 'Bearer'
                 })
 
             except User.DoesNotExist:
@@ -106,14 +109,7 @@ class LoginView(TokenObtainPairView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-        except Exception as e:
-            print(f"Login error: {str(e)}")
-            return Response(
-                {'error': str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
+        
 class LogoutView(TokenObtainPairView):
     """
     View para logout e invalidação de tokens

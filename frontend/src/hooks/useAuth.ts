@@ -2,15 +2,29 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 
+// Interface para as credenciais de login
 interface LoginCredentials {
-  login: string;
+  login: string;  // Garantindo que o nome do campo seja "login"
   password: string;
 }
 
+// Interface para a resposta de autenticação atualizada
 interface AuthResponse {
   access: string;
   refresh: string;
-  user: any; // Tipo do usuário deve ser definido baseado na sua API
+  session_id: string;
+  user: {
+    id: number;
+    login: string;
+    name: string;
+    email: string;
+    type: string;
+    company_id: string | null;
+    company_name: string | null;
+    last_login: string | null;
+  };
+  expires_in: number;
+  token_type: string;
 }
 
 // Configuração base do axios
@@ -22,27 +36,51 @@ const api = axios.create({
 });
 
 export const useAuth = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AuthResponse['user'] | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+  const [sessionId, setSessionId] = useState<string | null>(localStorage.getItem('sessionId'));
 
   const login = useCallback(async (credentials: LoginCredentials) => {
     try {
-      const response = await api.post<AuthResponse>('/auth/login/', credentials);
+      // Log para debug
+      console.debug('Enviando credenciais:', {
+        login: credentials.login,
+        password: '[PROTEGIDO]'
+      });
 
-      const { access, refresh, user } = response.data;
+      // Garantindo que os campos sejam enviados como esperado pelo backend
+      const response = await api.post<AuthResponse>('/auth/login/', {
+        login: credentials.login,
+        password: credentials.password
+      });
+
+      // Log para debug
+      console.debug('Resposta do login:', { 
+        success: !!response,
+        hasUser: !!response.data.user,
+        hasToken: !!response.data.access
+      });
+
+      const { access, refresh, session_id, user, expires_in } = response.data;
       
-      // Armazena o token e refresh token
+      // Armazena o token, refresh token e session_id
       localStorage.setItem('token', access);
       localStorage.setItem('refreshToken', refresh);
+      localStorage.setItem('sessionId', session_id);
+      localStorage.setItem('user', JSON.stringify(user));
       
       // Configura o token para todas as requisições futuras
       api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      api.defaults.headers.common['X-Session-ID'] = session_id;
       
       setToken(access);
+      setSessionId(session_id);
       setUser(user);
       
       return user;
     } catch (error) {
+      console.error('Erro detalhado do login:', error);
+      
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 404) {
           throw new Error('Serviço de autenticação indisponível. Contate o administrador.');
@@ -56,13 +94,39 @@ export const useAuth = () => {
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    delete api.defaults.headers.common['Authorization'];
-    setToken(null);
-    setUser(null);
-  }, []);
+  const logout = useCallback(async () => {
+    try {
+      // Se temos um token, tenta fazer logout no servidor
+      if (token) {
+        await api.post('/auth/logout/');
+      }
+      
+      // Limpa os dados locais
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('user');
+      
+      // Limpa os headers
+      delete api.defaults.headers.common['Authorization'];
+      delete api.defaults.headers.common['X-Session-ID'];
+      
+      // Atualiza o estado
+      setToken(null);
+      setSessionId(null);
+      setUser(null);
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+      // Mesmo se der erro, limpa os dados locais
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('sessionId');
+      localStorage.removeItem('user');
+      setToken(null);
+      setSessionId(null);
+      setUser(null);
+    }
+  }, [token]);
 
   // Configurar interceptor para renovação de token
   api.interceptors.response.use(
@@ -83,7 +147,8 @@ export const useAuth = () => {
           
           return api(originalRequest);
         } catch (refreshError) {
-          logout();
+          console.error('Erro ao renovar token:', refreshError);
+          await logout();
           throw new Error('Sessão expirada. Por favor, faça login novamente.');
         }
       }
@@ -92,9 +157,40 @@ export const useAuth = () => {
     }
   );
 
+  // Função para recuperar o usuário a partir do localStorage ao inicializar
+  const initializeAuth = useCallback(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Erro ao parsear dados do usuário:', e);
+        localStorage.removeItem('user');
+      }
+    }
+    
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      setToken(storedToken);
+      api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+    }
+    
+    const storedSessionId = localStorage.getItem('sessionId');
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+      api.defaults.headers.common['X-Session-ID'] = storedSessionId;
+    }
+  }, []);
+
+  // Chama initializeAuth apenas uma vez ao montar o componente
+  useState(() => {
+    initializeAuth();
+  });
+
   return {
     user,
     token,
+    sessionId,
     login,
     logout,
     isAuthenticated: !!token,

@@ -1,7 +1,7 @@
 // src/services/api/base.ts
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { TokenService } from './token';
-import { ApiError, ApiConfig, CustomRequestHeaders, RetryOptions } from './types';
+import { ApiError, ApiConfig, CustomRequestHeaders, RetryOptions } from '../../types/api.types';
 
 const DEFAULT_CONFIG: ApiConfig = {
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',

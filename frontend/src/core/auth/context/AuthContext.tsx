@@ -1,8 +1,8 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { TokenService, UserSessionService } from '@/core/auth';
-import { authService} from '@/services/api/modules/auth';
+import { authService } from '@/services/api/modules/auth';
 import { useToast } from '@/hooks/useToast';
 import type { AuthUser, AuthCredentials, AuthState as ApiAuthState } from '@/services/api/modules/auth';
 
@@ -60,7 +60,66 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>(loadStorageData);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
+
+  // Função para lidar com sessões expiradas
+  const handleSessionExpired = useCallback(() => {
+    // Limpar armazenamento local
+    TokenService.clearAll();
+    UserSessionService.clear();
+    
+    // Definir estado de autenticação como falso
+    setAuthState({ 
+      user: null, 
+      token: null,
+      companyId: undefined,
+      sessionId: undefined 
+    });
+    
+    // Redirecionar para a página de login com um parâmetro de query
+    navigate('/login?session=expired');
+    
+    // Mostrar feedback ao usuário
+    showToast({
+      type: 'warning',
+      title: 'Sessão expirada',
+      message: 'Sua sessão expirou. Por favor, faça login novamente.'
+    });
+  }, [navigate, showToast]);
+
+  // Adicionar event listener para o evento de sessão expirada
+  useEffect(() => {
+    const handleSessionExpiredEvent = () => {
+      handleSessionExpired();
+    };
+    
+    window.addEventListener('auth:sessionExpired', handleSessionExpiredEvent);
+    
+    return () => {
+      window.removeEventListener('auth:sessionExpired', handleSessionExpiredEvent);
+    };
+  }, [handleSessionExpired]);
+  
+  // Verificar parâmetro de sessão expirada na URL da página de login
+  useEffect(() => {
+    if (location.pathname === '/login') {
+      const params = new URLSearchParams(location.search);
+      const sessionExpired = params.get('session') === 'expired';
+      
+      if (sessionExpired) {
+        showToast({
+          type: 'warning',
+          title: 'Sessão expirada',
+          message: 'Sua sessão expirou. Por favor, faça login novamente.'
+        });
+        
+        // Limpar o parâmetro da URL para evitar mensagens repetidas em refreshes
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, [location.pathname, location.search, showToast]);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -91,7 +150,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
   
-      // Log para validação
       console.log('Credenciais recebidas:', { 
         login: credentials.login,
         hasPassword: !!credentials.password 
@@ -102,7 +160,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password: credentials.password
       });
 
-      // Log para debug
       console.log('Resposta do login:', { 
         success: !!response,
         hasUser: !!response?.user,
@@ -165,6 +222,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       // Reseta o estado e limpa o storage
+      TokenService.clearAll();
+      UserSessionService.clear();
+      
       setAuthState({ 
         user: null, 
         token: null,

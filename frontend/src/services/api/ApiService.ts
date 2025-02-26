@@ -1,5 +1,11 @@
 // src/services/api/ApiService.ts
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
+import axios, { 
+  AxiosInstance, 
+  AxiosRequestConfig,
+  AxiosResponse, 
+  AxiosHeaders,
+  InternalAxiosRequestConfig 
+} from 'axios';
 import { TokenService, UserSessionService, useAuth } from '@/core/auth';
 import { errorUtils, retryUtils } from './utils';
 import { API_CONFIG } from './constants';
@@ -9,7 +15,7 @@ import type {
   CustomRequestHeaders, 
   PaginatedResponse,
   ApiResponse 
-} from './types';
+} from '../../types/api.types';
 
 class ApiService {
   protected api: AxiosInstance;
@@ -57,7 +63,7 @@ class ApiService {
 
         // Debug log para verificar headers
         console.debug('Request Headers:', {
-          Authorization: headers.get('Authorization'),
+          Authorization: headers.get('Authorization') ? 'Bearer [token]' : null,
           'X-Session-ID': headers.get('X-Session-ID'),
           'X-Company-ID': headers.get('X-Company-ID')
         });
@@ -80,39 +86,66 @@ class ApiService {
           originalRequest._retry = true;
           
           try {
+            console.log('Token expirado, tentando renovar...');
             const session = UserSessionService.load();
             const refreshToken = TokenService.getRefreshToken();
 
             if (refreshToken && session) {
-              const response = await this.api.post('/auth/refresh/', {
-                refresh: refreshToken,
-                session_id: session.sessionId
-              });
+              console.log('Refresh token disponível, tentando renovar');
               
-              const { access } = response.data;
-              TokenService.setAccessToken(access);
-              session.updateTokens(access, refreshToken);
-              
-              // Atualiza o header com o novo token
-              if (originalRequest.headers instanceof AxiosHeaders) {
-                originalRequest.headers.set('Authorization', `Bearer ${access}`);
-              } else {
-                originalRequest.headers = new AxiosHeaders({
-                  ...originalRequest.headers,
-                  Authorization: `Bearer ${access}`
+              try {
+                const response = await this.api.post('/auth/refresh/', {
+                  refresh: refreshToken,
+                  session_id: session.sessionId
                 });
+                
+                const { access, refresh } = response.data;
+                TokenService.setAccessToken(access);
+                
+                // Se o servidor enviar um novo refresh token, atualize-o também
+                if (refresh) {
+                  TokenService.setRefreshToken(refresh);
+                }
+                
+                session.updateTokens(access, refresh || refreshToken);
+                
+                console.log('Token renovado com sucesso');
+                
+                // Atualiza o header com o novo token
+                if (originalRequest.headers instanceof AxiosHeaders) {
+                  originalRequest.headers.set('Authorization', `Bearer ${access}`);
+                } else {
+                  originalRequest.headers = new AxiosHeaders({
+                    ...originalRequest.headers,
+                    Authorization: `Bearer ${access}`
+                  });
+                }
+                
+                // Repetir a requisição original com o novo token
+                return this.api(originalRequest);
+              } catch (refreshError) {
+                console.error('Erro ao renovar token:', refreshError);
+                throw refreshError;
               }
-              
-              return this.api(originalRequest);
+            } else {
+              console.warn('Não foi possível renovar o token: refresh token ou sessão não encontrados');
+              throw new Error('Refresh token não disponível');
             }
           } catch (refreshError) {
+            console.error('Falha na renovação do token:', refreshError);
+            
+            // Limpar dados de autenticação
             TokenService.clearAll();
             UserSessionService.clear();
-            window.location.href = '/login';
+            
+            // Disparar evento de sessão expirada
+            window.dispatchEvent(new CustomEvent('auth:sessionExpired'));
+            
             return Promise.reject(refreshError);
           }
         }
 
+        // Para outros erros, apenas rejeita a Promise
         return Promise.reject(error);
       }
     );
@@ -180,17 +213,61 @@ class ApiService {
       const headers = this.getHeaders();
       console.group('API Request Test');
       console.log('Headers:', headers);
-      console.log('Token:', TokenService.getAccessToken());
-      console.log('Session:', UserSessionService.load());
+      console.log('Token:', TokenService.getAccessToken() ? '[Token presente]' : 'Nenhum');
+      console.log('Session:', UserSessionService.load() ? '[Sessão ativa]' : 'Nenhuma');
       console.groupEnd();
     } catch (error) {
       console.error('Test Request Error:', error);
     }
   }
 
+  // Verifica e atualiza o token se necessário antes de uma requisição
+  private async ensureValidToken(): Promise<boolean> {
+    try {
+      // Verifica se o token é válido
+      if (!TokenService.hasValidAccessToken()) {
+        console.log('Token inválido ou expirado, tentando renovar...');
+        
+        // Tenta renovar o token
+        const refreshToken = TokenService.getRefreshToken();
+        if (refreshToken) {
+          const newToken = await TokenService.getNewToken(refreshToken);
+          if (newToken) {
+            console.log('Token renovado com sucesso');
+            return true;
+          }
+        }
+        
+        console.warn('Não foi possível renovar o token');
+        window.dispatchEvent(new CustomEvent('auth:sessionExpired'));
+        return false;
+      }
+      
+      // Verifica se o token está prestes a expirar
+      const expiresAt = TokenService.getTokenExpiration();
+      if (expiresAt) {
+        const now = new Date();
+        const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+        
+        if (expiresAt < fiveMinutesFromNow) {
+          console.log('Token próximo de expirar, renovando preventivamente...');
+          return await TokenService.refreshCurrentToken();
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao verificar validade do token:', error);
+      return false;
+    }
+  }
+
   // Protected request methods
   protected async request<T = any>(config: AxiosRequestConfig): Promise<T> {
     try {
+      // Verificar e renovar token se necessário
+      await this.ensureValidToken();
+      
       const headers = new AxiosHeaders({
         ...this.getHeaders(),
         ...config.headers
@@ -203,11 +280,19 @@ class ApiService {
       
       return response.data;
     } catch (error) {
+      // Se for erro de autenticação (401), verifica se o token é válido
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        // Verifica se já não estamos em /login para evitar loops
+        if (window.location.pathname !== '/login') {
+          // Dispara evento de sessão expirada
+          window.dispatchEvent(new CustomEvent('auth:sessionExpired'));
+        }
+      }
+      
       throw errorUtils.handleApiError(error);
     }
   }
 
-  // ... (rest of the methods remain the same)
   protected async get<T = any>(
     url: string,
     params?: Record<string, any>,
@@ -311,13 +396,21 @@ class ApiService {
     format?: 'csv' | 'xlsx',
     config?: Partial<AxiosRequestConfig>
   ): Promise<Blob> {
-    const response = await this.api.get(url, {
-      ...config,
-      responseType: 'blob',
-      headers: new AxiosHeaders(this.getBlobHeaders(format))
-    });
+    try {
+      // Verificar e renovar token se necessário
+      await this.ensureValidToken();
+      
+      const response = await this.api.get(url, {
+        ...config,
+        responseType: 'blob',
+        headers: new AxiosHeaders(this.getBlobHeaders(format))
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao baixar arquivo:', error);
+      throw errorUtils.handleApiError(error);
+    }
   }
 
   protected async downloadAndSaveFile(

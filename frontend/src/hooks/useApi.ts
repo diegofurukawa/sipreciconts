@@ -1,6 +1,6 @@
 // src/hooks/useApi.ts
 import { useState, useCallback } from 'react';
-import { ApiError, ErrorCallbacks } from '../services/api/types';
+import { ApiError, ErrorCallbacks } from '../types/api.types';
 
 interface UseApiResponse<T> {
   data: T | null;

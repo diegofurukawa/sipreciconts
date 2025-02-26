@@ -41,7 +41,7 @@ export type {
   ApiErrorCode,
   CustomRequestHeaders,
   PaginatedResponse,
-} from './types';
+} from '../../types/api.types';
 
 // Module types exports
 export type {

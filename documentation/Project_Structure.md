@@ -189,13 +189,10 @@
 │   │   │       │   ├── AuthContext.tsx
 │   │   │       │   └── index.ts
 │   │   │       ├── index.ts
-│   │   │       ├── services
-│   │   │       │   ├── index.ts
-│   │   │       │   ├── TokenService.ts
-│   │   │       │   └── UserSessionService.ts
-│   │   │       └── types
-│   │   │           ├── auth.types.ts
-│   │   │           └── index.ts
+│   │   │       └── services
+│   │   │           ├── index.ts
+│   │   │           ├── TokenService.ts
+│   │   │           └── UserSessionService.ts
 │   │   ├── env.d.ts
 │   │   ├── hooks
 │   │   │   ├── api
@@ -314,12 +311,11 @@
 │   │   │   ├── config
 │   │   │   │   └── route-paths.ts
 │   │   │   ├── index.tsx
-│   │   │   ├── modules
-│   │   │   │   ├── cadastros.routes.tsx
-│   │   │   │   ├── comercial.routes.tsx
-│   │   │   │   ├── customer.routes.tsx
-│   │   │   │   └── index.ts
-│   │   │   └── types.ts
+│   │   │   └── modules
+│   │   │       ├── cadastros.routes.tsx
+│   │   │       ├── comercial.routes.tsx
+│   │   │       ├── customer.routes.tsx
+│   │   │       └── index.ts
 │   │   ├── services
 │   │   │   └── api
 │   │   │       ├── ApiService.ts
@@ -335,19 +331,21 @@
 │   │   │       │   ├── customer.ts
 │   │   │       │   └── tax.ts
 │   │   │       ├── supply.ts
-│   │   │       ├── types.ts
 │   │   │       └── utils.ts
 │   │   ├── setupTests.ts
 │   │   ├── styles
 │   │   │   └── globals.css
 │   │   ├── types
+│   │   │   ├── api.types.ts
 │   │   │   ├── auth.types.ts
-│   │   │   └── bkp
-│   │   │       ├── company.ts
-│   │   │       ├── customer.ts
-│   │   │       ├── index.ts
-│   │   │       ├── supply.ts
-│   │   │       └── tax.ts
+│   │   │   ├── bkp
+│   │   │   │   ├── company.ts
+│   │   │   │   ├── customer.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── supply.ts
+│   │   │   │   └── tax.ts
+│   │   │   ├── index.ts
+│   │   │   └── routes.types.ts
 │   │   ├── utils
 │   │   │   └── date.ts
 │   │   └── vite-env.d.ts
@@ -359,4 +357,4 @@
 ├── LICENSE
 └── README.md
 
-95 directories, 264 files
+94 directories, 263 files
