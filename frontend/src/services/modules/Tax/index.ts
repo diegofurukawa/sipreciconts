@@ -1,6 +1,6 @@
 // src/services/api/modules/Tax/index.ts
 import axios from 'axios';
-import { API_CONFIG } from '@/config';
+import { APP_CONFIG } from '@/config';
 
 // Interfaces
 export interface Tax {
@@ -33,7 +33,7 @@ export interface PaginatedResponse<T> {
 }
 
 // Usando abordagem baseada em funções para evitar problemas de inicialização
-const baseUrl = `${API_CONFIG.baseURL}/taxes`;
+const baseUrl = `${APP_CONFIG.api.baseURL}/taxes`;
 
 // Headers padrão
 const getHeaders = () => {

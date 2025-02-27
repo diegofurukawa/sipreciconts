@@ -5,7 +5,7 @@ export { ApiService, apiService, createApiService } from './ApiService';
 export { authService } from '../modules/auth';
 export { customerService } from '../modules/customer';
 export { companyService } from '../modules/company';
-export { taxService } from '../modules/tax';
+export { taxService } from '../modules/Tax';
 
 // Token service
 export { TokenService } from './TokenService';
@@ -71,4 +71,4 @@ export type {
   Tax,
   TaxCreateData,
   TaxUpdateData
-} from '../modules/tax';
+} from '../modules/Tax';

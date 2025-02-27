@@ -1,5 +1,5 @@
 // src/services/api/modules/tax.ts
-import { ApiService } from "../api/ApiService";
+import { ApiService } from "../../api/ApiService";
 import type { PaginatedResponse, ApiResponse } from '@/types/api.types';
 
 // Tipos

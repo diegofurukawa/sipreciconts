@@ -1,4 +1,4 @@
-// src/config/app.ts
+// src/config/api.ts
 export const APP_CONFIG = {
   name: 'SiPreciConts',
   version: '1.0.0',
@@ -16,3 +16,9 @@ export const APP_CONFIG = {
     topbarHeight: 64,
   }
 } as const;
+
+// Adicione esta exportação para compatibilidade
+export const API_CONFIG = {
+  baseURL: APP_CONFIG.api.baseURL,
+  timeout: APP_CONFIG.api.timeout
+};
