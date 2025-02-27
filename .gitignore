@@ -46,8 +46,10 @@ ENV/
 *.swo
 *~
 
-# Dependências do Node (para o frontend)
 backup_*
+backup*
+
+# Dependências do Node (para o frontend)
 node_modules/
 npm-debug.log*
 yarn-debug.log*

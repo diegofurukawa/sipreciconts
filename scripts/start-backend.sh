@@ -53,4 +53,4 @@ python3 manage.py migrate
 
 # Iniciando o servidor Django
 echo "Iniciando o servidor Django..."
-python3 manage.py runserver 0.0.0.0:8000 2>&1 | tee "$PROJECT_ROOT/Logs/backend.log"
+python3 manage.py runserver 0.0.0.0:8000 2>&1 | tee "$PROJECT_ROOT/Logs/backend_$(date +%Y%m%d_%H%M%S).log"

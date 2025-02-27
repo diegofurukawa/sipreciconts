@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Definir a pasta de destino do backup com timestamp
-BACKUP_DIR="$HOME/GitHub/sipreciconts/backup/backup_$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="$HOME/GitHub/sipreciconts/backup/full_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
 # Padrões de exclusão (diretórios e arquivos)
