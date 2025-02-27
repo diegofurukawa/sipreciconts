@@ -1,5 +1,5 @@
 // src/pages/Company/components/CompanyList.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pencil, Trash2, Plus, FileText, Download, Upload } from 'lucide-react';
 import { 
   AlertDialog, 
@@ -12,7 +12,6 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { useCompanyList } from '../hooks/useCompanyList';
-// import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
 export const CompanyList: React.FC = () => {
   const { 
@@ -29,6 +28,9 @@ export const CompanyList: React.FC = () => {
   } = useCompanyList();
   
   const [deleteDialog, setDeleteDialog] = React.useState<{show: boolean; id?: number}>({show: false});
+  
+  // Ref para evitar múltiplas chamadas durante o mount do componente
+  const initialLoadComplete = useRef(false);
 
   const confirmDelete = useCallback(async () => {
     if (deleteDialog.id) {
@@ -36,6 +38,16 @@ export const CompanyList: React.FC = () => {
       setDeleteDialog({show: false});
     }
   }, [deleteDialog.id, handleDelete]);
+
+  // Usando useEffect com array de dependências vazio para carregar apenas uma vez
+  useEffect(() => {
+    // Verificar se já fizemos o carregamento inicial
+    if (!initialLoadComplete.current) {
+      initialLoadComplete.current = true;
+      // Não há necessidade de chamar refresh() aqui, pois o useCompanyList já
+      // faz isso em seu próprio useEffect de inicialização
+    }
+  }, []);
 
   if (loading && companies.length === 0) {
     return (

@@ -1,0 +1,1 @@
+export { Tax, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS } from '@pages/Tax/types';

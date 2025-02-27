@@ -96,7 +96,7 @@ export const CompanyForm = () => {
                   setValue('document', formatted);
                 }
               })}
-              placeholder="92.852.921/0001-09"
+              placeholder="00.000.000/0001-00"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             />
             {errors.document && (
@@ -122,7 +122,7 @@ export const CompanyForm = () => {
                   message: 'Formato de telefone inválido'
                 }
               })}
-              placeholder="11992349402"
+              placeholder="+5511987654321"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             />
             {errors.phone && (
@@ -143,7 +143,7 @@ export const CompanyForm = () => {
                   message: 'Email inválido'
                 }
               })}
-              placeholder="diegofurukawa@gmail.com"
+              placeholder="email@email.com"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             />
             {errors.email && (
@@ -163,7 +163,7 @@ export const CompanyForm = () => {
             </label>
             <textarea
               {...register('address')}
-              placeholder="Rua José Martin Cruz 141 Casa"
+              placeholder="Rua Nome da Rua, 141, Bairro, Cidade Estado, CEP"
               rows={3}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500 sm:text-sm"
             />
