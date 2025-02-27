@@ -1,23 +1,25 @@
-export interface CompanyFormData {
-  name: string;
-  document: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-}
-
-export interface Company extends CompanyFormData {
+// src/pages/Company/types/index.ts
+export interface Company {
+  id?: number;
   company_id: string;
-  company: string;
-  // name: string;
-  // document?: string;
-  // phone?: string;
-  // email?: string;
-  // address?: string;
+  name: string;
+  document?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   enabled: boolean;
   created?: string;
   updated?: string;
 }
 
-export type CompanyActionType = 'create' | 'edit' | 'delete' | 'view';
-  
+export type CompanyFormData = Omit<Company, 'id' | 'created' | 'updated'>;
+
+export const INITIAL_COMPANY_FORM_DATA: CompanyFormData = {
+  company_id: '',
+  name: '',
+  document: '',
+  phone: '',
+  email: '',
+  address: '',
+  enabled: true
+};

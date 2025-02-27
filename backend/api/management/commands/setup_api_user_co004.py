@@ -1,8 +1,8 @@
 # api/management/commands/setup_api_user.py
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from api.models.company import Company
-from api.models.user import User
+from backend.api.models.company_model import Company
+from backend.api.models.user_model import User
 
 v_user_login ='user_co003',
 v_user_password = 'dgo@2337'

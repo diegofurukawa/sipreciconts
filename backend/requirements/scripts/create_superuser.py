@@ -13,7 +13,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from api.models.company import Company  # Importando o modelo de Company
+from backend.api.models.company_model import Company  # Importando o modelo de Company
 
 User = get_user_model()
 

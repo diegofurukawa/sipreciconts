@@ -75,7 +75,7 @@ DATABASES = {
 
 # Configurações de autenticação
 AUTHENTICATION_BACKENDS = [
-    'api.auth_custom.backends.CustomAuthBackend',
+    'api.auth_custom.backends_admin.CustomAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 

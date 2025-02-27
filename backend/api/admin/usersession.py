@@ -1,6 +1,6 @@
 # api/admin.py
 from django.contrib import admin
-from ..models.usersession import UserSession
+from ..models.usersession_model import UserSession
 
 @admin.register(UserSession)
 class UserSessionAdmin(admin.ModelAdmin):

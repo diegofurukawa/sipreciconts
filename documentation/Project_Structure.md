@@ -14,11 +14,11 @@
 │   │   │   └── usersession.py
 │   │   ├── apps.py
 │   │   ├── auth_custom
-│   │   │   ├── authentication.py
-│   │   │   ├── backends.py
-│   │   │   ├── handlers.py
-│   │   │   ├── settings.py
-│   │   │   └── views.py
+│   │   │   ├── authentication_admin.py
+│   │   │   ├── backends_admin.py
+│   │   │   ├── handlers_admin.py
+│   │   │   ├── settings_admin.py
+│   │   │   └── views_admin.py
 │   │   ├── forms
 │   │   │   └── company.py
 │   │   ├── management
@@ -36,52 +36,52 @@
 │   │   ├── migrations
 │   │   │   └── 0001_initial.py
 │   │   ├── models
-│   │   │   ├── asset_category.py
-│   │   │   ├── asset_group.py
-│   │   │   ├── asset_location.py
-│   │   │   ├── asset_movement.py
-│   │   │   ├── asset.py
-│   │   │   ├── base.py
-│   │   │   ├── company.py
-│   │   │   ├── customer.py
-│   │   │   ├── location.py
-│   │   │   ├── managers.py
-│   │   │   ├── supply.py
-│   │   │   ├── tax.py
-│   │   │   ├── types.py
-│   │   │   ├── user.py
-│   │   │   └── usersession.py
+│   │   │   ├── asset_category_model.py
+│   │   │   ├── asset_group_model.py
+│   │   │   ├── asset_location_model.py
+│   │   │   ├── asset_model.py
+│   │   │   ├── asset_movement_model.py
+│   │   │   ├── base_model.py
+│   │   │   ├── company_model.py
+│   │   │   ├── customer_model.py
+│   │   │   ├── location_model.py
+│   │   │   ├── managers_model.py
+│   │   │   ├── supply_model.py
+│   │   │   ├── tax_model.py
+│   │   │   ├── types_model.py
+│   │   │   ├── user_model.py
+│   │   │   └── usersession_model.py
 │   │   ├── serializers
-│   │   │   ├── asset_category.py
-│   │   │   ├── asset_group.py
-│   │   │   ├── asset_movement.py
-│   │   │   ├── asset.py
-│   │   │   ├── auth.py
-│   │   │   ├── base.py
-│   │   │   ├── company.py
-│   │   │   ├── customer.py
-│   │   │   ├── supply.py
-│   │   │   ├── tax.py
-│   │   │   ├── user.py
-│   │   │   └── usersession.py
+│   │   │   ├── asset_category_serializer.py
+│   │   │   ├── asset_group_serializer.py
+│   │   │   ├── asset_movement_serializer.py
+│   │   │   ├── asset_serializer.py
+│   │   │   ├── auth_serializer.py
+│   │   │   ├── base_serializer.py
+│   │   │   ├── company_serializer.py
+│   │   │   ├── customer_serializer.py
+│   │   │   ├── supply_serializer.py
+│   │   │   ├── tax_serializer.py
+│   │   │   ├── user_serializer.py
+│   │   │   └── usersession_serializer.py
 │   │   ├── services
-│   │   │   └── usersession.py
+│   │   │   └── usersession_service.py
 │   │   ├── tests.py
 │   │   ├── urls.py
 │   │   └── views
-│   │       ├── asset_category.py
-│   │       ├── asset_group.py
-│   │       ├── asset_movement.py
-│   │       ├── asset.py
-│   │       ├── authentication.py
-│   │       ├── base.py
-│   │       ├── company.py
-│   │       ├── customer.py
-│   │       ├── login.py
-│   │       ├── supply.py
-│   │       ├── tax.py
-│   │       ├── user.py
-│   │       └── usersession.py
+│   │       ├── asset_category_view.py
+│   │       ├── asset_group_view.py
+│   │       ├── asset_movement_view.py
+│   │       ├── asset_view.py
+│   │       ├── authentication_view.py
+│   │       ├── base_view.py
+│   │       ├── company_view.py
+│   │       ├── customer_view.py
+│   │       ├── login_view.py
+│   │       ├── supply_view.py
+│   │       ├── tax_view.py
+│   │       ├── usersession_view.py
+│   │       └── user_view.py
 │   ├── apps
 │   ├── backend
 │   │   ├── asgi.py

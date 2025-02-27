@@ -12,7 +12,7 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { useCompanyList } from '../hooks/useCompanyList';
-import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
+// import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
 export const CompanyList: React.FC = () => {
   const { 

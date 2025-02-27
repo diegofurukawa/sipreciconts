@@ -1,6 +1,6 @@
 # sessions/middleware.py
 from django.utils import timezone
-from ..services.usersession import UserSessionService
+from ..services.usersession_service import UserSessionService
 
 # No seu middleware ou views.py
 from django.http import HttpResponse

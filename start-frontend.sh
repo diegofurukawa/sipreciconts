@@ -1,8 +1,4 @@
 #!/bin/bash
-
-# Create Logs directory if it doesn't exist
-mkdir -p Logs
-
-# Run frontend server and log output
-cd frontend
-npm run dev 2>&1 | tee ../Logs/frontend.log
+# Wrapper para executar o script da pasta scripts
+cd "$(dirname "$0")"
+./scripts/start-frontend.sh "$@"

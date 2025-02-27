@@ -1,8 +1,8 @@
 # api/management/commands/create_test_user.py
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from api.models.user import User
-from api.models.company import Company
+from backend.api.models.user_model import User
+from backend.api.models.company_model import Company
 
 class Command(BaseCommand):
     help = 'Cria uma empresa e um usuário de teste para o sistema'

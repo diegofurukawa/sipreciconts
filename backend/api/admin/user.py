@@ -1,7 +1,7 @@
 # backend/api/admin/user.py
 from django.contrib import admin
 from django.contrib.auth.hashers import make_password
-from ..models.user import User
+from ..models.user_model import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):

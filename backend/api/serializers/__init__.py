@@ -1,7 +1,7 @@
 # api/serializers/__init__.py
 
-from .base import BaseSerializer
-from .company import (
+from .base_serializer import BaseSerializer
+from .company_serializer import (
     UserMinimalSerializer,
     CompanyListSerializer,
     CompanyDetailSerializer,
@@ -11,16 +11,16 @@ from .company import (
     CompanyBasicSerializer,
     CompanySerializer
 )
-from .customer import CustomerSerializer
-from .tax import TaxSerializer
-from .supply import SupplySerializer
-from .asset import AssetSerializer
-from .asset_group import AssetGroupSerializer
-from .asset_category import AssetCategorySerializer
-from .asset_movement import AssetMovementSerializer
-from .user import UserSerializer
-from .usersession import UserSessionSerializer
-from .auth import LoginSerializer
+from .customer_serializer import CustomerSerializer
+from .tax_serializer import TaxSerializer
+from .supply_serializer import SupplySerializer
+from .asset_serializer import AssetSerializer
+from .asset_group_serializer import AssetGroupSerializer
+from .asset_category_serializer import AssetCategorySerializer
+from .asset_movement_serializer import AssetMovementSerializer
+from .user_serializer import UserSerializer
+from .usersession_serializer import UserSessionSerializer
+from .auth_serializer import LoginSerializer
 # from .contract import ContractSerializer, ContractDetailSerializer, ContractListSerializer
 # from .quote import QuoteSerializer, QuoteDetailSerializer, QuoteListSerializer
 
