@@ -14,6 +14,7 @@ import { NotFoundPage } from '@/pages/NotFound';
 import { cadastrosRoutes } from './modules/cadastros.routes';
 import { comercialRoutes } from './modules/comercial.routes';
 
+
 // Componente de loading padrão
 const LoadingFallback = () => (
   <div className="flex items-center justify-center h-64">

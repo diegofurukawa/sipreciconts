@@ -18,9 +18,8 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from '@/hooks/useToast';
 import { ROUTES } from '@/routes/config/route-paths';
-import { UserMenu } from './UserMenu';
+import UserProfileDropdown from '@/components/UserProfileDropdown';
 
 // Tipos
 interface MenuItem {
@@ -141,13 +140,12 @@ const MenuButton = ({
   </button>
 );
 
-const Navbar = () => {
+export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
-  const { showToast } = useToast();
+  const { isAuthenticated } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleNavigate = useCallback((path: string) => {
@@ -159,27 +157,6 @@ const Navbar = () => {
   const handleDropdownClick = useCallback((menu: string) => {
     setActiveDropdown(prev => prev === menu ? '' : menu);
   }, []);
-
-  const handlesignOut = useCallback(async () => {
-    try {
-      await signOut();
-      showToast({
-        type: 'success',
-        title: 'signOut realizado',
-        message: 'Você foi desconectado com sucesso'
-      });
-      navigate(ROUTES.PUBLIC.LOGIN);
-    } catch (error) {
-      console.error('Erro ao fazer signOut:', error);
-      showToast({
-        type: 'error',
-        title: 'Erro no signOut',
-        message: 'Ocorreu um erro ao tentar desconectar'
-      });
-    } finally {
-      setIsMenuOpen(false);
-    }
-  }, [signOut, showToast, navigate]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -203,7 +180,7 @@ const Navbar = () => {
   }, [location.pathname]);
 
   return (
-    <nav className="bg-white shadow-md border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
@@ -243,10 +220,9 @@ const Navbar = () => {
                 )}
               </div>
             ))}
-            <UserMenu 
-              isMobile={false} 
-              onLogout={handlesignOut} 
-            />
+            
+            {/* User Profile Dropdown - Desktop */}
+            {isAuthenticated && <UserProfileDropdown />}
           </div>
 
           {/* Mobile Menu Button */}
@@ -290,14 +266,11 @@ const Navbar = () => {
               </div>
             ))}
           </div>
-          <UserMenu 
-            isMobile={true} 
-            onLogout={handlesignOut} 
-          />
+          
+          {/* User Profile Dropdown - Mobile */}
+          {isAuthenticated && <UserProfileDropdown isMobile={true} />}
         </div>
       )}
     </nav>
   );
 };
-
-export { Navbar as Navbar };

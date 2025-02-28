@@ -20,8 +20,9 @@ interface AuthContextType {
   user: AuthUser | null;
   companyId?: string;
   signIn: (credentials: AuthCredentials) => Promise<void>;
-  signOut: () => Promise<void>;
+  signOut: (silent?: boolean) => Promise<void>;
   updateUser: (data: Partial<AuthUser>) => void;
+  refreshUserInfo: () => Promise<void>;
 }
 
 interface AuthProviderProps {
@@ -292,8 +293,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         sessionId: undefined 
       });
       
-      // Redirect to login only if not silent
+      // Always show toast on explicit logout (when not silent)
       if (!silent) {
+        showToast({
+          type: 'success',
+          title: 'Logout realizado',
+          message: 'Você foi desconectado com sucesso'
+        });
+        
+        // Redirect to login only if not silent and not already on login page
         if (!location.pathname.includes('/login')) {
           navigate('/login');
         }
@@ -332,14 +340,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   }, []);
 
+  // New method to refresh user information
+  const refreshUserInfo = useCallback(async () => {
+    try {
+      setLoading(true);
+      const validation = await authService.validate();
+      
+      if (validation && validation.user) {
+        updateUser(validation.user);
+        
+        return validation.user;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error refreshing user info:', error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [updateUser]);
+
   const value = {
     isAuthenticated: !!authState.user,
     loading,
     user: authState.user,
     companyId: authState.companyId,
     signIn,
-    signOut: () => signOut(false), // Public version always not silent
-    updateUser
+    signOut: (silent = false) => signOut(silent),
+    updateUser,
+    refreshUserInfo
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

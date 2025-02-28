@@ -87,27 +87,39 @@ Toda nova página ou módulo deve seguir consistentemente o padrão de estrutura
 
 `
 
-NewPage/
-├── index.tsx                    			# Ponto de entrada principal do módulo
-├── components/                  		  # Componentes específicos da página
-│   ├── ComponentForm.tsx        	  # Formulário para criação/edição
-│   ├── ComponentHeader.tsx      	# Cabeçalho da página
-│   └── ComponentList.tsx        	     # Listagem de itens
-├── hooks/                       			 # Hooks customizados do módulo
-│   ├── useComponentForm.ts              # Lógica de formulário separada da UI
-│   └── useComponentList.ts      	   # Lógica de listagem separada da UI
-├── routes/                      			 # Configurações de rota específicas
-│   ├── component_routes.ts      	  # Definições de rota
-│   └── index.ts                 		       # Exportações para uso externo
-├── types/                       			 # Definições de tipo específicas
-│   ├── component_types.ts       	  # Interfaces e tipos
-│   └── index.ts                 		      # Exportações para uso externo
-└── utils/                       			  # Funções utilitárias específicas
-└── component_validators.ts  	    # Validadores e utilidades
+Global
+├── components
+├── config
+├── contexts
+├── hooks
+├── layouts
+├── routes
+├── services
+├── types
+├── styles
+├── utils
+├── pages
+	└── NewPage/ 
+		├── index.tsx					# Ponto de entrada principal do módulo
+		├── components/                 # Componentes específicos da página
+		│   ├── ComponentForm.tsx       # Formulário para criação/edição
+		│   ├── ComponentHeader.tsx     # Cabeçalho da página
+		│   └── ComponentList.tsx       # Listagem de itens
+		├── hooks/                      # Hooks customizados do módulo
+		│   ├── useComponentForm.ts     # Lógica de formulário separada da UI
+		│   └── useComponentList.ts     # Lógica de listagem separada da UI
+		├── services/                   # Servicos customizados do módulo
+		│   └── newpageService.ts 		# Sercicos necessarios específicos
+		├── routes/                     # Configurações de rota específicas
+		│   ├── component_routes.ts     # Definições de rota
+		│   └── index.ts                # Exportações para uso externo
+		├── types/                      # Definições de tipo específicas
+		│   ├── component_types.ts      # Interfaces e tipos
+		│   └── index.ts                # Exportações para uso externo
+		└── utils/                      # Funções utilitárias específicas
+		└── component_validators.ts  	# Validadores e utilidades
 
 `
-
-![image-20250227201651091](/home/dfurukawa/.config/Typora/typora-user-images/image-20250227201651091.png)
 
 ### Responsabilidades dos Arquivos
 

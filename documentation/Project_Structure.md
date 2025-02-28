@@ -88,7 +88,6 @@
 │   │   ├── settings.py
 │   │   ├── urls.py
 │   │   └── wsgi.py
-│   ├── BackEnd_tree.md
 │   ├── core
 │   │   └── utils
 │   │       ├── constants.py
@@ -179,7 +178,11 @@
 │   │   │           ├── toast.test.tsx
 │   │   │           └── toast.tsx
 │   │   ├── config
-│   │   │   └── api.ts
+│   │   │   ├── api_config.ts
+│   │   │   ├── auth_config.ts
+│   │   │   ├── index.ts
+│   │   │   ├── routes_config.ts
+│   │   │   └── theme_config.ts
 │   │   ├── contexts
 │   │   │   ├── AuthContext.tsx
 │   │   │   ├── CompanyContext.tsx
@@ -292,9 +295,19 @@
 │   │   │   │       └── SupplyList.test.tsx
 │   │   │   └── Tax
 │   │   │       ├── components
+│   │   │       │   ├── index.ts
 │   │   │       │   ├── TaxForm.tsx
 │   │   │       │   └── TaxList.tsx
-│   │   │       └── index.tsx
+│   │   │       ├── hooks
+│   │   │       │   └── useTaxList.ts
+│   │   │       ├── index.tsx
+│   │   │       ├── routes
+│   │   │       │   └── index.ts
+│   │   │       ├── services
+│   │   │       │   └── TaxService.ts
+│   │   │       └── types
+│   │   │           ├── index.ts
+│   │   │           └── tax_types.ts
 │   │   ├── providers
 │   │   │   └── index.tsx
 │   │   ├── react-app-env.d.ts
@@ -330,8 +343,9 @@
 │   │   │       ├── company copy.ts
 │   │   │       ├── company.ts
 │   │   │       ├── customer.ts
-│   │   │       ├── tax copy.ts
-│   │   │       └── tax.ts
+│   │   │       └── Tax
+│   │   │           ├── index.ts
+│   │   │           └── tax copy.ts
 │   │   ├── setupTests.ts
 │   │   ├── styles
 │   │   │   └── globals.css
@@ -356,6 +370,7 @@
 │   ├── tsconfig.node.json
 │   └── vite.config.ts
 ├── LICENSE
-└── README.md
+├── README.md
+└── scripts
 
-93 directories, 265 files
+99 directories, 274 files

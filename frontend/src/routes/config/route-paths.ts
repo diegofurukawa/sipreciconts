@@ -12,6 +12,11 @@ export const ROUTES = {
     HOME: '/',
     DASHBOARD: '/dashboard',
     
+    USER_PROFILE: {
+      ROOT: '/perfil',
+      SESSION: '/perfil/session',
+    },
+    
     CADASTROS: {
       EMPRESA: {
         ROOT: '/cadastros/empresa',

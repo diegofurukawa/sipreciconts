@@ -1,33 +1,44 @@
 // src/layouts/MainLayout/index.tsx
-import { ReactNode } from 'react';
-import { Header, Footer } from './components';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from "@/contexts/AuthContext";
-import { ROUTES } from '@/routes/config/route-paths';
+import React from 'react';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 
 interface MainLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
 }
 
-const MainLayout = ({ children }: MainLayoutProps) => {
-  const { user } = useAuth();
-
-  // Redireciona para login se não houver usuário autenticado
-  if (!user) {
-    return <Navigate to={ROUTES.PUBLIC.LOGIN} />;
-  }
-
+export const MainLayout: React.FC<MainLayoutProps> = ({ 
+  children, 
+  title, 
+  subtitle 
+}) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Cabeçalho */}
       <Header />
-      <main className="flex-grow">
-        {children}
+      
+      {/* Conteúdo principal */}
+      <main className="flex-grow px-4 py-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Título da página */}
+          {(title || subtitle) && (
+            <div className="mb-6">
+              {title && <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>}
+              {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+            </div>
+          )}
+          
+          {/* Conteúdo da página */}
+          {children}
+        </div>
       </main>
+      
+      {/* Rodapé */}
       <Footer />
     </div>
   );
 };
 
-export {
-  MainLayout
-};
+export default MainLayout;
