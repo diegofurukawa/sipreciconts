@@ -7,7 +7,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import AccessToken
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-from ..auth_custom.handlers_admin import TokenHandler
+from ..auth_custom.handlers_auth_custom import TokenHandler
 from ..serializers.user_serializer import UserSerializer
 from ..models.user_model import User
 from ..services.usersession_service import UserSessionService

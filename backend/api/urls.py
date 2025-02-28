@@ -16,7 +16,7 @@ from .views import (
     AssetMovementViewSet,
     UserSessionViewSet,
 )
-from .auth_custom.views_admin import (
+from .auth_custom.views_auth_custom import (
     LoginView,
     LogoutView,
     ValidateTokenView,

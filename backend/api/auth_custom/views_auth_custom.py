@@ -9,7 +9,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import get_user_model
 from typing import Dict, Any
 
-from .handlers_admin import TokenHandler
+from .handlers_auth_custom import TokenHandler
 from ..serializers.user_serializer import UserSerializer
 from ..models.usersession_model import UserSession
 from ..serializers.usersession_serializer import UserSessionSerializer

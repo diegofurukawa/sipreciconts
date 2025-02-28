@@ -1,16 +1,16 @@
 # backend/api/admin/__init__.py
-from .base import BaseAdmin
-from .supply import SupplyAdmin
-from .tax import TaxAdmin
-from .customer import CustomerAdmin
+from .base_admin import BaseAdmin
+from .supply_admin import SupplyAdmin
+from .tax_admin import TaxAdmin
+from .customer_admin import CustomerAdmin
 # Registrar no admin.py principal
 # apps/assets/admin/__init__.py
-from .assets import AssetAdmin, AssetGroupAdmin, AssetCategoryAdmin, AssetMovementAdmin, Asset
-from .company import CompanyAdmin
-from .user import UserAdmin
-from .location import LocationAdmin
-from .asset_location import AssetLocationAdmin, AssetLocation
-from .usersession import UserSessionAdmin
+from .assets_admin import AssetAdmin, AssetGroupAdmin, AssetCategoryAdmin, AssetMovementAdmin, Asset
+from .company_admin import CompanyAdmin
+from .user_admin import UserAdmin
+from .location_admin import LocationAdmin
+from .asset_location_admin import AssetLocationAdmin, AssetLocation
+from .usersession_admin import UserSessionAdmin
 
 all__ = [
     'BaseAdmin', 

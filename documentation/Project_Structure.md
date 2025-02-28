@@ -14,11 +14,11 @@
 │   │   │   └── usersession.py
 │   │   ├── apps.py
 │   │   ├── auth_custom
-│   │   │   ├── authentication_admin.py
-│   │   │   ├── backends_admin.py
-│   │   │   ├── handlers_admin.py
-│   │   │   ├── settings_admin.py
-│   │   │   └── views_admin.py
+│   │   │   ├── authentication_auth_custom.py
+│   │   │   ├── backends_auth_custom.py
+│   │   │   ├── handlers_auth_custom.py
+│   │   │   ├── settings_auth_custom.py
+│   │   │   └── views_auth_custom.py
 │   │   ├── forms
 │   │   │   └── company.py
 │   │   ├── management
@@ -86,6 +86,7 @@
 │   ├── backend
 │   │   ├── asgi.py
 │   │   ├── settings.py
+│   │   ├── urls copy.py
 │   │   ├── urls.py
 │   │   └── wsgi.py
 │   ├── core
@@ -140,43 +141,45 @@
 │   │   │   │   └── index.tsx
 │   │   │   ├── PrivateRoute.tsx
 │   │   │   ├── RouteDebug.tsx
-│   │   │   └── ui
-│   │   │       ├── accordion
-│   │   │       │   ├── accordion.test.tsx
-│   │   │       │   ├── accordion.tsx
-│   │   │       │   └── index.tsx
-│   │   │       ├── alert-dialog
-│   │   │       │   ├── alert-dialog.test.tsx
-│   │   │       │   ├── alert-dialog.tsx
-│   │   │       │   └── index.ts
-│   │   │       ├── avatar.tsx
-│   │   │       ├── button.tsx
-│   │   │       ├── card.tsx
-│   │   │       ├── date-formatters.tsx
-│   │   │       ├── dialog.tsx
-│   │   │       ├── dropdown-menu.tsx
-│   │   │       ├── form-field.tsx
-│   │   │       ├── index.ts
-│   │   │       ├── input.tsx
-│   │   │       ├── label.tsx
-│   │   │       ├── pagination.tsx
-│   │   │       ├── progress.tsx
-│   │   │       ├── select.tsx
-│   │   │       ├── sheet.tsx
-│   │   │       ├── simplealert
-│   │   │       │   ├── index.ts
-│   │   │       │   └── SimpleAlert.tsx
-│   │   │       ├── skeleton.tsx
-│   │   │       ├── switch.tsx
-│   │   │       ├── table-pagination
-│   │   │       │   ├── index.ts
-│   │   │       │   ├── table-pagination.test.tsx
-│   │   │       │   └── table-pagination.tsx
-│   │   │       ├── table.tsx
-│   │   │       └── toast
-│   │   │           ├── index.ts
-│   │   │           ├── toast.test.tsx
-│   │   │           └── toast.tsx
+│   │   │   ├── ui
+│   │   │   │   ├── accordion
+│   │   │   │   │   ├── accordion.test.tsx
+│   │   │   │   │   ├── accordion.tsx
+│   │   │   │   │   └── index.tsx
+│   │   │   │   ├── alert-dialog
+│   │   │   │   │   ├── alert-dialog.test.tsx
+│   │   │   │   │   ├── alert-dialog.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── avatar.tsx
+│   │   │   │   ├── button.tsx
+│   │   │   │   ├── card.tsx
+│   │   │   │   ├── date-formatters.tsx
+│   │   │   │   ├── dialog.tsx
+│   │   │   │   ├── dropdown-menu.tsx
+│   │   │   │   ├── form-field.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── input.tsx
+│   │   │   │   ├── label.tsx
+│   │   │   │   ├── pagination.tsx
+│   │   │   │   ├── progress.tsx
+│   │   │   │   ├── select.tsx
+│   │   │   │   ├── sheet.tsx
+│   │   │   │   ├── simplealert
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── SimpleAlert.tsx
+│   │   │   │   ├── skeleton.tsx
+│   │   │   │   ├── switch.tsx
+│   │   │   │   ├── table-pagination
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── table-pagination.test.tsx
+│   │   │   │   │   └── table-pagination.tsx
+│   │   │   │   ├── table.tsx
+│   │   │   │   └── toast
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── toast.test.tsx
+│   │   │   │       └── toast.tsx
+│   │   │   └── UserProfileDropdown
+│   │   │       └── index.tsx
 │   │   ├── config
 │   │   │   ├── api_config.ts
 │   │   │   ├── auth_config.ts
@@ -293,21 +296,24 @@
 │   │   │   │   ├── index.tsx
 │   │   │   │   └── __tests__
 │   │   │   │       └── SupplyList.test.tsx
-│   │   │   └── Tax
-│   │   │       ├── components
-│   │   │       │   ├── index.ts
-│   │   │       │   ├── TaxForm.tsx
-│   │   │       │   └── TaxList.tsx
-│   │   │       ├── hooks
-│   │   │       │   └── useTaxList.ts
+│   │   │   ├── Tax
+│   │   │   │   ├── components
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── TaxForm.tsx
+│   │   │   │   │   └── TaxList.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useTaxList.ts
+│   │   │   │   ├── index.tsx
+│   │   │   │   ├── routes
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── services
+│   │   │   │   │   └── TaxService.ts
+│   │   │   │   └── types
+│   │   │   │       ├── index.ts
+│   │   │   │       └── tax_types.ts
+│   │   │   └── UserProfile
 │   │   │       ├── index.tsx
-│   │   │       ├── routes
-│   │   │       │   └── index.ts
-│   │   │       ├── services
-│   │   │       │   └── TaxService.ts
-│   │   │       └── types
-│   │   │           ├── index.ts
-│   │   │           └── tax_types.ts
+│   │   │       └── SessionInfoPage.tsx
 │   │   ├── providers
 │   │   │   └── index.tsx
 │   │   ├── react-app-env.d.ts
@@ -373,4 +379,4 @@
 ├── README.md
 └── scripts
 
-99 directories, 274 files
+101 directories, 278 files

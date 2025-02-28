@@ -1,5 +1,5 @@
-from .authentication_admin import CustomJWTAuthentication
-from .backends_admin import CustomAuthBackend
+from .authentication_auth_custom import CustomJWTAuthentication
+from .backends_auth_custom import CustomAuthBackend
 
 __all__ = [
     'CustomJWTAuthentication',

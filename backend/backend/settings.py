@@ -26,7 +26,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'drf_yasg',
+    # 'drf_yasg',
+    'django.contrib.admindocs',
+    'django_filters',
+    'drf_spectacular',  # adicione esta linha
 ]
 
 # Configuração do modelo de usuário customizado
@@ -75,7 +78,7 @@ DATABASES = {
 
 # Configurações de autenticação
 AUTHENTICATION_BACKENDS = [
-    'api.auth_custom.backends_admin.CustomAuthBackend',
+    'api.auth_custom.backends_auth_custom.CustomAuthBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -152,6 +155,14 @@ CORS_EXPOSE_HEADERS = [
 
 # Configurações do REST Framework
 REST_FRAMEWORK = {
+    # Adicione isso
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+
+    # Adicione isso:
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',  # Mudamos para usar a classe base do JWT
         'rest_framework.authentication.SessionAuthentication',
@@ -211,4 +222,12 @@ SWAGGER_SETTINGS = {
     },
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
+}
+
+# Adicione essa configuração
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SiPreciConts API',
+    'DESCRIPTION': 'API para sistema de precificação e contratos',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }

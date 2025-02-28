@@ -2,7 +2,7 @@
 # backend/api/admin/supply.py
 from django.contrib import admin
 from ..models import Supply
-from .base import BaseAdmin
+from .base_admin import BaseAdmin
 
 @admin.register(Supply)
 class SupplyAdmin(BaseAdmin):
