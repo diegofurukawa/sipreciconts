@@ -4,6 +4,8 @@ from rest_framework import serializers
 from ..models import AssetMovement, Asset
 from decimal import Decimal
 
+# Modifique o arquivo apps/assets/serializers/asset_movement_serializer.py
+# Modifique o arquivo apps/assets/serializers/asset_movement_serializer.py
 class AssetMovementSerializer(serializers.ModelSerializer):
     """
     Serializer para o modelo AssetMovement
@@ -16,8 +18,9 @@ class AssetMovementSerializer(serializers.ModelSerializer):
         model = AssetMovement
         fields = [
             'assetmovement_id', 'asset', 'asset_name', 'movement_type', 'movement_type_display',
-            'quantity', 'from_location', 'to_location', 'reference_document',
-            'notes', 'movement_date', 'created_by', 'created_by_name',
+            'quantity', 'from_location', 'to_location', 'document_number', 
+            'description',  # Substitua 'notes' por 'description' (se este campo existir)
+            'movement_date', 'created_by', 'created_by_name',
             'created', 'updated'
         ]
         read_only_fields = ['created', 'updated', 'created_by']
