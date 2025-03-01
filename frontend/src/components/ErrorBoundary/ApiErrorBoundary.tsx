@@ -101,3 +101,5 @@ export class ApiErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export default ApiErrorBoundary;

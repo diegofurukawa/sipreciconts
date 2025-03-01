@@ -1,262 +1,284 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Download, Upload, Pencil, Trash2 } from 'lucide-react';
+// src/pages/Tax/components/TaxList.tsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
+  Download, 
+  Upload, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Search, 
+  X 
+} from 'lucide-react';
+import { 
+  Card, 
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription 
+} from '@/components/ui/card';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { TablePagination } from '@/components/ui/table-pagination';
-import { taxService } from '../services/TaxService';
-import { useToast } from '@/hooks/useToast';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { LoadingState } from '@/components/feedback/LoadingState';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import { useTaxList } from '../hooks/useTaxList';
+import { TAX_ROUTES } from '../routes';
+import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS } from '@/pages/Tax/types/tax_types';
 
-export const TaxList = () => {
-  const { 
-    taxes, 
-    loading, 
-    error, 
-    totalPages,
-    currentPage,
+const TaxList: React.FC = () => {
+  const navigate = useNavigate();
+  const {
+    taxes,
+    loading,
+    error,
+    pagination,
+    handleSearch,
     handlePageChange,
-    handleDelete, 
+    handleDelete,
+    reloadTaxes,
     handleExport,
-    handleImport,
-    refresh
+    handleImport
   } = useTaxList();
-  
-  const [deleteDialog, setDeleteDialog] = useState<{show: boolean; id?: number}>({show: false});
-  const { showToast } = useToast();
-  
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
+  const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(searchTerm);
+  };
+
+  const handleSearchClear = () => {
+    setSearchTerm('');
+    handleSearch('');
+  };
+
+  const handleNewClick = () => {
+    navigate(TAX_ROUTES.NEW);
+  };
+
+  const handleEditClick = (id: number) => {
+    navigate(TAX_ROUTES.EDIT(id));
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setDeleteDialog({ show: true, id });
+  };
+
   const confirmDelete = async () => {
     if (deleteDialog.id) {
       await handleDelete(deleteDialog.id);
-      setDeleteDialog({show: false});
+    }
+    setDeleteDialog({ show: false });
+  };
+
+  const handleExportClick = async () => {
+    await handleExport();
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await handleImport(file);
+      // Limpar input após envio
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
-  const handleNew = () => {
-    window.location.href = '/cadastros/impostos/novo';
-  };
+  if (loading && !taxes.length) {
+    return <LoadingState />;
+  }
 
-  const handleEdit = (id: number) => {
-    window.location.href = `/cadastros/impostos/${id}/editar`;
-  };
-
-  // Formatação e utilitários
-  const formatTaxValue = (value: number, calcOperator: string): string => {
-    if (value == null) return '0.00';
-    const formatted = value.toFixed(2);
-    return calcOperator === '%' ? `${formatted}%` : formatted;
-  };
-
-  const getOptionLabel = (value: string, options: { value: string; label: string }[]): string => {
-    return options.find(option => option.value === value)?.label || value;
-  };
-
-  // Opções para selects
-  const TAX_TYPES = [
-    { value: 'tax', label: 'Imposto' },
-    { value: 'fee', label: 'Taxa' }
-  ];
-
-  const TAX_GROUPS = [
-    { value: 'federal', label: 'Federal' },
-    { value: 'state', label: 'Estadual' },
-    { value: 'municipal', label: 'Municipal' },
-    { value: 'other', label: 'Outro' }
-  ];
-
-  const CALC_OPERATORS = [
-    { value: '%', label: 'Percentual' },
-    { value: '0', label: 'Fixo' },
-    { value: '+', label: 'Adição' },
-    { value: '-', label: 'Subtração' },
-    { value: '*', label: 'Multiplicação' },
-    { value: '/', label: 'Divisão' }
-  ];
-
-  if (loading) {
+  if (error && !taxes.length) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-      </div>
+      <ErrorState 
+        message={error}
+        onRetry={reloadTaxes}
+      />
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho da Página */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Cabeçalho */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-800">Impostos e Taxas</h1>
-              <p className="text-sm text-gray-500 mt-1">Gerencie os impostos cadastrados no sistema</p>
+              <CardTitle>Impostos e Taxas</CardTitle>
+              <CardDescription>Gerencie os impostos e taxas do sistema</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button 
-                onClick={handleNew}
-                className="inline-flex items-center px-4 py-2 border border-transparent 
-                           text-sm font-medium rounded-md shadow-sm text-white 
-                           bg-emerald-600 hover:bg-emerald-700 focus:outline-none 
-                           focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-              >
+              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Novo Imposto
-              </button>
-              <button 
-                onClick={handleImport}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 
-                          text-sm font-medium rounded-md text-gray-700 bg-white 
-                          hover:bg-gray-50 focus:outline-none focus:ring-2 
-                          focus:ring-offset-2 focus:ring-emerald-500"
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => importInputRef?.click()}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Importar
-              </button>
-              <button 
-                onClick={handleExport}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 
-                          text-sm font-medium rounded-md text-gray-700 bg-white 
-                          hover:bg-gray-50 focus:outline-none focus:ring-2 
-                          focus:ring-offset-2 focus:ring-emerald-500"
+              </Button>
+              <input
+                type="file"
+                ref={ref => setImportInputRef(ref)}
+                className="hidden"
+                accept=".csv,.xlsx"
+                onChange={handleFileSelect}
+              />
+              <Button 
+                variant="outline"
+                onClick={handleExportClick}
               >
                 <Download className="mr-2 h-4 w-4" />
                 Exportar
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearchSubmit} className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Buscar impostos..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={handleSearchClear}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mensagem de erro */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-              <div className="mt-2">
-                <button 
-                  className="text-sm text-red-700 font-medium hover:text-red-600"
-                  onClick={() => refresh()}
-                >
-                  Tentar novamente
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+            )}
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Tabela de Impostos */}
-      <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sigla
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Grupo
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Operador
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Valor
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Descrição
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Ações
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {taxes.length > 0 ? (
-                taxes.map((tax) => (
-                  <tr key={tax.id} className="hover:bg-gray-50 transition duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap">{tax.acronym}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getOptionLabel(tax.type, TAX_TYPES)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getOptionLabel(tax.group, TAX_GROUPS)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getOptionLabel(tax.calc_operator, CALC_OPERATORS)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {formatTaxValue(tax.value, tax.calc_operator)}
-                    </td>
-                    <td className="px-6 py-4">{tax.description || '-'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(tax.id!)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Pencil className="inline h-5 w-5" />
-                      </button>
-                      <button
-                        onClick={() => setDeleteDialog({ show: true, id: tax.id })}
-                        className="text-red-600 hover:text-red-900 ml-3"
-                      >
-                        <Trash2 className="inline h-5 w-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    Nenhum imposto encontrado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Sigla</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Grupo</TableHead>
+                  <TableHead>Operador</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {taxes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <EmptyState
+                        title="Nenhum imposto encontrado"
+                        description="Cadastre um novo imposto para começar"
+                        action={
+                          <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Novo Imposto
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  taxes.map((tax) => (
+                    <TableRow key={tax.id} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{tax.acronym}</TableCell>
+                      <TableCell>{getOptionLabel(tax.type, TAX_TYPE_LABELS)}</TableCell>
+                      <TableCell>{getOptionLabel(tax.group, TAX_GROUP_LABELS)}</TableCell>
+                      <TableCell>{getOptionLabel(tax.calc_operator, CALC_OPERATOR_LABELS)}</TableCell>
+                      <TableCell>{formatTaxValue(tax.value, tax.calc_operator)}</TableCell>
+                      <TableCell>{tax.description || '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(tax.id!)}
+                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(tax.id!)}
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
-        {/* Paginação */}
-        {taxes.length > 0 && (
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
-        )}
-      </div>
+          {taxes.length > 0 && (
+            <div className="border-t">
+              <TablePagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Diálogo de Confirmação de Exclusão */}
-      <AlertDialog open={deleteDialog.show}>
+      <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({ show: open })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este imposto?
+              Tem certeza que deseja excluir este imposto? 
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteDialog({show: false})}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

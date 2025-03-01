@@ -1,103 +1,147 @@
-// src/hooks/useTaxList.ts
-import { useState, useEffect, useCallback } from 'react';
+// src/pages/Tax/hooks/useTaxList.ts
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
-// O correto seria:
 import { taxService } from '../services/TaxService';
-import type { Tax } from '../types';
-import type { TaxListParams } from '../types/tax_types';
+import type { Tax, TaxListParams } from '../types/tax_types';
 
 interface UseTaxListReturn {
   taxes: Tax[];
   loading: boolean;
   error: string | null;
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-  
-  // Actions
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+  };
   handleSearch: (term: string) => void;
   handlePageChange: (page: number) => void;
-  handleDelete: (id: number) => Promise<boolean>;
+  handleDelete: (id: number) => Promise<void>;
+  reloadTaxes: () => Promise<void>;
   handleExport: () => Promise<void>;
-  handleImport: () => void;
-  
-  // Refresh data
-  refresh: () => Promise<void>;
+  handleImport: (file: File) => Promise<void>;
 }
 
-export function useTaxList(initialParams?: Partial<TaxListParams>): UseTaxListReturn {
-  // State
+/**
+ * Hook para gerenciar a listagem de impostos
+ */
+export function useTaxList(): UseTaxListReturn {
   const [taxes, setTaxes] = useState<Tax[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [currentPage, setCurrentPage] = useState(initialParams?.page || 1);
-  const [pageSize] = useState(initialParams?.page_size || 10);
-  
-  const { showToast } = useToast();
+  const [params, setParams] = useState<TaxListParams>({
+    page: 1,
+    limit: 10
+  });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0
+  });
 
-  // Fetch taxes from API
-  const fetchTaxes = useCallback(async (page: number = currentPage) => {
+  const { showToast } = useToast();
+  
+  // Usamos uma ref para controlar se já fizemos a requisição inicial
+  const initialLoadDone = useRef(false);
+  // Usamos outra ref para controlar se temos alguma requisição em andamento
+  const loadingRef = useRef(false);
+  // Ref para o último termo de busca usado
+  const lastSearchTerm = useRef('');
+  // Ref para a última página carregada
+  const lastPage = useRef(1);
+
+  // Função para carregar impostos
+  const loadTaxes = async () => {
+    // Se já estiver carregando, não faz nada
+    if (loadingRef.current) return;
+    
     try {
+      // Marca como carregando
+      loadingRef.current = true;
       setLoading(true);
       setError(null);
-      
-      const params: TaxListParams = {
-        page,
-        page_size: pageSize
-      };
-      
-      // Add additional params from initialParams
-      if (initialParams) {
-        Object.keys(initialParams).forEach(key => {
-          if (key !== 'page' && key !== 'page_size') {
-            params[key as keyof TaxListParams] = initialParams[key as keyof TaxListParams];
-          }
-        });
-      }
+
+      console.log('Carregando impostos com parâmetros:', params);
       
       const response = await taxService.list(params);
       
-      setTaxes(response.results || []);
-      setTotalItems(response.count || 0);
-      setTotalPages(Math.ceil((response.count || 0) / pageSize));
-      setCurrentPage(page);
+      setTaxes(response.results);
+      setPagination({
+        currentPage: params.page || 1,
+        totalPages: Math.ceil(response.count / (params.limit || 10)),
+        totalItems: response.count
+      });
+      
+      // Atualiza as refs com os valores atuais
+      lastPage.current = params.page || 1;
+      lastSearchTerm.current = params.search || '';
       
     } catch (error: any) {
-      console.error('Error fetching taxes:', error);
-      setError(error.message || 'Não foi possível carregar os impostos');
-      
-      // Reset data
-      setTaxes([]);
-      setTotalItems(0);
-      setTotalPages(1);
+      console.error('Erro ao carregar impostos:', error);
+      setError(error.message || 'Não foi possível carregar a lista de impostos');
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Erro ao carregar impostos'
+      });
     } finally {
+      // Marca como não carregando
+      loadingRef.current = false;
       setLoading(false);
     }
-  }, [currentPage, pageSize, initialParams, showToast]);
+  };
 
-  // Load taxes on component mount and when dependencies change
+  // Este efeito é executado apenas uma vez na montagem
   useEffect(() => {
-    fetchTaxes();
-  }, [fetchTaxes]);
+    // Se ainda não carregamos os dados iniciais
+    if (!initialLoadDone.current) {
+      initialLoadDone.current = true;
+      loadTaxes();
+    }
+    
+    // Cleanup function
+    return () => {
+      initialLoadDone.current = false;
+    };
+  }, []); // Array vazio = executado apenas uma vez
 
-  // Handle search
-  const handleSearch = useCallback((term: string) => {
-    // Implementation would depend on the API
-    console.log('Search term:', term);
-    // Here you would typically update params and call fetchTaxes
-  }, []);
+  // Este efeito é disparado quando os parâmetros mudam
+  useEffect(() => {
+    // Só carrega se não for a primeira renderização (já tratada no efeito acima)
+    // E se os parâmetros realmente mudaram
+    if (initialLoadDone.current && 
+        (lastPage.current !== params.page || 
+         lastSearchTerm.current !== params.search)) {
+      loadTaxes();
+    }
+  }, [params.page, params.search]); // Dependências específicas
 
-  // Handle page change
-  const handlePageChange = useCallback((page: number) => {
-    fetchTaxes(page);
-  }, [fetchTaxes]);
+  // Manipuladores de eventos
+  const handleSearch = (term: string) => {
+    // Se o termo for igual ao último, não faz nada
+    if (term === lastSearchTerm.current) return;
+    
+    // Atualiza os parâmetros de busca
+    setParams({
+      ...params,
+      search: term,
+      page: 1 // Volta para a primeira página
+    });
+  };
 
-  // Handle delete
-  const handleDelete = useCallback(async (id: number): Promise<boolean> => {
+  const handlePageChange = (page: number) => {
+    // Se a página for igual à atual, não faz nada
+    if (page === lastPage.current) return;
+    
+    // Atualiza a página
+    setParams({
+      ...params,
+      page
+    });
+  };
+
+  const handleDelete = async (id: number) => {
     try {
+      setLoading(true);
       await taxService.delete(id);
       
       showToast({
@@ -106,100 +150,94 @@ export function useTaxList(initialParams?: Partial<TaxListParams>): UseTaxListRe
         message: 'Imposto excluído com sucesso'
       });
       
-      // Refresh data after delete
-      await fetchTaxes(
-        // If we're on the last page and deleted the last item, go to previous page
-        taxes.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage
-      );
-      
-      return true;
+      // Recarrega a lista
+      await loadTaxes();
     } catch (error: any) {
-      console.error('Error deleting tax:', error);
+      console.error('Erro ao excluir imposto:', error);
       showToast({
         type: 'error',
         title: 'Erro',
-        message: 'Não foi possível excluir o imposto'
+        message: error.message || 'Erro ao excluir imposto'
       });
-      return false;
+    } finally {
+      setLoading(false);
     }
-  }, [taxes, currentPage, fetchTaxes, showToast]);
+  };
 
-  // Handle export
-  const handleExport = useCallback(async (): Promise<void> => {
+  const handleExport = async () => {
     try {
+      setLoading(true);
+      const blob = await taxService.export();
+      
+      // Criar link para download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'impostos.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
       showToast({
-        type: 'info',
-        title: 'Exportar',
-        message: 'Funcionalidade de exportação ainda não implementada'
+        type: 'success',
+        title: 'Sucesso',
+        message: 'Arquivo exportado com sucesso'
       });
-      // In a real implementation, you would call the export API and download the file
-      // const blob = await taxService.export();
-      // const url = window.URL.createObjectURL(blob);
-      // const a = document.createElement('a');
-      // a.href = url;
-      // a.download = 'impostos.xlsx';
-      // document.body.appendChild(a);
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-      // document.body.removeChild(a);
     } catch (error: any) {
-      console.error('Error exporting taxes:', error);
+      console.error('Erro ao exportar impostos:', error);
       showToast({
         type: 'error',
         title: 'Erro',
-        message: 'Não foi possível exportar os impostos'
+        message: error.message || 'Erro ao exportar impostos'
       });
+    } finally {
+      setLoading(false);
     }
-  }, [showToast]);
+  };
 
-  // Handle import
-  const handleImport = useCallback(() => {
-    showToast({
-      type: 'info',
-      title: 'Importar',
-      message: 'Funcionalidade de importação ainda não implementada'
-    });
-    // In a real implementation, you would open a file dialog and upload the file
-    // const input = document.createElement('input');
-    // input.type = 'file';
-    // input.accept = '.xlsx,.csv';
-    // input.onchange = async (e) => {
-    //   const file = (e.target as HTMLInputElement).files?.[0];
-    //   if (file) {
-    //     try {
-    //       await taxService.import(file);
-    //       showToast({
-    //         type: 'success',
-    //         title: 'Sucesso',
-    //         message: 'Impostos importados com sucesso'
-    //       });
-    //       await fetchTaxes(1);
-    //     } catch (error: any) {
-    //       showToast({
-    //         type: 'error',
-    //         title: 'Erro',
-    //         message: 'Não foi possível importar os impostos'
-    //       });
-    //     }
-    //   }
-    // };
-    // input.click();
-  }, [showToast]);
+  const handleImport = async (file: File) => {
+    try {
+      setLoading(true);
+      await taxService.import(file);
+      
+      showToast({
+        type: 'success',
+        title: 'Sucesso',
+        message: 'Impostos importados com sucesso'
+      });
+      
+      // Atualiza os parâmetros para voltar à primeira página
+      setParams({
+        ...params,
+        page: 1
+      });
+    } catch (error: any) {
+      console.error('Erro ao importar impostos:', error);
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: error.message || 'Erro ao importar impostos'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reloadTaxes = async () => {
+    await loadTaxes();
+  };
 
   return {
     taxes,
     loading,
     error,
-    totalItems,
-    totalPages,
-    currentPage,
-    pageSize,
+    pagination,
     handleSearch,
     handlePageChange,
     handleDelete,
+    reloadTaxes,
     handleExport,
-    handleImport,
-    refresh: useCallback(() => fetchTaxes(currentPage), [fetchTaxes, currentPage])
+    handleImport
   };
 }
 

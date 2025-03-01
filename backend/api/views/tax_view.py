@@ -16,6 +16,12 @@ class TaxViewSet(viewsets.ModelViewSet):
     queryset = Tax.objects.filter(enabled=True)
     serializer_class = TaxSerializer
 
+    def perform_create(self, serializer):
+        """
+        Sobrescreve criação para incluir company automaticamente
+        """
+        serializer.save(company=self.request.user.company)
+
     def perform_destroy(self, instance):
         instance.soft_delete()
 

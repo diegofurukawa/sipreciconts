@@ -34,4 +34,4 @@ fi
 
 # Executar o servidor de desenvolvimento
 echo "Iniciando o servidor de desenvolvimento..."
-npm run dev 2>&1 | tee "$PROJECT_ROOT/Logs/frontend_$(date +%Y%m%d_%H%M%S).log"
+npm run dev --force 2>&1 | tee "$PROJECT_ROOT/Logs/frontend_$(date +%Y%m%d_%H%M%S).log"

@@ -1,116 +1,88 @@
-// src/pages/Tax/services/TaxService.ts
-import { Tax } from '@pages/Tax/types';
+// src/services/api/modules/tax.ts
+import { ApiService } from "@/services/api/ApiService";
+import type { PaginatedResponse } from '@/types/api.types';
+import type { Tax, TaxListParams } from '@/pages/Tax/types/tax_types';;
 
-// Dados mockados para uso offline
-const MOCK_TAXES: Tax[] = [
-  { 
-    id: 1, 
-    acronym: 'ICMS', 
-    description: 'Imposto sobre Circulação de Mercadorias e Serviços', 
-    type: 'tax', 
-    group: 'state', 
-    calc_operator: '%', 
-    value: 18 
-  },
-  { 
-    id: 2, 
-    acronym: 'ISS', 
-    description: 'Imposto Sobre Serviços', 
-    type: 'tax', 
-    group: 'municipal', 
-    calc_operator: '%', 
-    value: 5 
-  },
-  { 
-    id: 3, 
-    acronym: 'IPI', 
-    description: 'Imposto sobre Produtos Industrializados', 
-    type: 'tax', 
-    group: 'federal', 
-    calc_operator: '%', 
-    value: 10 
-  }
-];
+class TaxApiService extends ApiService {
+  // Corrigindo o caminho do API para usar o proxy Vite
+  private readonly baseUrl = '/taxes/';
 
-// Interface para respostas paginadas
-interface PaginatedResponse<T> {
-  results: T[];
-  count: number;
-  next: string | null;
-  previous: string | null;
-}
-
-// Classe de serviço simulando chamadas à API
-class TaxService {
-  // Lista todos os impostos
-  async list(page: number = 1, pageSize: number = 10): Promise<PaginatedResponse<Tax>> {
-    // Simular delay de rede
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    return {
-      results: MOCK_TAXES,
-      count: MOCK_TAXES.length,
-      next: null,
-      previous: null
-    };
+  /**
+   * Lista todos os impostos cadastrados
+   */
+  async list(params?: TaxListParams): Promise<PaginatedResponse<Tax>> {
+    // Usando um console.log para depuração
+    console.log('Chamando API de impostos:', this.baseUrl);
+    try {
+      const response = await this.getPaginated<Tax>(this.baseUrl, params);
+      console.log('Resposta recebida:', response);
+      return response;
+    } catch (error) {
+      console.error('Erro ao listar impostos:', error);
+      throw error;
+    }
   }
 
-  // Busca um imposto pelo ID
+  /**
+   * Busca um imposto específico pelo ID
+   */
   async getById(id: number): Promise<Tax> {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
-    const tax = MOCK_TAXES.find(tax => tax.id === id);
-    
-    if (!tax) {
-      throw new Error(`Imposto com ID ${id} não encontrado`);
-    }
-    
-    return tax;
+    return this.get<Tax>(`${this.baseUrl}/${id}`);
   }
 
-  // Cria um novo imposto
-  async create(data: Omit<Tax, 'id'>): Promise<Tax> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newId = Math.max(0, ...MOCK_TAXES.map(tax => tax.id || 0)) + 1;
-    const newTax = { ...data, id: newId };
-    
-    MOCK_TAXES.push(newTax);
-    
-    return newTax;
+  /**
+   * Cria um novo imposto
+   */
+  async create(data: Omit<Tax, 'id' | 'created' | 'updated'>): Promise<Tax> {
+    return this.post<Tax>(`${this.baseUrl}`, data);
   }
 
-  // Atualiza um imposto existente
+  /**
+   * Atualiza um imposto existente
+   */
   async update(id: number, data: Partial<Tax>): Promise<Tax> {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const index = MOCK_TAXES.findIndex(tax => tax.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Imposto com ID ${id} não encontrado`);
-    }
-    
-    const updatedTax = { ...MOCK_TAXES[index], ...data };
-    MOCK_TAXES[index] = updatedTax;
-    
-    return updatedTax;
+    return this.put<Tax>(`${this.baseUrl}/${id}/`, data);
   }
 
-  // Exclui um imposto
+  /**
+   * Remove um imposto (soft delete)
+   */
   async delete(id: number): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const index = MOCK_TAXES.findIndex(tax => tax.id === id);
-    
-    if (index === -1) {
-      throw new Error(`Imposto com ID ${id} não encontrado`);
-    }
-    
-    MOCK_TAXES.splice(index, 1);
+    await this.delete(`${this.baseUrl}/${id}/`);
+  }
+
+  /**
+   * Importa impostos a partir de um arquivo
+   */
+  async import(file: File, onProgress?: (percentage: number) => void): Promise<any> {
+    return this.uploadFile(
+      `${this.baseUrl}/import/`,
+      file,
+      onProgress
+    );
+  }
+
+  /**
+   * Exporta impostos
+   */
+  async export(format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> {
+    return this.downloadFile(
+      `${this.baseUrl}/export/`,
+      `impostos.${format}`,
+      format
+    );
+  }
+
+  /**
+   * Valida dados do imposto
+   */
+  async validate(data: Partial<Tax>): Promise<{
+    valid: boolean;
+    errors?: Record<string, string[]>;
+  }> {
+    return this.post(`${this.baseUrl}/validate/`, data);
   }
 }
 
-// Instância única do serviço
-export const taxService = new TaxService();
-
-export default taxService;
+// Exporta instância única do serviço
+export const taxService = new TaxApiService();

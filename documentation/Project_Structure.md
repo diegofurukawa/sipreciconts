@@ -2,16 +2,16 @@
 ├── backend
 │   ├── api
 │   │   ├── admin
-│   │   │   ├── asset_location.py
-│   │   │   ├── assets.py
-│   │   │   ├── base.py
-│   │   │   ├── company.py
-│   │   │   ├── customer.py
-│   │   │   ├── location.py
-│   │   │   ├── supply.py
-│   │   │   ├── tax.py
-│   │   │   ├── user.py
-│   │   │   └── usersession.py
+│   │   │   ├── asset_location_admin.py
+│   │   │   ├── assets_admin.py
+│   │   │   ├── base_admin.py
+│   │   │   ├── company_admin.py
+│   │   │   ├── customer_admin.py
+│   │   │   ├── location_admin.py
+│   │   │   ├── supply_admin.py
+│   │   │   ├── tax_admin.py
+│   │   │   ├── user_admin.py
+│   │   │   └── usersession_admin.py
 │   │   ├── apps.py
 │   │   ├── auth_custom
 │   │   │   ├── authentication_auth_custom.py
@@ -126,6 +126,7 @@
 │   │   ├── components
 │   │   │   ├── ErrorBoundary
 │   │   │   │   ├── ApiErrorBoundary.tsx
+│   │   │   │   ├── index.tsx
 │   │   │   │   └── LoadingFallback.tsx
 │   │   │   ├── FeatureCard.tsx
 │   │   │   ├── feedback
@@ -300,6 +301,7 @@
 │   │   │   │   ├── components
 │   │   │   │   │   ├── index.ts
 │   │   │   │   │   ├── TaxForm.tsx
+│   │   │   │   │   ├── TaxHeader.tsx
 │   │   │   │   │   └── TaxList.tsx
 │   │   │   │   ├── hooks
 │   │   │   │   │   └── useTaxList.ts
@@ -330,7 +332,8 @@
 │   │   │       ├── cadastros.routes.tsx
 │   │   │       ├── comercial.routes.tsx
 │   │   │       ├── customer.routes.tsx
-│   │   │       └── index.ts
+│   │   │       ├── index.ts
+│   │   │       └── tax.routes.tsx
 │   │   ├── services
 │   │   │   ├── api
 │   │   │   │   ├── ApiService.ts
@@ -368,7 +371,8 @@
 │   │   │   ├── index.ts
 │   │   │   └── routes.types.ts
 │   │   ├── utils
-│   │   │   └── date.ts
+│   │   │   ├── date.ts
+│   │   │   └── lazyImport.ts
 │   │   └── vite-env.d.ts
 │   ├── tailwind.config.js
 │   ├── tsconfig.app.json
@@ -379,4 +383,4 @@
 ├── README.md
 └── scripts
 
-101 directories, 278 files
+101 directories, 282 files

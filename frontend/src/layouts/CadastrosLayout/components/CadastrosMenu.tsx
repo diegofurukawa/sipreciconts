@@ -1,60 +1,63 @@
-// src/layouts/CadastrosLayout/components/CadastrosMenu.tsx
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Building2, Users, Calculator, Package } from 'lucide-react';
+// src/layouts/CadastrosLayout/components/CadastrosMenu.tsx (exemplo de atualização)
+import React from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Building2, Users, Calculator, Package2 } from 'lucide-react';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
-const CadastrosMenu = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+interface MenuItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+}
 
-  const menuItems = [
-    {
-      label: 'Empresa',
-      path: CADASTROS_ROUTES.EMPRESA.ROOT,
-      icon: Building2
-    },
-    {
-      label: 'Clientes',
-      path: CADASTROS_ROUTES.CLIENTES.ROOT,
-      icon: Users
-    },
-    {
-      label: 'Impostos',
-      path: CADASTROS_ROUTES.IMPOSTOS.ROOT,
-      icon: Calculator
-    },
-    {
-      label: 'Insumos',
-      path: CADASTROS_ROUTES.INSUMOS.ROOT,
-      icon: Package
-    }
-  ];
+const MenuItem: React.FC<MenuItemProps> = ({ to, icon, label }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
 
   return (
-    <nav className="space-y-1">
-      {menuItems.map(({ label, path, icon: Icon }) => {
-        const isActive = location.pathname.startsWith(path);
-        
-        return (
-          <button
-            key={path}
-            onClick={() => navigate(path)}
-            className={`
-              flex items-center w-full px-4 py-2 text-sm rounded-md
-              ${isActive 
-                ? 'bg-emerald-50 text-emerald-600' 
-                : 'text-gray-700 hover:bg-gray-50 hover:text-emerald-600'}
-            `}
-          >
-            <Icon className="w-5 h-5 mr-3" />
-            {label}
-          </button>
-        );
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `flex items-center px-4 py-2 text-sm rounded-md transition-colors ${
+          isActive
+            ? 'bg-emerald-100 text-emerald-700 font-medium'
+            : 'text-gray-700 hover:bg-gray-100'
+        }`
+      }
+    >
+      {React.cloneElement(icon as React.ReactElement, {
+        className: `mr-3 h-5 w-5 ${isActive ? 'text-emerald-500' : 'text-gray-500'}`
       })}
-    </nav>
+      {label}
+    </NavLink>
   );
 };
 
-export {
-    CadastrosMenu
+const CadastrosMenu: React.FC = () => {
+  return (
+    <div className="space-y-1 py-2">
+      <MenuItem
+        to={CADASTROS_ROUTES.EMPRESA.ROOT}
+        icon={<Building2 />}
+        label="Empresas"
+      />
+      <MenuItem
+        to={CADASTROS_ROUTES.CLIENTES.ROOT}
+        icon={<Users />}
+        label="Clientes"
+      />
+      <MenuItem
+        to={CADASTROS_ROUTES.IMPOSTOS.ROOT}
+        icon={<Calculator />}
+        label="Impostos e Taxas"
+      />
+      <MenuItem
+        to={CADASTROS_ROUTES.INSUMOS.ROOT}
+        icon={<Package2 />}
+        label="Insumos"
+      />
+    </div>
+  );
 };
+
+export default CadastrosMenu;

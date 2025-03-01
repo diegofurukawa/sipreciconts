@@ -2,6 +2,7 @@
 import { lazy } from 'react';
 import type { AppRouteObject } from '../../types/routes.types';
 import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
+import { taxRoutes, TAX_ROUTES } from './tax.routes'; // Importando as novas rotas
 
 // Lazy imports para otimização de carregamento
 const CustomerPage = lazy(() => import('@/pages/Customer'));
@@ -16,7 +17,9 @@ const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'))
 const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
 
 const TaxPage = lazy(() => import('@/pages/Tax'));
-const TaxList = lazy(() => import('@/pages/Tax'));
+// const TaxList = lazy(() => import('@/pages/Tax'));
+const TaxList = lazy(() => import('@/pages/Tax/components/TaxList'));
+
 
 const SupplyPage = lazy(() => import('@/pages/Supply'));
 const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
@@ -49,26 +52,7 @@ export const cadastrosRoutes: AppRouteObject[] = [
   customerRoutes,
 
   // Rotas de Impostos
-  {
-    path: 'impostos',
-    element: <TaxList />,
-    title: 'Impostos'
-  },
-  {
-    path: 'impostos/novo',
-    element: <TaxList />,
-    title: 'Novo Imposto'
-  },
-  {
-    path: 'impostos/:id/editar',
-    element: <TaxList />,
-    title: 'Editar Imposto'
-  },
-  {
-    path: 'impostos/:id',
-    element: <TaxList />,
-    title: 'Detalhes do Imposto'
-  },
+  ...taxRoutes, // Adicionando as rotas de impostos
 
   // Rotas de Insumos
   {
@@ -109,12 +93,8 @@ export const CADASTROS_ROUTES = {
   
   CLIENTES: CUSTOMER_ROUTES,
 
-  IMPOSTOS: {
-    ROOT: '/cadastros/impostos',
-    NEW: '/cadastros/impostos/novo',
-    EDIT: (id: string | number) => `/cadastros/impostos/${id}/editar`,
-    DETAILS: (id: string | number) => `/cadastros/impostos/${id}`,
-  },
+  IMPOSTOS: TAX_ROUTES, // Adicionando as constantes de rotas
+
   INSUMOS: {
     ROOT: '/cadastros/insumos',
     NEW: '/cadastros/insumos/novo',

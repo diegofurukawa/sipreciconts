@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
         '@contexts': path.resolve(__dirname, './src/contexts'),
         '@assets': path.resolve(__dirname, './src/assets')
       },
+      // Forçar extensões corretas para módulos dinâmicos
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
     },
     define: {
       'import.meta.env.VITE_API_URL': JSON.stringify(env.VITE_API_URL),
@@ -92,6 +94,17 @@ export default defineConfig(({ mode }) => {
               'lucide-react'
             ]
           },
+          // Corrigir problema de extensão nas importações dinâmicas
+          entryFileNames: '[name].js',
+          chunkFileNames: (chunkInfo) => {
+            const id = chunkInfo.facadeModuleId || '';
+            // Evitar que arquivos sejam carregados como .txt
+            if (id.includes('/src/pages/Tax/') || id.includes('/Tax/components/')) {
+              return '[name].[hash].js';
+            }
+            return '[name].[hash].js';
+          },
+          assetFileNames: 'assets/[name].[hash][extname]'
         },
       },
       chunkSizeWarningLimit: 1000,
@@ -107,14 +120,29 @@ export default defineConfig(({ mode }) => {
         '@radix-ui/react-alert-dialog',
         'lucide-react'
       ],
-      exclude: ['@auth/core']
+      exclude: ['@auth/core'],
+      // Garantir que o TypeScript seja compilado corretamente
+      esbuildOptions: {
+        loader: {
+          '.js': 'jsx',
+          '.ts': 'tsx'
+        },
+        target: 'esnext',
+        format: 'esm',
+        tsconfigRaw: {
+          compilerOptions: {
+            jsx: 'react-jsx'
+          }
+        }
+      }
     },
     // Configurações para melhor debugging
     css: {
       devSourcemap: true,
     },
     esbuild: {
-      logOverride: { 'this-is-undefined-in-esm': 'silent' }
+      logOverride: { 'this-is-undefined-in-esm': 'silent' },
+      jsx: 'automatic', // Garantir que JSX seja corretamente processado
     },
     preview: {
       port: 3000,

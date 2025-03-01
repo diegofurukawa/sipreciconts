@@ -243,3 +243,6 @@ SPECTACULAR_SETTINGS = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
+
+# Em settings.py
+APPEND_SLASH = False
