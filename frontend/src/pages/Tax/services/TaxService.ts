@@ -27,7 +27,10 @@ class TaxApiService extends ApiService {
    * Busca um imposto específico pelo ID
    */
   async getById(id: number): Promise<Tax> {
-    return this.get<Tax>(`${this.baseUrl}/${id}`);
+    if (id === undefined || id === null || isNaN(id)) {
+      throw new Error('ID do imposto inválido');
+    }
+    return this.get<Tax>(`${this.baseUrl}${id}/`);
   }
 
   /**
@@ -41,14 +44,14 @@ class TaxApiService extends ApiService {
    * Atualiza um imposto existente
    */
   async update(id: number, data: Partial<Tax>): Promise<Tax> {
-    return this.put<Tax>(`${this.baseUrl}/${id}/`, data);
+    return this.put<Tax>(`${this.baseUrl}${id}/`, data);
   }
 
   /**
    * Remove um imposto (soft delete)
    */
   async delete(id: number): Promise<void> {
-    await this.delete(`${this.baseUrl}/${id}/`);
+    await this.delete(`${this.baseUrl}${id}/`);
   }
 
   /**

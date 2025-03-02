@@ -19,7 +19,7 @@ import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useToast } from '@/hooks/useToast';
 import { taxService } from '@/pages/Tax/services/TaxService';
-import { TAX_ROUTES } from '../routes';
+import { TAX_ROUTES } from '@/pages/Tax/routes';
 import { TAX_TYPE_OPTIONS, TAX_GROUP_OPTIONS, CALC_OPERATOR_OPTIONS } from '@/pages/Tax/types/tax_types';
 
 // Schema de validação
@@ -38,7 +38,16 @@ const TaxForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const isEditMode = !!id;
+  
+  // Converter e validar o ID para evitar NaN
+  const parsedId = id ? parseInt(id) : null;
+  const isEditMode = !!parsedId && !isNaN(parsedId);
+  
+  // Logar para depuração
+  console.log('TaxForm - ID da URL:', id);
+  console.log('TaxForm - ID convertido:', parsedId);
+  console.log('TaxForm - Modo de edição:', isEditMode);
+  
   const [loading, setLoading] = React.useState(isEditMode);
   const [error, setError] = React.useState<string | null>(null);
   
@@ -57,10 +66,14 @@ const TaxForm: React.FC = () => {
   // Carregar dados se estiver em modo de edição
   useEffect(() => {
     const loadTax = async () => {
-      if (isEditMode && id) {
+      if (isEditMode && parsedId) {
         try {
           setLoading(true);
-          const tax = await taxService.getById(parseInt(id));
+          console.log('Carregando imposto com ID:', parsedId);
+          
+          const tax = await taxService.getById(parsedId);
+          console.log('Dados do imposto recebidos:', tax);
+          
           form.reset({
             acronym: tax.acronym,
             description: tax.description,
@@ -84,20 +97,22 @@ const TaxForm: React.FC = () => {
     };
 
     loadTax();
-  }, [id, isEditMode, form, showToast]);
+  }, [parsedId, isEditMode, form, showToast]);
 
   const onSubmit = async (data: TaxFormData) => {
     try {
       setLoading(true);
       
-      if (isEditMode && id) {
-        await taxService.update(parseInt(id), data);
+      if (isEditMode && parsedId) {
+        console.log('Atualizando imposto com ID:', parsedId, 'Dados:', data);
+        await taxService.update(parsedId, data);
         showToast({
           type: 'success',
           title: 'Sucesso',
           message: 'Imposto atualizado com sucesso'
         });
       } else {
+        console.log('Criando novo imposto com dados:', data);
         await taxService.create(data);
         showToast({
           type: 'success',
