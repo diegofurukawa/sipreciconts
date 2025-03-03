@@ -1,23 +1,54 @@
-// src/pages/Tax/types/index.ts
+// // src/pages/Tax/types/index.ts
+// export interface Tax {
+//   id?: number;
+//   acronym: string;
+//   description: string;
+//   type: string;  // 'tax' | 'fee'
+//   group: string; // 'federal' | 'state' | 'municipal' | 'other'
+//   calc_operator: string; // '%' | '0' | '+' | '-' | '*' | '/'
+//   value: number;
+//   enabled?: boolean;
+//   created?: string;
+//   updated?: string;
+// }
+
+// export interface TaxListParams {
+//   page?: number;
+//   limit?: number;
+//   search?: string;
+//   sort_by?: string;
+//   sort_order?: 'asc' | 'desc';
+// }
+
+
+// Interfaces
 export interface Tax {
   id?: number;
   acronym: string;
-  description: string;
-  type: string;  // 'tax' | 'fee'
-  group: string; // 'federal' | 'state' | 'municipal' | 'other'
-  calc_operator: string; // '%' | '0' | '+' | '-' | '*' | '/'
+  description?: string;
+  type: string;
+  group: string;
+  calc_operator: string;
   value: number;
-  enabled?: boolean;
   created?: string;
   updated?: string;
 }
 
 export interface TaxListParams {
   page?: number;
-  limit?: number;
+  page_size?: number;
   search?: string;
+  type?: string;
+  group?: string;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  count: number;
+  next: string | null;
+  previous: string | null;
 }
 
 // Labels para exibição

@@ -5,7 +5,8 @@ export { ApiService, apiService, createApiService } from './ApiService';
 export { authService } from '../modules/auth';
 export { customerService } from '../modules/customer';
 export { companyService } from '../modules/company';
-export { taxService } from '../modules/Tax';
+// export { taxService } from '@/services/modules/Tax';
+export { taxService } from '@/pages/Tax/services/TaxService';
 
 // Token service
 export { TokenService } from './TokenService';
