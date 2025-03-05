@@ -1,6 +1,6 @@
 // src/hooks/api/useCustomerApi.ts
 import { useCallback, useEffect, useState } from 'react';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/auth/context/CompanyContext';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/api/modules/customer';
 import type { 

@@ -1,7 +1,7 @@
 // src/services/api/TokenService.ts
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { API_CONFIG } from './constants';
+import { API_CONFIG } from '../../services/api/constants';
 
 interface TokenPayload {
   exp: number;

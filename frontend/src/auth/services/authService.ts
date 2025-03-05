@@ -1,7 +1,7 @@
 // src/services/modules/auth.ts
-import { ApiService } from "../api/ApiService";
-import { TokenService, UserSessionService } from "../api";
-import type { AuthUser } from '../../types/auth.types';
+import { ApiService } from "../../services/api/ApiService";
+import { TokenService, UserSessionService } from "../../services/api";
+import type { AuthUser } from '../types/auth_types';
 
 // Enum para códigos de erro
 export enum AuthErrorCode {

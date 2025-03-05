@@ -2,15 +2,15 @@
 // Core exports
 export { ApiService, apiService, createApiService } from './ApiService';
 // Service instances exports
-export { authService } from '../modules/auth';
+export { authService } from '../../auth/services/authService';
 export { customerService } from '../modules/customer';
 export { companyService } from '../modules/company';
 // export { taxService } from '@/services/modules/Tax';
 export { taxService } from '@/pages/Tax/services/TaxService';
 
 // Token service
-export { TokenService } from './TokenService';
-export { UserSessionService } from './UserSessionService';
+export { TokenService } from '../../auth/services/TokenService';
+export { UserSessionService } from '@/auth/services/UserSessionService';
 // import { useAuth } from '@/contexts/AuthContext';
 
 // Utils exports
@@ -52,24 +52,4 @@ export type {
   AuthResponse,
   AuthState,
   AuthUser
-} from '../modules/auth';
-
-export type {
-  Customer,
-  CustomerCreateData,
-  CustomerUpdateData,
-  CustomerListParams
-} from '../modules/customer';
-
-export type {
-  Company,
-  CompanyCreateData,
-  CompanyUpdateData,
-  CompanySettings
-} from '../modules/company';
-
-export type {
-  Tax,
-  TaxCreateData,
-  TaxUpdateData
-} from '../modules/Tax';
+} from '../../auth/services/authService';

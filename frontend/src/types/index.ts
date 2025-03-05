@@ -1,5 +1,5 @@
 
-export * from './auth.types';
+export * from '../auth/types/auth_types';
 export * from './routes.types';
 export * from './api.types';
 export * from './axios.types';

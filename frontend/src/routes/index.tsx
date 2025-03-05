@@ -1,7 +1,7 @@
 // src/routes/index.tsx
 import { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth/context/AuthContext";
 import { MainLayout } from '@/layouts/MainLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 

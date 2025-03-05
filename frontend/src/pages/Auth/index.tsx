@@ -1,6 +1,6 @@
 // src/pages/Login/index.tsx
 import { useState, useEffect } from 'react';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth/context/AuthContext";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
 

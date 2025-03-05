@@ -20,7 +20,8 @@ export default defineConfig(({ mode }) => {
         '@types': path.resolve(__dirname, './src/types'),
         '@layouts': path.resolve(__dirname, './src/layouts'),
         '@contexts': path.resolve(__dirname, './src/contexts'),
-        '@assets': path.resolve(__dirname, './src/assets')
+        '@assets': path.resolve(__dirname, './src/assets'),
+        '@auth': path.resolve(__dirname, './src/auth')
       },
       // Forçar extensões corretas para módulos dinâmicos
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']

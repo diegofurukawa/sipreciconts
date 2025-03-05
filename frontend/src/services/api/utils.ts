@@ -1,6 +1,6 @@
 // src/services/api/utils.ts
 import axios, { AxiosError, AxiosInstance } from 'axios';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth/context/AuthContext";
 import { TokenService, UserSessionService } from "@/services/api";
 import { 
   ApiError, 

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiService } from '@/services/api';
 import { useToast } from '@/hooks/useToast';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth/context/AuthContext';
 
 // Definição da interface Company
 export interface Company {

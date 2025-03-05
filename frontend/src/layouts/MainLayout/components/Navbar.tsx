@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/auth/context/AuthContext";
 import { ROUTES } from '@/routes/config/route-paths';
 import UserProfileDropdown from '@/components/UserProfileDropdown';
 

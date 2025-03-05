@@ -1,33 +1,13 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TokenService } from '@/services/api/TokenService';
-import { UserSessionService } from '@/services/api/UserSessionService';
-import { authService } from '@/services/modules/auth';
+import { TokenService } from '@/auth/services/TokenService';
+import { UserSessionService } from '@/auth/services/UserSessionService';
+import { authService } from '@/auth/services/authService';
 import { useToast } from '@/hooks/useToast';
-import type { AuthUser, AuthCredentials, AuthState as ApiAuthState } from '@/services/modules/auth';
-
-interface AuthState {
-  user: AuthUser | null;
-  token: string | null;
-  companyId?: string;
-  sessionId?: string | undefined;
-}
-
-interface AuthContextType {
-  isAuthenticated: boolean;
-  loading: boolean;
-  user: AuthUser | null;
-  companyId?: string;
-  signIn: (credentials: AuthCredentials) => Promise<void>;
-  signOut: (silent?: boolean) => Promise<void>;
-  updateUser: (data: Partial<AuthUser>) => void;
-  refreshUserInfo: () => Promise<void>;
-}
-
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
+import type { AuthCredentials } from '@/auth/services/authService';
+import type { AuthUser } from '../types/auth_types';
+import type { AuthState, AuthContextType, AuthProviderProps } from '@/auth/types/auth_types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

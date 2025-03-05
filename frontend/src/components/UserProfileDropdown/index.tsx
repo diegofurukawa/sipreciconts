@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
-import { authService } from '@/services/modules/auth';
+import { authService } from '@/auth/services/authService';
 
 interface UserProfileDropdownProps {
   isMobile?: boolean;

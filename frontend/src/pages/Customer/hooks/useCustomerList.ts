@@ -1,7 +1,7 @@
 // src/pages/Customer/hooks/useCustomerList.ts
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/auth/context/CompanyContext';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/api/modules/customer';
 import type { Customer } from '@/types/api';

@@ -24,9 +24,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/auth/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
-import { authService } from '@/services/modules/auth';
+import { authService } from '@/auth/services/authService';
 
 interface SessionDetails {
   is_valid: boolean;
