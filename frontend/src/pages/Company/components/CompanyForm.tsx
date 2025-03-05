@@ -1,8 +1,8 @@
 // src/pages/Company/components/CompanyForm.tsx
 import { useForm } from 'react-hook-form';
-import { useCompanyForm } from '../hooks/useCompanyForm';
-import { CompanyFormData } from '../types';
-import { companyValidators } from '../utils/validators';
+import { useCompanyForm } from '@/pages/Company/hooks/useCompanyForm';
+import { CompanyFormData } from '@/pages/Company/types/company_types';
+import { companyValidators } from '@/pages/Company/utils/validators';
 
 export const CompanyForm = () => {
   const {

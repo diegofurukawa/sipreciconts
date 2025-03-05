@@ -8,14 +8,12 @@ import type {
 import { AxiosHeaders } from 'axios';
 // Adicionar definição local para compatibilidade
 import type { AxiosRequestConfig } from '@/types/axios.types';
-import { useAuth } from "@/auth/context/AuthContext";
+// import { useAuth } from "@/auth/context/AuthContext";
 import { TokenService, UserSessionService } from "@/services/api";
 import { errorUtils, retryUtils } from './utils';
 import { API_CONFIG } from './constants';
 import type { 
-  ApiError, 
   ApiConfig, 
-  CustomRequestHeaders, 
   PaginatedResponse,
   ApiResponse 
 } from '../../types/api.types';
