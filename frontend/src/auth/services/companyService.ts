@@ -1,12 +1,17 @@
 // src/auth/services/companyService.ts
-import axios, { AxiosInstance } from 'axios';
+import axios, { 
+  AxiosInstance, 
+  AxiosResponse, 
+  AxiosError, 
+  InternalAxiosRequestConfig 
+} from 'axios';
 import { 
   Company, 
   CompanyListParams, 
   PaginatedCompanyResponse 
 } from '../types/company_types';
 import { TokenService } from './TokenService';
-import { UserUserSessionService } from './UserUserSessionService';
+import { UserSessionService } from './UserSessionService';
 import { API_CONFIG } from '../../config/api_config';
 
 /**
@@ -20,8 +25,8 @@ class CompanyService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: API_CONFIG.api.baseURL,
-      timeout: API_CONFIG.api.timeout
+      baseURL: API_CONFIG.baseURL,
+      timeout: API_CONFIG.timeout
     });
     
     this.setupInterceptors();
@@ -35,20 +40,22 @@ class CompanyService {
     
     // Request interceptor to add auth and company headers
     this.api.interceptors.request.use(
-      (config) => {
+      (config: InternalAxiosRequestConfig) => {
         const token = TokenService.getAccessToken();
         if (token) {
+          config.headers = config.headers || {};
           config.headers.Authorization = `Bearer ${token}`;
         }
         
-        const session = UserSessionService.getSession();
+        const session = UserSessionService.load();
         if (session?.sessionId) {
+          config.headers = config.headers || {};
           config.headers['X-Session-ID'] = session.sessionId;
         }
         
         return config;
       },
-      (error) => {
+      (error: any) => {
         console.error('❌ CompanyService - Request interceptor error:', error);
         return Promise.reject(error);
       }
@@ -56,8 +63,8 @@ class CompanyService {
 
     // Response interceptor for error handling
     this.api.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      (response: AxiosResponse) => response,
+      (error: AxiosError) => {
         console.error('❌ CompanyService - API error:', error);
         return Promise.reject(error);
       }
@@ -118,11 +125,10 @@ class CompanyService {
       this.setCurrentCompany(company);
       
       // Update session storage
-      const session = UserSessionService.getSession();
+      const session = UserSessionService.load();
       if (session) {
-        UserSessionService.updateSession({
-          companyId: company.company_id
-        });
+        session.switchCompany(company.company_id);
+        UserSessionService.save(session);
       }
       
       // Optional: Call API to notify about company switch

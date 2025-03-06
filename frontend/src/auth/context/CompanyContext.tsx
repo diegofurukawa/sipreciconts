@@ -2,7 +2,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company } from '@/pages/Company/types/company_types';
 
-import { ApiService as apiService } from '@/services/apiMainService';
+// Importação corrigida - importe a instância apiService, não a classe
+import { apiService } from '@/services/apiMainService';
 
 import { useAuth } from "@/auth/context/AuthContext";
 import { useToast } from '@/hooks/useToast';
@@ -39,7 +40,7 @@ export const CompanyProvider = ({ children }: CompanyProviderProps) => {
       
       const companyId = user.company_id;
       
-      // Usando o método público get do apiService
+      // Usando o método get da instância apiService
       const company = await apiService.get<Company>(`/companies/${companyId}/`);
 
       if (!company) {

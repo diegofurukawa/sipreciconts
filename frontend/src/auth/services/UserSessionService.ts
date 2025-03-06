@@ -1,7 +1,6 @@
 // src/services/api/UserSessionService.ts
-import { TokenService } from '../../auth/services/TokenService';
-// Importar do arquivo de tipos compartilhados em vez de auth.ts
-import type { AuthUser } from '../types/auth_types';
+import { TokenService } from '@/auth/services/TokenService';
+import type { AuthUser } from '@/auth/types/auth_types';
 
 export class UserSession {
   userId: number;
