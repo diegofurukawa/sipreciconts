@@ -2,17 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/useToast';
-import { apiService } from '@/services/api';
-import { CompanyFormData, INITIAL_COMPANY_FORM_DATA } from '../types';
+import { apiService } from '@/services/apiMainService';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-
-interface UseCompanyFormReturn {
-  companyData: CompanyFormData;
-  isLoading: boolean;
-  isSubmitting: boolean;
-  isEditMode: boolean;
-  onSubmit: (data: CompanyFormData) => Promise<void>;
-}
+import { INITIAL_COMPANY_FORM_DATA } from  '@/pages/Company/types';
+import type { 
+  CompanyFormData
+  ,UseCompanyFormReturn
+} from '@/pages/Company/types';
 
 export const useCompanyForm = (): UseCompanyFormReturn => {
   const [companyData, setCompanyData] = useState<CompanyFormData>(INITIAL_COMPANY_FORM_DATA);

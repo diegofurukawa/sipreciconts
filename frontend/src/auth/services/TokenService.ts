@@ -1,7 +1,7 @@
 // src/services/api/TokenService.ts
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { API_CONFIG } from '@/services/api/constants';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 
 interface TokenPayload {
   exp: number;
@@ -114,7 +114,7 @@ export class TokenService {
   // Obter um novo token usando o refresh token
   static async getNewToken(refreshToken: string): Promise<string | null> {
     try {
-      const response = await axios.post(`${API_CONFIG.baseURL}/auth/refresh/`, {
+      const response = await axios.post(`${DEFAULT_API_CONFIG.baseURL}/auth/refresh/`, {
         refresh: refreshToken
       });
       

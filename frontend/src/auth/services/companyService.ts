@@ -12,7 +12,7 @@ import {
 } from '../types/company_types';
 import { TokenService } from './TokenService';
 import { UserSessionService } from './UserSessionService';
-import { API_CONFIG } from '../../config/api_config';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 
 /**
  * Service for company management operations
@@ -25,8 +25,8 @@ class CompanyService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: API_CONFIG.baseURL,
-      timeout: API_CONFIG.timeout
+      baseURL: DEFAULT_API_CONFIG.baseURL,
+      timeout: DEFAULT_API_CONFIG.timeout
     });
     
     this.setupInterceptors();

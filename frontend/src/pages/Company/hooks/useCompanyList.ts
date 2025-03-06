@@ -1,36 +1,19 @@
 // src/pages/Company/hooks/useCompanyList.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '@/services/api';
+import { apiService } from '@/services/apiMainService';
 import { useToast } from '@/hooks/useToast';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 import { useAuth } from '@/auth/context/AuthContext';
+import type { 
+    Company
+    // , CompanyFormData
+    // , INITIAL_COMPANY_FORM_DATA
+    // , PaginatedResponse
+    , UseCompanyListProps 
+  } from '@/pages/Company/types';
 
-// Definição da interface Company
-export interface Company {
-  id: number;
-  name: string;
-  document?: string;
-  email?: string;
-  phone?: string;
-  enabled?: boolean;
-  created?: string;
-  updated?: string;
-  company_id?: string;
-}
 
-// Interface para resposta da API paginada
-interface PaginatedResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Company[];
-  total_count?: number;
-}
-
-interface UseCompanyListProps {
-  initialData?: Company[];
-}
 
 export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) => {
   const [companies, setCompanies] = useState<Company[]>(initialData);

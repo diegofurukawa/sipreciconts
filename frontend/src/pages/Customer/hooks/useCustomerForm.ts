@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/api/modules/customer';
 import { customerFormSchema, type CustomerFormSchema } from '../utils/validators';
-import type { Customer } from '../types';
+import type { Customer } from '../types/customer_types';
 
 interface UseCustomerFormProps {
   customer?: Customer;

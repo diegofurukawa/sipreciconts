@@ -10,7 +10,7 @@ import {
   import { useCustomerForm } from '../hooks/useCustomerForm';
   import { useNavigate } from 'react-router-dom';
   import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-  import type { Customer } from '../types';
+  import type { Customer } from '../types/customer_types';
   
   interface CustomerFormProps {
     customer?: Customer;

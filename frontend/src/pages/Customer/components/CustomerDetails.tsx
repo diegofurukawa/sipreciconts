@@ -39,7 +39,7 @@ import {
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/services/api/modules/customer';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-import type { Customer } from '../types';
+import type { Customer } from '../types/customer_types';
 
 interface CustomerDetailsProps {
   customerId: string;

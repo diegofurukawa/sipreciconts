@@ -3,9 +3,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/auth/context/CompanyContext';
 import { useToast } from '@/hooks/useToast';
-import { customerService } from '@/services/api/modules/customer';
-import type { Customer } from '@/types/api';
-import type { CustomerListParams, CustomerExportOptions } from '@/services/api/modules/customer';
+import { customerService } from '@/pages/Customer/services';
+import type { Customer } from '@/pages/Customer/types/customer_types';
+import type { CustomerListParams, CustomerExportOptions } from '@/pages/Customer/types/customer_types';
 
 export const useCustomerList = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
