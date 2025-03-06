@@ -1,7 +1,9 @@
 // src/contexts/CompanyContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Company } from '@/pages/Company/types';
-import { apiService } from '@/services/api';
+import { Company } from '@/pages/Company/types/company_types';
+
+import { ApiService as apiService } from '@/services/apiMainService';
+
 import { useAuth } from "@/auth/context/AuthContext";
 import { useToast } from '@/hooks/useToast';
 

@@ -1,5 +1,5 @@
 // src/services/modules/auth.ts
-import { ApiService } from "../../services/api/ApiService";
+import { ApiService } from '@/services/apiMainService';
 import { TokenService, UserSessionService } from "../../services/api";
 import type { AuthUser } from '../types/auth_types';
 

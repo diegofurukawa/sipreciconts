@@ -50,6 +50,5 @@ export type {
 export type {
   AuthCredentials,
   AuthResponse,
-  AuthState,
-  AuthUser
+  AuthState
 } from '../../auth/services/authService';

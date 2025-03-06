@@ -1,7 +1,6 @@
 // src/services/supplyService.ts
 import { Supply } from '../../types/supply';
-// src/services/api/modules/supply/index.ts
-import { ApiService } from '@/services/api';
+import { ApiService } from '@/services/apiMainService';
 import type { Supply, SupplyCreateData, SupplyUpdateData } from '../../types/api.types';
 import type { PaginatedResponse } from '../../types';
 

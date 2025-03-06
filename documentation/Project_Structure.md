@@ -266,7 +266,7 @@
 │   │   │   │   ├── routes.ts
 │   │   │   │   ├── services
 │   │   │   │   ├── types
-│   │   │   │   │   └── index.ts
+│   │   │   │   │   └── company_types.ts
 │   │   │   │   └── utils
 │   │   │   │       └── validators.ts
 │   │   │   ├── Contract
@@ -371,6 +371,32 @@
 │   │   │   │   ├── interceptors.ts
 │   │   │   │   ├── supply.ts
 │   │   │   │   └── utils.ts
+│   │   │   ├── apiMainService
+│   │   │   │   ├── ApiService.ts
+│   │   │   │   ├── auth
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── tokenManager.ts
+│   │   │   │   ├── config
+│   │   │   │   │   ├── apiConfig.ts
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── headers
+│   │   │   │   │   ├── headerManager.ts
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── interceptors
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── requestInterceptor.ts
+│   │   │   │   │   └── responseInterceptor.ts
+│   │   │   │   ├── requests
+│   │   │   │   │   ├── baseRequests.ts
+│   │   │   │   │   ├── fileRequests.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   └── paginatedRequests.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── errorHandler.ts
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── logger.ts
+│   │   │   │       └── retryManager.ts
 │   │   │   └── modules
 │   │   │       ├── company.ts
 │   │   │       ├── customer.ts
@@ -385,7 +411,8 @@
 │   │   │   └── routes.types.ts
 │   │   ├── utils
 │   │   │   ├── date.ts
-│   │   │   └── lazyImport.ts
+│   │   │   ├── lazyImport.ts
+│   │   │   └── logger.ts
 │   │   └── vite-env.d.ts
 │   ├── tailwind.config.js
 │   ├── tsconfig.app.json
@@ -396,4 +423,4 @@
 ├── README.md
 └── scripts
 
-110 directories, 286 files
+117 directories, 306 files
