@@ -1,25 +1,40 @@
 // src/pages/Company/hooks/useCompanyList.ts
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '@/services/apiMainService';
+import { useAuth } from '@/auth/context/AuthContext';
 import { useToast } from '@/hooks/useToast';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
-import { useAuth } from '@/auth/context/AuthContext';
-import type { 
-    Company
-    // , CompanyFormData
-    // , INITIAL_COMPANY_FORM_DATA
-    // , PaginatedResponse
-    , UseCompanyListProps 
-  } from '@/pages/Company/types';
+import { logger } from '@/utils/logger';
+import axios from 'axios';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
+import { headerManager } from '@/services/apiMainService/headers/headerManager';
+import type { Company } from '@/pages/Company/types/company_types';
 
+interface UseCompanyListProps {
+  initialData?: Company[];
+}
 
+interface CompanyApiResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Company[];
+}
 
+/**
+ * Hook para gerenciar listagem de empresas
+ * Integrado com o sistema de logging e estados de página
+ */
 export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) => {
+  // ID da página para logging consistente
+  const pageId = 'company_list';
+  
+  // Estado
   const [companies, setCompanies] = useState<Company[]>(initialData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -28,103 +43,48 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
     previousPage: null as string | null
   });
 
+  // Hooks
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const { signOut, isAuthenticated } = useAuth();
-
-  // Ref para controlar se o componente está montado
+  const { user } = useAuth();
+  
+  // Refs para controle de estado
   const isMounted = useRef(true);
-  
-  // Ref para controlar se uma requisição já está em andamento
   const isLoadingRef = useRef(false);
-  
-  // Ref para controlar se o primeiro load já foi feito
   const hasLoadedInitially = useRef(false);
-
-  // Carregar empresas a partir de uma URL completa
-  const loadCompaniesFromUrl = useCallback(async (url: string) => {
-    if (isLoadingRef.current || !isMounted.current) return;
-    
-    try {
-      isLoadingRef.current = true;
-      setLoading(true);
-      
-      // Fazer requisição diretamente à URL fornecida
-      const response = await apiService.get(url);
-      
-      if (!isMounted.current) return;
-      
-      // Processar a resposta
-      if (response && response.results && Array.isArray(response.results)) {
-        setCompanies(response.results);
-        
-        // Atualizar informações de paginação
-        const totalItems = response.count || response.total_count || 0;
-        const totalPages = Math.ceil(totalItems / 10); // Assumindo 10 itens por página
-        
-        // Extrair página atual da URL
-        let currentPage = 1;
-        const pageMatch = url.match(/page=(\d+)/);
-        if (pageMatch && pageMatch[1]) {
-          currentPage = parseInt(pageMatch[1], 10);
-        }
-        
-        setPagination({
-          currentPage,
-          totalPages,
-          totalItems,
-          nextPage: response.next,
-          previousPage: response.previous
-        });
-      } else {
-        console.warn('Formato de resposta inesperado em loadCompaniesFromUrl:', response);
-        setCompanies([]);
-      }
-    } catch (err: any) {
-      console.error('Erro ao carregar empresas da URL:', err);
-      
-      if (!isMounted.current) return;
-      
-      const errorMessage = err.response?.data?.message || 'Não foi possível carregar as empresas.';
-      setError(errorMessage);
-      
-      // Verificar se é erro de autenticação
-      if (err.response?.status === 401) {
-        handleAuthError();
-      } else {
-        showToast({
-          type: 'error',
-          title: 'Erro ao carregar empresas',
-          message: errorMessage
-        });
-      }
-      
-      setCompanies([]);
-    } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
-      isLoadingRef.current = false;
-    }
-  }, [showToast]);
-
-  // Lidar com erros de autenticação
-  const handleAuthError = useCallback(() => {
-    showToast({
-      type: 'warning',
-      title: 'Sessão expirada',
-      message: 'Sua sessão expirou. Por favor, faça login novamente.'
+  
+  // Log de inicialização
+  useEffect(() => {
+    logger.debug('HookInitialization', 'useCompanyList initialized', { 
+      pageId,
+      initialDataCount: initialData.length
     });
     
-    // Redirecionar para o login com retorno para a página atual
-    const currentPath = window.location.pathname;
-    signOut();
-    navigate(`/login?redirect=${encodeURIComponent(currentPath)}`);
-  }, [navigate, showToast, signOut]);
+    return () => {
+      isMounted.current = false;
+      logger.debug('HookCleanup', 'useCompanyList cleanup', { pageId });
+    };
+  }, [initialData.length]);
+  
+  // Configuração inicial para os headers de autenticação
+  useEffect(() => {
+    // Configura o token de autenticação no headerManager
+    const token = localStorage.getItem('token');
+    if (token) {
+      headerManager.setAuthToken(token);
+    }
+    
+    // Configura o ID da empresa se disponível
+    if (user?.company_id) {
+      headerManager.setCompanyId(user.company_id);
+    }
+  }, [user?.company_id]);
 
-  // Carregar empresas com parâmetros de paginação
+  /**
+   * Carrega a lista de empresas
+   * @param page Número da página a ser carregada
+   */
   const loadCompanies = useCallback(async (page = 1) => {
-    // Evita múltiplas requisições simultâneas
     if (isLoadingRef.current || !isMounted.current) return;
     
     try {
@@ -132,101 +92,113 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
       setLoading(true);
       setError(null);
       
-      // Verificar autenticação
-      if (!isAuthenticated) {
-        handleAuthError();
-        return;
-      }
+      logger.info('DataLoading', 'Loading companies', { 
+        pageId, 
+        page, 
+        companyId: user?.company_id
+      });
       
-      // Construir parâmetros da requisição
-      const params = { page };
+      // Obtém o company_id do usuário ou usa um valor padrão
+      const companyId = user?.company_id || 'ADMIN';
       
-      // Chamada à API
-      const response = await apiService.get('/companies/', { params });
+      // Constrói a URL base corretamente
+      const baseUrl = DEFAULT_API_CONFIG?.baseURL || 'http://localhost:8000/api';
       
-      // Verificar se o componente ainda está montado antes de atualizar o estado
-      if (!isMounted.current) return;
+      // Constrói a URL completa com os parâmetros
+      // Inclui searchTerm se definido
+      const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+      const urlWithParams = `${baseUrl}/companies/?page=${page}&limit=10&sort_by=name&sort_order=asc&company_id=${companyId}${searchParam}`;
       
-      // Verificar a estrutura da resposta e extrair os dados corretamente
-      if (response && response.results && Array.isArray(response.results)) {
-        // Este é o formato detectado nos logs: { count, next, previous, results, total_count }
-        setCompanies(response.results);
+      // Obtém os headers do headerManager
+      const headers = headerManager.getHeaders();
+      
+      // Faz a requisição com os headers corretos
+      const response = await axios.get(urlWithParams, { headers });
+      
+      const data = response.data;
+      
+      if (data && data.results && Array.isArray(data.results)) {
+        setCompanies(data.results);
         
-        // Atualizar informações de paginação
-        const totalItems = response.count || response.total_count || 0;
-        const totalPages = Math.ceil(totalItems / 10); // Assumindo 10 itens por página
-        
-        setPagination({
-          currentPage: page,
-          totalPages,
-          totalItems,
-          nextPage: response.next,
-          previousPage: response.previous
-        });
-      } else if (response && Array.isArray(response)) {
-        // Se a resposta já for um array
-        setCompanies(response);
-        setPagination({
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: response.length,
-          nextPage: null,
-          previousPage: null
-        });
-      } else if (response && response.data && Array.isArray(response.data)) {
-        // Se a resposta tiver uma propriedade data que é um array
-        setCompanies(response.data);
-        setPagination({
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: response.data.length,
-          nextPage: null,
-          previousPage: null
-        });
-      } else if (response && response.data && response.data.results && Array.isArray(response.data.results)) {
-        // Se a resposta tiver data.results que é um array
-        setCompanies(response.data.results);
-        
-        // Atualizar informações de paginação
-        const totalItems = response.data.count || response.data.total_count || 0;
-        const totalPages = Math.ceil(totalItems / 10); // Assumindo 10 itens por página
+        const totalItems = data.count || 0;
+        const totalPages = Math.ceil(totalItems / 10);
         
         setPagination({
           currentPage: page,
           totalPages,
           totalItems,
-          nextPage: response.data.next,
-          previousPage: response.data.previous
+          nextPage: data.next,
+          previousPage: data.previous
+        });
+        
+        logger.info('DataLoading', 'Companies loaded successfully', { 
+          pageId,
+          count: data.results.length,
+          totalItems,
+          totalPages,
+          page
         });
       } else {
-        console.warn('Formato de resposta inesperado:', response);
-        setCompanies([]);
-        setPagination({
-          currentPage: 1,
-          totalPages: 1,
-          totalItems: 0,
-          nextPage: null,
-          previousPage: null
+        logger.warn('DataLoading', 'Unexpected response format', { 
+          pageId, 
+          responseType: typeof data,
+          hasResults: !!data?.results
         });
+        setCompanies([]);
       }
-    } catch (err: any) {
-      console.error('Erro ao carregar empresas:', err);
+    } catch (error: any) {
+      logger.error('DataLoading', 'Error loading companies', { 
+        pageId,
+        statusCode: error.response?.status,
+        errorMessage: error.message
+      }, error);
       
-      if (!isMounted.current) return;
+      let errorMessage = 'Erro ao carregar empresas';
+      if (error.response) {
+        errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
+        if (error.response.data && error.response.data.detail) {
+          errorMessage += ` - ${error.response.data.detail}`;
+        }
+        
+        // Tratamento especial para erro 401 (Unauthorized)
+        if (error.response.status === 401) {
+          // Verifica se há token para determinar se o erro é de token inválido ou falta de token
+          const hasToken = !!localStorage.getItem('token');
+          
+          if (hasToken) {
+            errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.';
+            
+            // Limpa dados de autenticação
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            headerManager.clearAuthHeaders();
+            
+            // Redireciona para login
+            setTimeout(() => {
+              // window.location.href = '/login?expired=true';
+              navigate('/login?expired=true');
+            }, 1500);
+          } else {
+            errorMessage = 'Você precisa fazer login para acessar esta página.';
+            
+            // Redireciona para login
+            setTimeout(() => {
+              // window.location.href = '/login';
+              navigate('/login');
+            }, 1000);
+          }
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       
-      const errorMessage = err.response?.data?.message || 'Não foi possível carregar as empresas.';
       setError(errorMessage);
       
-      // Verificar se é erro de autenticação
-      if (err.response?.status === 401) {
-        handleAuthError();
-      } else {
-        showToast({
-          type: 'error',
-          title: 'Erro ao carregar empresas',
-          message: errorMessage
-        });
-      }
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: errorMessage
+      });
       
       setCompanies([]);
     } finally {
@@ -235,38 +207,37 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
       }
       isLoadingRef.current = false;
     }
-  }, [showToast, isAuthenticated, handleAuthError]);
+  }, [showToast, user?.company_id, searchTerm]);
 
-  // Trocar de página
+  /**
+   * Muda a página na paginação
+   */
   const handlePageChange = useCallback((page: number) => {
     if (page === pagination.currentPage) return;
     
-    // Se temos URL para próxima/página anterior, use-a diretamente
-    if (page > pagination.currentPage && pagination.nextPage) {
-      loadCompaniesFromUrl(pagination.nextPage);
-    } else if (page < pagination.currentPage && pagination.previousPage) {
-      loadCompaniesFromUrl(pagination.previousPage);
-    } else {
-      // Caso contrário, construa a URL com o parâmetro de página
-      loadCompanies(page);
-    }
-  }, [pagination, loadCompanies, loadCompaniesFromUrl]);
+    logger.userAction('pagination_change', { 
+      pageId, 
+      fromPage: pagination.currentPage,
+      toPage: page
+    });
+    
+    loadCompanies(page);
+  }, [pagination.currentPage, loadCompanies, pageId]);
 
+  /**
+   * Exclui uma empresa
+   */
   const handleDelete = useCallback(async (id: number) => {
     if (!isMounted.current) return;
     
     try {
+      logger.userAction('delete_company', { pageId, companyId: id });
       setDeleteLoading(id);
       
-      // Verificar autenticação
-      if (!isAuthenticated) {
-        handleAuthError();
-        return;
-      }
+      const baseUrl = DEFAULT_API_CONFIG?.baseURL || 'http://localhost:8000/api';
+      const headers = headerManager.getHeaders();
       
-      await apiService.delete(`/companies/${id}`);
-      
-      if (!isMounted.current) return;
+      await axios.delete(`${baseUrl}/companies/${id}/`, { headers });
       
       showToast({
         type: 'success',
@@ -274,21 +245,34 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
         message: 'Empresa excluída com sucesso'
       });
       
-      // Recarrega a lista após excluir para sincronizar com o servidor
-      loadCompanies(pagination.currentPage);
-    } catch (err: any) {
-      if (!isMounted.current) return;
+      logger.info('DataAction', 'Company deleted successfully', { 
+        pageId, 
+        companyId: id 
+      });
       
-      // Verificar se é erro de autenticação
-      if (err.response?.status === 401) {
-        handleAuthError();
-        return;
+      // Recarrega a lista após excluir
+      loadCompanies(pagination.currentPage);
+    } catch (error: any) {
+      logger.error('DataAction', 'Error deleting company', { 
+        pageId,
+        companyId: id,
+        statusCode: error.response?.status,
+        errorMessage: error.message
+      }, error);
+      
+      let errorMessage = 'Erro ao excluir empresa';
+      if (error.response) {
+        errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
+        if (error.response.data && error.response.data.detail) {
+          errorMessage += ` - ${error.response.data.detail}`;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
       
-      const errorMessage = err.response?.data?.message || 'Erro ao excluir empresa.';
       showToast({
         type: 'error',
-        title: 'Erro ao excluir',
+        title: 'Erro',
         message: errorMessage
       });
     } finally {
@@ -296,142 +280,86 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
         setDeleteLoading(null);
       }
     }
-  }, [loadCompanies, showToast, pagination.currentPage, isAuthenticated, handleAuthError]);
+  }, [loadCompanies, pagination.currentPage, showToast, pageId]);
 
+  /**
+   * Navega para a página de edição
+   */
   const handleEdit = useCallback((id: number) => {
+    logger.userAction('edit_company', { pageId, companyId: id });
     navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
-  }, [navigate]);
+  }, [navigate, pageId]);
 
+  /**
+   * Navega para a página de criação
+   */
   const handleNew = useCallback(() => {
+    logger.userAction('create_new_company', { pageId });
     navigate(CADASTROS_ROUTES.EMPRESA.NEW);
-  }, [navigate]);
+  }, [navigate, pageId]);
 
+  /**
+   * Navega para a página de detalhes
+   */
   const handleView = useCallback((id: number) => {
+    logger.userAction('view_company_details', { pageId, companyId: id });
     navigate(CADASTROS_ROUTES.EMPRESA.DETAILS(id));
-  }, [navigate]);
+  }, [navigate, pageId]);
 
-  // Importação de empresas
-  const handleImport = useCallback(async (file: File, onProgress?: (percentage: number) => void) => {
-    if (!isMounted.current) return;
+  /**
+   * Realiza busca de empresas
+   */
+  const handleSearch = useCallback(async (term: string) => {
+    setSearchTerm(term);
     
-    try {
-      // Verificar autenticação
-      if (!isAuthenticated) {
-        handleAuthError();
-        return;
-      }
-      
-      // Criar FormData
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Configuração para upload com progresso
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent: any) => {
-          if (onProgress && progressEvent.total) {
-            const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            onProgress(percentage);
-          }
-        }
-      };
-      
-      await apiService.post('/companies/import/', formData, config);
-      
-      showToast({
-        type: 'success',
-        title: 'Sucesso',
-        message: 'Empresas importadas com sucesso'
-      });
-      
-      // Recarregar lista
-      loadCompanies(1);
-    } catch (err: any) {
-      if (!isMounted.current) return;
-      
-      // Verificar se é erro de autenticação
-      if (err.response?.status === 401) {
-        handleAuthError();
-        return;
-      }
-      
-      const errorMessage = err.response?.data?.message || 'Erro ao importar empresas.';
-      showToast({
-        type: 'error',
-        title: 'Erro ao importar',
-        message: errorMessage
-      });
-    }
-  }, [loadCompanies, showToast, isAuthenticated, handleAuthError]);
-
-  // Exportação de empresas
-  const handleExport = useCallback(async (format: 'csv' | 'xlsx' = 'xlsx') => {
-    if (!isMounted.current) return;
+    logger.userAction('search_companies', { 
+      pageId, 
+      searchTerm: term,
+      isEmpty: !term.trim()
+    });
     
-    try {
-      // Verificar autenticação
-      if (!isAuthenticated) {
-        handleAuthError();
-        return;
-      }
-      
-      // Configuração para download
-      const config = {
-        responseType: 'blob' as 'blob',
-        headers: {
-          'Accept': format === 'xlsx' 
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv'
-        }
-      };
-      
-      const response = await apiService.get('/companies/export/', config);
-      
-      // Criar URL para download
-      const url = window.URL.createObjectURL(new Blob([response]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `empresas.${format}`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showToast({
-        type: 'success',
-        title: 'Sucesso',
-        message: 'Arquivo exportado com sucesso'
-      });
-    } catch (err: any) {
-      if (!isMounted.current) return;
-      
-      // Verificar se é erro de autenticação
-      if (err.response?.status === 401) {
-        handleAuthError();
-        return;
-      }
-      
-      const errorMessage = err.response?.data?.message || 'Erro ao exportar empresas.';
-      showToast({
-        type: 'error',
-        title: 'Erro ao exportar',
-        message: errorMessage
-      });
-    }
-  }, [showToast, isAuthenticated, handleAuthError]);
+    // Reset para a primeira página
+    loadCompanies(1);
+  }, [loadCompanies, pageId]);
 
-  // Carrega os dados iniciais apenas uma vez na montagem
+  /**
+   * Simula funcionalidade de importação
+   */
+  const handleImport = useCallback(() => {
+    logger.userAction('import_companies', { pageId });
+    
+    showToast({
+      type: 'info',
+      title: 'Importação',
+      message: 'Funcionalidade de importação em desenvolvimento'
+    });
+  }, [showToast, pageId]);
+
+  /**
+   * Simula funcionalidade de exportação
+   */
+  const handleExport = useCallback(() => {
+    logger.userAction('export_companies', { pageId });
+    
+    showToast({
+      type: 'info',
+      title: 'Exportação',
+      message: 'Funcionalidade de exportação em desenvolvimento'
+    });
+  }, [showToast, pageId]);
+
+  // Carregar dados iniciais
   useEffect(() => {
     isMounted.current = true;
     
-    // Verifica se já carregou os dados para não gerar requisições duplicadas
     if (!hasLoadedInitially.current) {
       hasLoadedInitially.current = true;
+      
+      // Carrega os dados quando o componente é montado
       loadCompanies();
     }
     
-    // Cleanup function para quando o componente desmontar
+    // Cleanup na desmontagem
     return () => {
       isMounted.current = false;
     };
@@ -444,6 +372,8 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
     error,
     deleteLoading,
     pagination,
+    searchTerm,
+    pageId,
     
     // Ações
     handleDelete,
@@ -451,9 +381,11 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
     handleNew,
     handleView,
     handlePageChange,
+    handleSearch,
     handleImport,
     handleExport,
-    refresh: loadCompanies,
+    refresh: () => loadCompanies(),
+    retry: () => loadCompanies(pagination.currentPage),
     
     // Utilitários
     isDeleting: (id: number) => deleteLoading === id,
@@ -462,5 +394,4 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
   };
 };
 
-// Tipo de retorno do hook para type safety
 export type UseCompanyListReturn = ReturnType<typeof useCompanyList>;

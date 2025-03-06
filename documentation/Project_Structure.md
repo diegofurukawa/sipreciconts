@@ -170,6 +170,15 @@
 │   │   │   ├── LoadingSpinner
 │   │   │   │   ├── index.tsx
 │   │   │   │   └── LoadingFallback.tsx
+│   │   │   ├── PageHeader
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── PageHeaderActions.tsx
+│   │   │   │   └── PageHeader.tsx
+│   │   │   ├── PageStates
+│   │   │   │   ├── index.ts
+│   │   │   │   └── PageStates.tsx
+│   │   │   ├── ProfileDropdownMenu
+│   │   │   │   └── index.tsx
 │   │   │   ├── RouteDebug.tsx
 │   │   │   ├── ui
 │   │   │   │   ├── accordion
@@ -181,6 +190,7 @@
 │   │   │   │   │   ├── alert-dialog.tsx
 │   │   │   │   │   └── index.ts
 │   │   │   │   ├── avatar.tsx
+│   │   │   │   ├── badge.tsx
 │   │   │   │   ├── button.tsx
 │   │   │   │   ├── card.tsx
 │   │   │   │   ├── date-formatters.tsx
@@ -265,8 +275,12 @@
 │   │   │   │   ├── index.tsx
 │   │   │   │   ├── routes.ts
 │   │   │   │   ├── services
+│   │   │   │   │   └── company.ts
+│   │   │   │   ├── structure
+│   │   │   │   │   └── company_structure.md
 │   │   │   │   ├── types
-│   │   │   │   │   └── company_types.ts
+│   │   │   │   │   ├── company_types.ts
+│   │   │   │   │   └── index.ts
 │   │   │   │   └── utils
 │   │   │   │       └── validators.ts
 │   │   │   ├── Contract
@@ -292,7 +306,11 @@
 │   │   │   │   ├── index.tsx
 │   │   │   │   ├── routes
 │   │   │   │   │   └── index.tsx
+│   │   │   │   ├── services
+│   │   │   │   │   ├── customer.ts
+│   │   │   │   │   └── index.ts
 │   │   │   │   ├── types
+│   │   │   │   │   ├── customer_types.ts
 │   │   │   │   │   └── index.ts
 │   │   │   │   └── utils
 │   │   │   │       └── validators.ts
@@ -343,6 +361,7 @@
 │   │   │   │       └── tax_types.ts
 │   │   │   └── UserProfile
 │   │   │       ├── index.tsx
+│   │   │       ├── routes.tsx
 │   │   │       └── SessionInfoPage.tsx
 │   │   ├── providers
 │   │   ├── react-app-env.d.ts
@@ -362,56 +381,44 @@
 │   │   │       └── tax.routes.tsx
 │   │   ├── services
 │   │   │   ├── api
-│   │   │   │   ├── ApiService.ts
-│   │   │   │   ├── base.ts
-│   │   │   │   ├── config.ts
-│   │   │   │   ├── constants.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── instance.ts
-│   │   │   │   ├── interceptors.ts
-│   │   │   │   ├── supply.ts
-│   │   │   │   └── utils.ts
-│   │   │   ├── apiMainService
-│   │   │   │   ├── ApiService.ts
-│   │   │   │   ├── auth
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   └── tokenManager.ts
-│   │   │   │   ├── config
-│   │   │   │   │   ├── apiConfig.ts
-│   │   │   │   │   └── index.ts
-│   │   │   │   ├── headers
-│   │   │   │   │   ├── headerManager.ts
-│   │   │   │   │   └── index.ts
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── interceptors
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   ├── requestInterceptor.ts
-│   │   │   │   │   └── responseInterceptor.ts
-│   │   │   │   ├── requests
-│   │   │   │   │   ├── baseRequests.ts
-│   │   │   │   │   ├── fileRequests.ts
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   └── paginatedRequests.ts
-│   │   │   │   └── utils
-│   │   │   │       ├── errorHandler.ts
-│   │   │   │       ├── index.ts
-│   │   │   │       ├── logger.ts
-│   │   │   │       └── retryManager.ts
-│   │   │   └── modules
-│   │   │       ├── company.ts
-│   │   │       ├── customer.ts
-│   │   │       └── index.ts
+│   │   │   └── apiMainService
+│   │   │       ├── ApiService.ts
+│   │   │       ├── auth
+│   │   │       │   ├── index.ts
+│   │   │       │   └── tokenManager.ts
+│   │   │       ├── config
+│   │   │       │   ├── apiConfig.ts
+│   │   │       │   └── index.ts
+│   │   │       ├── headers
+│   │   │       │   ├── headerManager.ts
+│   │   │       │   └── index.ts
+│   │   │       ├── index.ts
+│   │   │       ├── interceptors
+│   │   │       │   ├── index.ts
+│   │   │       │   ├── requestInterceptor.ts
+│   │   │       │   └── responseInterceptor.ts
+│   │   │       ├── requests
+│   │   │       │   ├── baseRequests.ts
+│   │   │       │   ├── fileRequests.ts
+│   │   │       │   ├── index.ts
+│   │   │       │   └── paginatedRequests.ts
+│   │   │       └── utils
+│   │   │           ├── errorHandler.ts
+│   │   │           ├── index.ts
+│   │   │           ├── logger.ts
+│   │   │           └── retryManager.ts
 │   │   ├── setupTests.ts
 │   │   ├── styles
 │   │   │   └── globals.css
 │   │   ├── types
-│   │   │   ├── api.types.ts
+│   │   │   ├── api_types.ts
 │   │   │   ├── axios.types.ts
 │   │   │   ├── index.ts
 │   │   │   └── routes.types.ts
 │   │   ├── utils
 │   │   │   ├── date.ts
 │   │   │   ├── lazyImport.ts
+│   │   │   ├── logger copy.ts
 │   │   │   └── logger.ts
 │   │   └── vite-env.d.ts
 │   ├── tailwind.config.js
@@ -423,4 +430,4 @@
 ├── README.md
 └── scripts
 
-117 directories, 306 files
+121 directories, 309 files

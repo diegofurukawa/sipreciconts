@@ -1,4 +1,5 @@
 // src/services/modules/auth.ts
+import { useNavigate } from 'react-router-dom';
 import { ApiService } from '@/services/apiMainService';
 import { TokenService, UserSessionService } from "@/auth/services";
 import type { AuthUser } from '../types/auth_types';
@@ -61,6 +62,8 @@ export interface ValidateResponse {
     message: string;
   }>;
 }
+
+// const navigate = useNavigate();
 
 class AuthApiService extends ApiService {
   private readonly baseUrl = '/auth';
@@ -188,6 +191,7 @@ class AuthApiService extends ApiService {
     } finally {
       this.clearAuthData();
       window.location.href = '/login';
+      // navigate('/login');
     }
   }
 
@@ -364,6 +368,7 @@ class AuthApiService extends ApiService {
   private async handleSessionExpired(): Promise<void> {
     this.clearAuthData();
     window.location.href = '/login?session=expired';
+    // navigate('/login?session=expired');
   }
 
   /**

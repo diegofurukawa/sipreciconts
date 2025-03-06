@@ -19,7 +19,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/auth/context/AuthContext";
 import { ROUTES } from '@/routes/config/route-paths';
-import UserProfileDropdown from '@/components/UserProfileDropdown';
+import UserProfileDropdown from '@/pages/UserProfile/components/UserProfileDropdown';
 
 // Tipos
 interface MenuItem {

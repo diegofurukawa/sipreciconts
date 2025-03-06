@@ -12,9 +12,14 @@ export const ROUTES = {
     HOME: '/',
     DASHBOARD: '/dashboard',
     
+    // Adicione esta seção ao objeto ROUTES.PRIVATE na rota routes-path.ts:
+
     USER_PROFILE: {
       ROOT: '/perfil',
       SESSION: '/perfil/session',
+      SECURITY: '/perfil/seguranca',
+      PREFERENCES: '/perfil/preferencias',
+      PERSONAL: '/perfil/pessoal',
     },
     
     CADASTROS: {
@@ -105,7 +110,8 @@ export const ROUTES = {
       ROOT: '/ajuda',
       DOCUMENTACAO: '/ajuda/documentacao',
       SUPORTE: '/ajuda/suporte',
-    }
+    },
+
   }
 } as const;
 

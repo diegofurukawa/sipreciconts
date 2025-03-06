@@ -1,6 +1,7 @@
 // src/hooks/useAuth.ts
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 
 // Interface para as credenciais de login
 interface LoginCredentials {
@@ -29,7 +30,7 @@ interface AuthResponse {
 
 // Configuração base do axios
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: `${DEFAULT_API_CONFIG.baseURL}`,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -1,5 +1,5 @@
 // src/services/apiMainService/headers/index.ts
-import { headerManager } from './headerManager';
+import { headerManager } from '@/services/apiMainService/headers/headerManager';
 
 export { headerManager };
 

@@ -133,35 +133,3 @@ export default {
   HTTP_STATUS,
   ERROR_MESSAGES
 };
-
-
-
-
-// src/services/api/constants.ts
-// export const API_CONFIG = {
-//   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-//   timeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
-//   headers: {
-//     'Content-Type': 'application/json',
-//     Accept: 'application/json'
-//   }
-// } as const;
-
-// export const RETRY_CONFIG = {
-//   maxAttempts: parseInt(import.meta.env.VITE_API_RETRY_ATTEMPTS || '3'),
-//   baseDelay: parseInt(import.meta.env.VITE_API_RETRY_DELAY || '1000'),
-//   statusCodes: [408, 429, 500, 502, 503, 504]
-// } as const;
-
-// // Agrupamento de todas as constantes
-// export const API_CONSTANTS = {
-//   CONFIG: API_CONFIG,
-//   RETRY: RETRY_CONFIG,
-//   ERROR_MESSAGES,
-//   HTTP_STATUS
-// } as const;
-
-// // Types
-// export type ErrorMessages = typeof ERROR_MESSAGES;
-// export type HttpStatus = typeof HTTP_STATUS;
-// export type ApiConstants = typeof API_CONSTANTS;

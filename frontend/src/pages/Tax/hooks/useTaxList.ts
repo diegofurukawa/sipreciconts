@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { taxService } from '../services/TaxService';
-import type { Tax, TaxListParams } from '../types/tax_types';
+import type { Tax, TaxListParams } from '@/pages/Tax/types';
 
 interface UseTaxListReturn {
   taxes: Tax[];

@@ -3,18 +3,18 @@
 /**
  * Configuração base para serviços de API
  */
-export interface ApiConfig {
-  /** URL base para todas as requisições da API */
-  baseURL: string;
-  /** Tempo limite para requisições em milissegundos */
-  timeout?: number;
-  /** Número de tentativas de retry em caso de falha */
-  retryAttempts?: number;
-  /** Delay entre tentativas de retry em milissegundos */
-  retryDelay?: number;
-  /** Headers padrão para todas as requisições */
-  headers?: Record<string, string>;
-}
+// export interface ApiConfig {
+//   /** URL base para todas as requisições da API */
+//   baseURL: string;
+//   /** Tempo limite para requisições em milissegundos */
+//   timeout?: number;
+//   /** Número de tentativas de retry em caso de falha */
+//   retryAttempts?: number;
+//   /** Delay entre tentativas de retry em milissegundos */
+//   retryDelay?: number;
+//   /** Headers padrão para todas as requisições */
+//   headers?: Record<string, string>;
+// }
 
 /**
  * Configuração para retry de requisições

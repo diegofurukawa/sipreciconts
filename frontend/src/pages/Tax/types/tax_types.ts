@@ -1,26 +1,3 @@
-// // src/pages/Tax/types/index.ts
-// export interface Tax {
-//   id?: number;
-//   acronym: string;
-//   description: string;
-//   type: string;  // 'tax' | 'fee'
-//   group: string; // 'federal' | 'state' | 'municipal' | 'other'
-//   calc_operator: string; // '%' | '0' | '+' | '-' | '*' | '/'
-//   value: number;
-//   enabled?: boolean;
-//   created?: string;
-//   updated?: string;
-// }
-
-// export interface TaxListParams {
-//   page?: number;
-//   limit?: number;
-//   search?: string;
-//   sort_by?: string;
-//   sort_order?: 'asc' | 'desc';
-// }
-
-
 // Interfaces
 export interface Tax {
   id?: number;

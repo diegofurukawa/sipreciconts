@@ -1,7 +1,7 @@
 
 export * from '../auth/types/auth_types';
 export * from './routes.types';
-export * from './api.types';
+export * from './api_types';
 export * from './axios.types';
 
 // export * from './user.types';

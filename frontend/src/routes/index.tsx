@@ -1,5 +1,5 @@
 // src/routes/index.tsx
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/auth/context/AuthContext";
 import { MainLayout } from '@/layouts/MainLayout';
@@ -13,6 +13,10 @@ import { NotFoundPage } from '@/pages/NotFound';
 // Import das rotas de módulos
 import { cadastrosRoutes } from './modules/cadastros.routes';
 import { comercialRoutes } from './modules/comercial.routes';
+
+// Páginas de Perfil do Usuário
+const UserProfilePage = React.lazy(() => import('@/pages/UserProfile'));
+const SessionInfoPage = React.lazy(() => import('@/pages/UserProfile/SessionInfoPage'));
 
 
 // Componente de loading padrão
@@ -127,9 +131,15 @@ export const AppRoutes = () => {
         }
       />
 
+      {/* Perfil do Usuário */}
+      <Route path="perfil">
+        <Route index element={<UserProfilePage />} />
+        <Route path="session" element={<SessionInfoPage />} />
+      </Route>
+
+
       {/* Módulo de Cadastros */}
-      <Route
-        path="/cadastros/*"
+      <Route path="/cadastros/*"
         element={
           <PrivateRoute>
             <Suspense fallback={<LoadingFallback />}>

@@ -8,6 +8,7 @@ interface EmptyStateProps {
   icon?: React.ReactNode;
   action?: React.ReactNode;
   className?: string;
+  pageId?: string;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({

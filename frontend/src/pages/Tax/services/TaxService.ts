@@ -1,11 +1,11 @@
 // src/pages/Tax/services/TaxService.ts
 import axios from 'axios';
-import { APP_CONFIG } from '@/config';
-import type { PaginatedResponse } from '@/types/api.types';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
+import type { PaginatedResponse } from '@/types/api_types';
 import type { Tax, TaxListParams } from '@/pages/Tax/types/tax_types';
 
 // URL base para o serviço de impostos
-const baseUrl = `${APP_CONFIG.api.baseURL}/taxes/`;
+const baseUrl = `${DEFAULT_API_CONFIG.baseURL}/taxes/`;
 
 // Função para obter headers com autenticação
 const getHeaders = () => {

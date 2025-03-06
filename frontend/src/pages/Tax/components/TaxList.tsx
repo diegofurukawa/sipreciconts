@@ -8,7 +8,8 @@ import {
   Pencil, 
   Trash2, 
   Search, 
-  X 
+  X,
+  RefreshCw 
 } from 'lucide-react';
 import { 
   Card, 
@@ -65,28 +66,31 @@ const TaxList: React.FC = () => {
   const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
   const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
 
+  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
+  // Handle search form submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleSearch(searchTerm);
   };
 
+  // Clear search input
   const handleSearchClear = () => {
     setSearchTerm('');
     handleSearch('');
   };
 
+  // Navigate to new tax form
   const handleNewClick = useCallback(() => {
     navigate(TAX_ROUTES.NEW);
   }, [navigate]);
 
+  // Navigate to edit tax form
   const handleEditClick = useCallback((id: number) => {
-    // Garantindo que o ID seja válido antes de navegar
     if (id !== undefined && id !== null && !isNaN(Number(id))) {
-      console.log('Navegando para edição do imposto:', id);
       navigate(TAX_ROUTES.EDIT(id));
     } else {
       showToast({
@@ -97,8 +101,8 @@ const TaxList: React.FC = () => {
     }
   }, [navigate, showToast]);
 
+  // Open delete confirmation dialog
   const handleDeleteClick = useCallback((id: number) => {
-    // Garantindo que o ID seja válido antes de abrir o diálogo
     if (id !== undefined && id !== null && !isNaN(Number(id))) {
       setDeleteDialog({ show: true, id });
     } else {
@@ -110,6 +114,7 @@ const TaxList: React.FC = () => {
     }
   }, [showToast]);
 
+  // Confirm tax deletion
   const confirmDelete = async () => {
     if (deleteDialog.id) {
       await handleDelete(deleteDialog.id);
@@ -117,6 +122,7 @@ const TaxList: React.FC = () => {
     setDeleteDialog({ show: false });
   };
 
+  // Handle export button click
   const handleExportClick = async () => {
     try {
       await handleExport();
@@ -134,12 +140,13 @@ const TaxList: React.FC = () => {
     }
   };
 
+  // Handle file input change for import
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         await handleImport(file);
-        // Limpar input após envio
+        // Clear input after upload
         if (e.target) {
           e.target.value = '';
         }
@@ -158,10 +165,12 @@ const TaxList: React.FC = () => {
     }
   };
 
+  // Show loading state if loading and no tax data
   if (loading && !taxes.length) {
     return <LoadingState />;
   }
 
+  // Show error state if there's an error and no tax data
   if (error && !taxes.length) {
     return (
       <ErrorState 
@@ -173,7 +182,7 @@ const TaxList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho */}
+      {/* Header Card */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -233,7 +242,7 @@ const TaxList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Tabela de Impostos */}
+      {/* Tax Table */}
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -278,18 +287,7 @@ const TaxList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            console.log('Tax data on edit click:', tax);
-                            if (tax && tax.id !== undefined && tax.id !== null) {
-                              handleEditClick(tax.id);
-                            } else {
-                              showToast({
-                                type: 'error',
-                                title: 'Erro',
-                                message: 'Não foi possível editar: dados do imposto incompletos'
-                              });
-                            }
-                          }}
+                          onClick={() => handleEditClick(tax.id!)}
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                         >
                           <Pencil className="h-4 w-4" />
@@ -298,17 +296,7 @@ const TaxList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => {
-                            if (tax && tax.id !== undefined && tax.id !== null) {
-                              handleDeleteClick(tax.id);
-                            } else {
-                              showToast({
-                                type: 'error',
-                                title: 'Erro',
-                                message: 'Não foi possível excluir: dados do imposto incompletos'
-                              });
-                            }
-                          }}
+                          onClick={() => handleDeleteClick(tax.id!)}
                           className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -322,6 +310,7 @@ const TaxList: React.FC = () => {
             </Table>
           </div>
 
+          {/* Pagination */}
           {taxes.length > 0 && (
             <div className="border-t">
               <TablePagination
@@ -334,7 +323,7 @@ const TaxList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Diálogo de Confirmação de Exclusão */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({ show: open })}>
         <AlertDialogContent>
           <AlertDialogHeader>

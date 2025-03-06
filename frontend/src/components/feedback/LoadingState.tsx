@@ -5,6 +5,7 @@ interface LoadingStateProps {
   message?: string;
   size?: 'small' | 'medium' | 'large';
   className?: string;
+  pageId?: string;
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({ 

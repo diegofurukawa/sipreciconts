@@ -23,7 +23,9 @@ function loadStorageData(): AuthState {
         user,
         token,
         companyId: user?.company_id,
-        sessionId
+        sessionId,
+        isAuthenticated: !!user && !!token,
+        loading: false                       
       };
     }
   } catch (error) {
@@ -34,7 +36,9 @@ function loadStorageData(): AuthState {
     user: null, 
     token: null,
     companyId: undefined,
-    sessionId: undefined
+    sessionId: undefined,
+    isAuthenticated: false,
+    loading: false
   };
 }
 
@@ -81,7 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       user: null, 
       token: null,
       companyId: undefined,
-      sessionId: undefined 
+      sessionId: undefined,
+      isAuthenticated: false,  // Adicionar esta propriedade
+      loading: false                       // Adicionar esta propriedade
     });
     
     // Show feedback to user, only if not on login page
@@ -173,9 +179,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthState({
           user: session.user,
           token: token,
-          companyId: session.companyId,
-          sessionId: session.sessionId
+          companyId: session.companyId || undefined,
+          sessionId: session.sessionId,
+          isAuthenticated: true,  // Se há um usuário e token, deveria ser true
+          loading: false         
         });
+        
       } catch (error) {
         console.error('Error initializing authentication:', error);
         await signOut(true); // Silent logout
@@ -212,7 +221,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: response.user,
         token: response.access,
         companyId: response.user?.company_id,
-        sessionId: response.session_id
+        sessionId: response.session_id,
+        isAuthenticated: true,  // Deve ser true após login bem-sucedido
+        loading: false        
       });
 
       showToast({
@@ -270,7 +281,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: null, 
         token: null,
         companyId: undefined,
-        sessionId: undefined 
+        sessionId: undefined,
+        isAuthenticated: false,  
+        loading: false
       });
       
       // Always show toast on explicit logout (when not silent)
@@ -324,12 +337,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshUserInfo = useCallback(async () => {
     try {
       setLoading(true);
-      const validation = await authService.validate();
+      const validationResult = await authService.validate();
       
-      if (validation && validation.user) {
-        updateUser(validation.user);
-        
-        return validation.user;
+      // Verifica se é o objeto esperado
+      if (validationResult && 'user' in validationResult) {
+        const { user } = validationResult;
+        if (user) {
+          updateUser(user);
+          return user;
+        }
       }
       
       return null;

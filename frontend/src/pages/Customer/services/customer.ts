@@ -1,8 +1,9 @@
 // src/services/api/modules/customerService.ts
 import axios from 'axios';
+import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 
 // Constantes
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = `${DEFAULT_API_CONFIG.baseURL}`;
 
 // Tipos
 export interface Customer {
