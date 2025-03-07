@@ -1,6 +1,6 @@
 // Interfaces
 export interface Tax {
-  id?: number;
+  tax_id?: number;
   acronym: string;
   description?: string;
   type: string;

@@ -1,42 +1,48 @@
-// src/pages/Company/types/index.ts
+// src/pages/Company/types/company_types.ts
 export interface Company {
-    id?: number;
-    company_id: string;
-    name: string;
-    document?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
-    enabled: boolean;
-    created?: string;
-    updated?: string;
-  }
-  
-  export type CompanyFormData = Omit<Company, 'id' | 'created' | 'updated'>;
-  
-  export const INITIAL_COMPANY_FORM_DATA: CompanyFormData = {
-    company_id: '',
-    name: '',
-    document: '',
-    phone: '',
-    email: '',
-    address: '',
-    enabled: true
+  id?: number; // Adicionado se a API retornar um ID único
+  company_id: string;
+  name: string;
+  document: string;
+  email: string;
+  phone: string;
+  enabled: boolean;
+  administrators_count?: number; // Opcional, conforme a API
+  employees_count?: number; // Opcional, conforme a API
+}
+
+export interface CompanyFormData extends Company {
+  address?: string; // Adicionado para o formulário, se necessário
+}
+
+export interface UseCompanyListReturn {
+  companies: Company[];
+  loading: boolean;
+  error: string | null;
+  deleteLoading: number | null;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    nextPage: string | null;
+    previousPage: string | null;
   };
-
-// Interface para resposta da API paginada
-export interface PaginatedResponse {
-count: number;
-next: string | null;
-previous: string | null;
-results: Company[];
-total_count?: number;
+  searchTerm: string;
+  pageId: string;
+  handleDelete: (id: number) => Promise<void>;
+  handleEdit: (id: number) => void;
+  handleNew: () => void;
+  handleView: (id: number) => void;
+  handlePageChange: (page: number) => void;
+  handleSearch: (term: string) => Promise<void>;
+  handleImport: () => Promise<void>;
+  handleExport: () => Promise<void>;
+  refresh: () => void;
+  retry: () => void;
+  isDeleting: (id: number) => boolean;
+  isEmpty: boolean;
+  hasError: boolean;
 }
-
-export interface UseCompanyListProps {
-initialData?: Company[];
-}
-
 
 export interface UseCompanyFormReturn {
   companyData: CompanyFormData;
@@ -46,29 +52,12 @@ export interface UseCompanyFormReturn {
   onSubmit: (data: CompanyFormData) => Promise<void>;
 }
 
-
-// // Definição da interface Company
-// export interface Company {
-//   id: number;
-//   name: string;
-//   document?: string;
-//   email?: string;
-//   phone?: string;
-//   enabled?: boolean;
-//   created?: string;
-//   updated?: string;
-//   company_id?: string;
-// }
-
-// // Interface para resposta da API paginada
-// interface PaginatedResponse {
-//   count: number;
-//   next: string | null;
-//   previous: string | null;
-//   results: Company[];
-//   total_count?: number;
-// }
-
-// interface UseCompanyListProps {
-//   initialData?: Company[];
-// }
+export const INITIAL_COMPANY_FORM_DATA: CompanyFormData = {
+  company_id: '',
+  name: '',
+  document: '',
+  email: '',
+  phone: '',
+  enabled: true,
+  address: '',
+};

@@ -4,13 +4,15 @@ import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 import type { PaginatedResponse } from '@/types/api_types';
 import type { Tax, TaxListParams } from '@/pages/Tax/types/tax_types';
 
-// URL base para o serviço de impostos
-const baseUrl = `${DEFAULT_API_CONFIG.baseURL}/taxes/`;
+// URL base para o serviço de impostos (removida a barra final para evitar duplicação)
+const baseUrl = DEFAULT_API_CONFIG.baseURL.endsWith('/')
+  ? `${DEFAULT_API_CONFIG.baseURL}taxes` // Remove a barra final se existir
+  : `${DEFAULT_API_CONFIG.baseURL}/taxes`;
 
 // Função para obter headers com autenticação
 const getHeaders = () => {
-  const token = localStorage.getItem('token');
-  
+  const token = localStorage.getItem('access_token');
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -35,7 +37,7 @@ const getHeaders = () => {
   return headers;
 };
 
-// Serviço de impostos baseado em objeto literal (evita problemas de inicialização)
+// Serviço de impostos baseado em objeto literal
 export const taxService = {
   /**
    * Lista todos os impostos cadastrados
@@ -43,9 +45,9 @@ export const taxService = {
   async list(params?: TaxListParams): Promise<PaginatedResponse<Tax>> {
     console.log('Carregando impostos com parâmetros:', params);
     try {
-      const response = await axios.get(baseUrl, {
+      const response = await axios.get(`${baseUrl}/`, {
         headers: getHeaders(),
-        params
+        params,
       });
       return response.data;
     } catch (error) {
@@ -62,8 +64,8 @@ export const taxService = {
       throw new Error('ID do imposto inválido');
     }
     try {
-      const response = await axios.get(`${baseUrl}/${id}`, {
-        headers: getHeaders()
+      const response = await axios.get(`${baseUrl}/${id}/`, {
+        headers: getHeaders(),
       });
       return response.data;
     } catch (error) {
@@ -77,8 +79,8 @@ export const taxService = {
    */
   async create(data: Omit<Tax, 'id' | 'created' | 'updated'>): Promise<Tax> {
     try {
-      const response = await axios.post(baseUrl, data, {
-        headers: getHeaders()
+      const response = await axios.post(`${baseUrl}/`, data, {
+        headers: getHeaders(),
       });
       return response.data;
     } catch (error) {
@@ -92,8 +94,8 @@ export const taxService = {
    */
   async update(id: number, data: Partial<Tax>): Promise<Tax> {
     try {
-      const response = await axios.put(`${baseUrl}/${id}`, data, {
-        headers: getHeaders()
+      const response = await axios.put(`${baseUrl}/${id}/`, data, {
+        headers: getHeaders(),
       });
       return response.data;
     } catch (error) {
@@ -107,8 +109,8 @@ export const taxService = {
    */
   async delete(id: number): Promise<void> {
     try {
-      await axios.delete(`${baseUrl}/${id}`, {
-        headers: getHeaders()
+      await axios.delete(`${baseUrl}/${id}/`, {
+        headers: getHeaders(),
       });
     } catch (error) {
       console.error(`Erro ao excluir imposto ${id}:`, error);
@@ -123,20 +125,20 @@ export const taxService = {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      
+
       const config = {
         headers: {
           ...getHeaders(),
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent: any) => {
           if (onProgress && progressEvent.total) {
             const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             onProgress(percentage);
           }
-        }
+        },
       };
-      
+
       const response = await axios.post(`${baseUrl}/import`, formData, config);
       return response.data;
     } catch (error) {
@@ -153,11 +155,11 @@ export const taxService = {
       const response = await axios.get(`${baseUrl}/export`, {
         headers: {
           ...getHeaders(),
-          'Accept': format === 'xlsx' 
+          'Accept': format === 'xlsx'
             ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv'
+            : 'text/csv',
         },
-        responseType: 'blob'
+        responseType: 'blob',
       });
       return response.data;
     } catch (error) {
@@ -175,15 +177,15 @@ export const taxService = {
   }> {
     try {
       const response = await axios.post(`${baseUrl}/validate`, data, {
-        headers: getHeaders()
+        headers: getHeaders(),
       });
       return response.data;
     } catch (error) {
       console.error('Erro ao validar dados do imposto:', error);
       throw error;
     }
-  }
+  },
 };
 
-// Exportar como default para compatibilidade (se necessário)
+// Exportar como default para compatibilidade
 export default taxService;

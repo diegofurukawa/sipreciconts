@@ -1,5 +1,5 @@
 // src/pages/Tax/components/TaxForm.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
@@ -50,6 +50,7 @@ const TaxForm: React.FC = () => {
   
   const [loading, setLoading] = React.useState(isEditMode);
   const [error, setError] = React.useState<string | null>(null);
+  const [initialLoad, setInitialLoad] = React.useState(!isEditMode); // Controla o carregamento inicial
   
   const form = useForm<TaxFormData>({
     resolver: zodResolver(taxFormSchema),
@@ -63,41 +64,43 @@ const TaxForm: React.FC = () => {
     }
   });
 
-  // Carregar dados se estiver em modo de edição
-  useEffect(() => {
-    const loadTax = async () => {
-      if (isEditMode && parsedId) {
-        try {
-          setLoading(true);
-          console.log('Carregando imposto com ID:', parsedId);
-          
-          const tax = await taxService.getById(parsedId);
-          console.log('Dados do imposto recebidos:', tax);
-          
-          form.reset({
-            acronym: tax.acronym,
-            description: tax.description,
-            type: tax.type,
-            group: tax.group,
-            calc_operator: tax.calc_operator,
-            value: tax.value
-          });
-        } catch (error: any) {
-          console.error('Erro ao carregar imposto:', error);
-          setError(error.message || 'Não foi possível carregar os dados do imposto');
-          showToast({
-            type: 'error',
-            title: 'Erro',
-            message: 'Erro ao carregar dados do imposto'
-          });
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
+  // Função para carregar dados do imposto
+  const loadTaxData = useCallback(async () => {
+    if (!isEditMode || !parsedId) return;
 
-    loadTax();
-  }, [parsedId, isEditMode, form, showToast]);
+    setLoading(true);
+    try {
+      console.log('Carregando imposto com ID:', parsedId);
+      const tax = await taxService.getById(parsedId);
+      console.log('Dados do imposto recebidos:', tax);
+      form.reset({
+        acronym: tax.acronym,
+        description: tax.description || '',
+        type: tax.type,
+        group: tax.group,
+        calc_operator: tax.calc_operator,
+        value: tax.value
+      });
+    } catch (error: any) {
+      console.error('Erro ao carregar imposto:', error);
+      setError(error.message || 'Não foi possível carregar os dados do imposto');
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'Erro ao carregar dados do imposto'
+      });
+    } finally {
+      setLoading(false);
+      setInitialLoad(true); // Marca o carregamento inicial como concluído
+    }
+  }, [isEditMode, parsedId, form, showToast]);
+
+  // Efeito para carregar dados apenas uma vez
+  useEffect(() => {
+    if (!initialLoad && isEditMode) {
+      loadTaxData();
+    }
+  }, [initialLoad, isEditMode, loadTaxData]);
 
   const onSubmit = async (data: TaxFormData) => {
     try {
@@ -121,7 +124,6 @@ const TaxForm: React.FC = () => {
         });
       }
       
-      // Navegar de volta para a lista após o sucesso
       navigate(TAX_ROUTES.ROOT);
     } catch (error: any) {
       console.error('Erro ao salvar imposto:', error);
@@ -139,7 +141,7 @@ const TaxForm: React.FC = () => {
     navigate(TAX_ROUTES.ROOT);
   };
 
-  if (loading) {
+  if (loading && !initialLoad) {
     return <LoadingState />;
   }
 
@@ -147,7 +149,10 @@ const TaxForm: React.FC = () => {
     return (
       <ErrorState 
         message={error}
-        onRetry={() => navigate(TAX_ROUTES.ROOT)}
+        onRetry={() => {
+          setError(null);
+          loadTaxData();
+        }}
       />
     );
   }

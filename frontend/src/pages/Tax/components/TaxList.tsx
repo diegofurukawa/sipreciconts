@@ -44,7 +44,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useTaxList } from '@/pages/Tax/hooks/useTaxList';
 import { useToast } from '@/hooks/useToast';
 import { TAX_ROUTES } from '@/pages/Tax/routes';
-import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS } from '@/pages/Tax/types/tax_types';
+import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS, TAX_TYPE_OPTIONS } from '@/pages/Tax/types/tax_types';
 
 const TaxList: React.FC = () => {
   const navigate = useNavigate();
@@ -249,6 +249,7 @@ const TaxList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {/* <TableHead>TaxId</TableHead> */}
                   <TableHead>Sigla</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Grupo</TableHead>
@@ -276,8 +277,11 @@ const TaxList: React.FC = () => {
                   </TableRow>
                 ) : (
                   taxes.map((tax) => (
-                    <TableRow key={tax.id} className="hover:bg-gray-50">
+                    <TableRow key={tax.tax_id} className="hover:bg-gray-50">
+                      
+                      {/* <TableCell>{getOptionLabel(tax.tax_id, TAX_TYPE_OPTIONS)}</TableCell> */}
                       <TableCell className="font-medium">{tax.acronym}</TableCell>
+                      
                       <TableCell>{getOptionLabel(tax.type, TAX_TYPE_LABELS)}</TableCell>
                       <TableCell>{getOptionLabel(tax.group, TAX_GROUP_LABELS)}</TableCell>
                       <TableCell>{getOptionLabel(tax.calc_operator, CALC_OPERATOR_LABELS)}</TableCell>
@@ -287,7 +291,7 @@ const TaxList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleEditClick(tax.id!)}
+                          onClick={() => handleEditClick(tax.tax_id!)}
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                         >
                           <Pencil className="h-4 w-4" />
@@ -296,7 +300,7 @@ const TaxList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteClick(tax.id!)}
+                          onClick={() => handleDeleteClick(tax.tax_id!)}
                           className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
                         >
                           <Trash2 className="h-4 w-4" />

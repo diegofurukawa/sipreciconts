@@ -44,15 +44,6 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { useCompanyList } from '../hooks/useCompanyList';
 import { useToast } from '@/hooks/useToast';
 
-/**
- * CompanyList Component
- * 
- * Displays a list of companies with options for management including:
- * - Search and filtering
- * - Pagination
- * - CRUD operations (Create, View, Edit, Delete)
- * - Import/Export functionality
- */
 export const CompanyList: React.FC = () => {
   const { 
     companies, 
@@ -81,29 +72,24 @@ export const CompanyList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
 
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  // Handle search form submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleSearch(searchTerm);
   };
 
-  // Clear search and reset results
   const handleSearchClear = () => {
     setSearchTerm('');
     handleSearch('');
   };
 
-  // Show delete confirmation dialog
   const showDeleteConfirmation = (id: number) => {
     setDeleteDialog({show: true, id});
   };
 
-  // Confirm deletion action
   const confirmDelete = async () => {
     if (deleteDialog.id) {
       await handleDelete(deleteDialog.id);
@@ -111,13 +97,11 @@ export const CompanyList: React.FC = () => {
     }
   };
 
-  // Handle file selection for import
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       try {
         await handleImport();
-        // Reset input value after upload
         if (e.target) {
           e.target.value = '';
         }
@@ -133,7 +117,6 @@ export const CompanyList: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Search and Actions */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -143,15 +126,10 @@ export const CompanyList: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleNew} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Empresa
+                <Plus className="mr-2 h-4 w-4" /> Nova Empresa
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => fileInputRef?.click()}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Importar
+              <Button variant="outline" onClick={() => fileInputRef?.click()}>
+                <Upload className="mr-2 h-4 w-4" /> Importar
               </Button>
               <input
                 type="file"
@@ -160,12 +138,8 @@ export const CompanyList: React.FC = () => {
                 accept=".csv,.xlsx"
                 onChange={handleFileSelect}
               />
-              <Button 
-                variant="outline"
-                onClick={handleExport}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="mr-2 h-4 w-4" /> Exportar
               </Button>
             </div>
           </div>
@@ -193,7 +167,6 @@ export const CompanyList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Error State */}
       {hasError && (
         <Card>
           <CardContent className="p-0">
@@ -207,23 +180,17 @@ export const CompanyList: React.FC = () => {
         </Card>
       )}
 
-      {/* Loading State */}
       {loading && !companies.length && (
         <Card>
           <CardContent className="p-0">
-            <LoadingState 
-              message="Carregando empresas..." 
-              pageId={pageId} 
-            />
+            <LoadingState message="Carregando empresas..." pageId={pageId} />
           </CardContent>
         </Card>
       )}
 
-      {/* Company Table */}
       {!hasError && (!loading || companies.length > 0) && (
         <Card>
           <CardContent className="p-0">
-            {/* Loading Overlay */}
             {loading && companies.length > 0 && (
               <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
@@ -234,17 +201,19 @@ export const CompanyList: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-1/3">Nome</TableHead>
                     <TableHead className="w-1/6">Código</TableHead>
+                    <TableHead className="w-1/3">Nome</TableHead>
                     <TableHead className="w-1/6">Documento</TableHead>
                     <TableHead className="w-1/6">Email</TableHead>
+                    <TableHead className="w-1/6">Telefone</TableHead>
+                    <TableHead className="w-1/6 text-right">Ativo</TableHead>
                     <TableHead className="w-1/6 text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isEmpty ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-64">
+                      <TableCell colSpan={7} className="h-64">
                         <EmptyState
                           title="Nenhuma empresa encontrada"
                           description={searchTerm 
@@ -254,8 +223,7 @@ export const CompanyList: React.FC = () => {
                           pageId={pageId}
                           action={
                             <Button onClick={handleNew} className="bg-emerald-600 hover:bg-emerald-700">
-                              <Plus className="mr-2 h-4 w-4" />
-                              Nova Empresa
+                              <Plus className="mr-2 h-4 w-4" /> Nova Empresa
                             </Button>
                           }
                         />
@@ -263,11 +231,15 @@ export const CompanyList: React.FC = () => {
                     </TableRow>
                   ) : (
                     companies.map((company) => (
-                      <TableRow key={company.id} className="hover:bg-gray-50 transition duration-150">
-                        <TableCell className="font-medium">{company.name}</TableCell>
+                      <TableRow key={company.company_id} className="hover:bg-gray-50 transition duration-150">
                         <TableCell>{company.company_id}</TableCell>
+                        <TableCell className="font-medium">{company.name}</TableCell>
                         <TableCell>{company.document || '-'}</TableCell>
                         <TableCell>{company.email || '-'}</TableCell>
+                        <TableCell>{company.phone || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          {company.enabled ? 'Sim' : 'Não'}
+                        </TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button
                             variant="ghost"
@@ -312,7 +284,6 @@ export const CompanyList: React.FC = () => {
               </Table>
             </div>
             
-            {/* Pagination */}
             {!isEmpty && pagination.totalPages > 1 && (
               <div className="border-t">
                 <TablePagination
@@ -326,14 +297,12 @@ export const CompanyList: React.FC = () => {
         </Card>
       )}
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({show: open})}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta empresa? 
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta empresa? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

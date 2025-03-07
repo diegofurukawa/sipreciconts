@@ -92,120 +92,127 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
    * Carrega a lista de empresas
    * @param page Número da página a ser carregada
    */
-  const loadCompanies = useCallback(async (page = 1) => {
-    if (isLoadingRef.current || !isMounted.current) return;
-    
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
+// src/pages/Company/hooks/useCompanyList.ts
+// ... (código anterior até a função loadCompanies)
+
+const loadCompanies = useCallback(async (page = 1) => {
+  if (isLoadingRef.current || !isMounted.current) return;
+
+  if (!isAuthenticated) {
+    navigate('/login');
+    return;
+  }
+
+  try {
+    isLoadingRef.current = true;
+    setLoading(true);
+    setError(null);
+
+    logger.info('DataLoading', 'Loading companies', {
+      pageId,
+      page,
+      companyId: user?.company_id,
+    });
+
+    const companyId = user?.company_id || 'ADMIN';
+
+    const baseUrl = DEFAULT_API_CONFIG?.baseURL || 'http://localhost:8000/api';
+
+    const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+    const urlWithParams = `${baseUrl}/companies/?page=${page}&limit=10&sort_by=name&sort_order=asc&company_id=${companyId}${searchParam}`;
+
+    const headers = headerManager.getHeaders();
+
+    const response = await axios.get<CompanyApiResponse>(urlWithParams, { headers });
+
+    const data = response.data;
+
+    if (data && data.results && Array.isArray(data.results)) {
+      // Mapeia os dados da API para o tipo Company
+      const mappedCompanies: Company[] = data.results.map((item) => ({
+        company_id: item.company_id,
+        name: item.name,
+        document: item.document,
+        email: item.email,
+        phone: item.phone,
+        enabled: item.enabled,
+        administrators_count: item.administrators_count,
+        employees_count: item.employees_count,
+      }));
+
+      setCompanies(mappedCompanies);
+
+      const totalItems = data.count || 0;
+      const totalPages = Math.ceil(totalItems / 10);
+
+      setPagination({
+        currentPage: page,
+        totalPages,
+        totalItems,
+        nextPage: data.next,
+        previousPage: data.previous,
+      });
+
+      logger.info('DataLoading', 'Companies loaded successfully', {
+        pageId,
+        count: data.results.length,
+        totalItems,
+        totalPages,
+        page,
+      });
+    } else {
+      logger.warn('DataLoading', 'Unexpected response format', {
+        pageId,
+        responseType: typeof data,
+        hasResults: !!data?.results,
+      });
+      setCompanies([]);
+    }
+  } catch (error: any) {
+    logger.error('DataLoading', 'Error loading companies', {
+      pageId,
+      statusCode: error.response?.status,
+      errorMessage: error.message,
+    }, error);
+
+    let errorMessage = 'Erro ao carregar empresas';
+    if (error.response) {
+      errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
+      if (error.response.data && error.response.data.detail) {
+        errorMessage += ` - ${error.response.data.detail}`;
+      }
+
+      if (error.response.status === 401) {
+        errorMessage = 'Você precisa fazer login para acessar esta página.';
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        headerManager.clearAuthHeaders();
+        setTimeout(() => {
+          navigate('/login?expired=true');
+        }, 1500);
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
     }
 
-    try {
-      isLoadingRef.current = true;
-      setLoading(true);
-      setError(null);
-      
-      logger.info('DataLoading', 'Loading companies', { 
-        pageId, 
-        page, 
-        companyId: user?.company_id
-      });
-      
-      // Obtém o company_id do usuário ou usa um valor padrão
-      const companyId = user?.company_id || 'ADMIN';
-      
-      // Constrói a URL base corretamente
-      const baseUrl = DEFAULT_API_CONFIG?.baseURL || 'http://localhost:8000/api';
-      
-      // Constrói a URL completa com os parâmetros
-      const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
-      const urlWithParams = `${baseUrl}/companies/?page=${page}&limit=10&sort_by=name&sort_order=asc&company_id=${companyId}${searchParam}`;
-      
-      // Obtém os headers do headerManager
-      const headers = headerManager.getHeaders();
-      
-      // Faz a requisição com os headers corretos
-      const response = await axios.get(urlWithParams, { headers });
-      
-      const data = response.data;
-      
-      if (data && data.results && Array.isArray(data.results)) {
-        setCompanies(data.results);
-        
-        const totalItems = data.count || 0;
-        const totalPages = Math.ceil(totalItems / 10);
-        
-        setPagination({
-          currentPage: page,
-          totalPages,
-          totalItems,
-          nextPage: data.next,
-          previousPage: data.previous
-        });
-        
-        logger.info('DataLoading', 'Companies loaded successfully', { 
-          pageId,
-          count: data.results.length,
-          totalItems,
-          totalPages,
-          page
-        });
-      } else {
-        logger.warn('DataLoading', 'Unexpected response format', { 
-          pageId, 
-          responseType: typeof data,
-          hasResults: !!data?.results
-        });
-        setCompanies([]);
-      }
-    } catch (error: any) {
-      logger.error('DataLoading', 'Error loading companies', { 
-        pageId,
-        statusCode: error.response?.status,
-        errorMessage: error.message
-      }, error);
-      
-      let errorMessage = 'Erro ao carregar empresas';
-      if (error.response) {
-        errorMessage = `Erro ${error.response.status}: ${error.response.statusText}`;
-        if (error.response.data && error.response.data.detail) {
-          errorMessage += ` - ${error.response.data.detail}`;
-        }
-        
-        // Tratamento especial para erro 401 (Unauthorized)
-        if (error.response.status === 401) {
-          errorMessage = 'Você precisa fazer login para acessar esta página.';
-          
-          // Limpa dados de autenticação
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('user');
-          headerManager.clearAuthHeaders();
-          
-          // Redireciona para login
-          setTimeout(() => {
-            navigate('/login?expired=true');
-          }, 1500);
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setError(errorMessage);
-      
-      showToast({
-        type: 'error',
-        title: 'Erro',
-        message: errorMessage
-      });
-      
-      setCompanies([]);
-    } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
-      isLoadingRef.current = false;
+    setError(errorMessage);
+
+    showToast({
+      type: 'error',
+      title: 'Erro',
+      message: errorMessage,
+    });
+
+    setCompanies([]);
+  } finally {
+    if (isMounted.current) {
+      setLoading(false);
     }
-  }, [showToast, user?.company_id, searchTerm, isAuthenticated, navigate]);
+    isLoadingRef.current = false;
+  }
+}, [showToast, user?.company_id, searchTerm, isAuthenticated, navigate]);
+
+// ... (código restante)
 
   /**
    * Muda a página na paginação
