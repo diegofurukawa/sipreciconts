@@ -2,68 +2,16 @@
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '@/services/apiMainService';
 import { TokenService, UserSessionService } from "@/auth/services";
-import type { AuthUser } from '../types/auth_types';
+import { AuthenticationError, AuthErrorCode } from '@/auth/types/auth_types';
+import type { 
+  AuthUser
+  ,AuthCredentials
+  ,AuthResponse
+  ,AuthState
+  ,TokenResponse
+  ,ValidateResponse
+} from '@/auth/types/auth_types';
 
-// Enum para códigos de erro
-export enum AuthErrorCode {
-  INVALID_CREDENTIALS = 'CREDENCIAIS_INVALIDAS',
-  SERVER_ERROR = 'ERRO_SERVIDOR',
-  NETWORK_ERROR = 'ERRO_CONEXAO',
-  SESSION_EXPIRED = 'SESSAO_EXPIRADA',
-  TOKEN_INVALID = 'TOKEN_INVALIDO'
-}
-
-// Interface para erro customizado
-export class AuthenticationError extends Error {
-  constructor(
-    public code: AuthErrorCode,
-    message: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'AuthenticationError';
-  }
-}
-
-// Interfaces
-export interface AuthCredentials {
-  login: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: AuthUser;
-  access: string;
-  refresh: string;
-  session_id: string;
-  expires_in: number;
-}
-
-export interface AuthState {
-  isAuthenticated: boolean;
-  user: AuthUser | null;
-  company_id?: string;
-  loading: boolean;
-  session_id?: string;
-}
-
-export interface TokenResponse {
-  access: string;
-  refresh?: string;
-}
-
-export interface ValidateResponse {
-  is_valid: boolean;
-  detail?: string;
-  code?: string;
-  messages?: Array<{
-    token_class: string;
-    token_type: string;
-    message: string;
-  }>;
-}
-
-// const navigate = useNavigate();
 
 class AuthApiService extends ApiService {
   private readonly baseUrl = '/auth';
@@ -85,9 +33,9 @@ class AuthApiService extends ApiService {
       }
 
       try {
-        const isValid = await this.validate();
+        const validationResult = await this.validate();
 
-        if (!isValid) {
+        if (!validationResult.is_valid) {
           this.clearAuthData();
           return {
             isAuthenticated: false,
@@ -101,8 +49,8 @@ class AuthApiService extends ApiService {
         
         return {
           isAuthenticated,
-          user: session?.user || null,
-          company_id: session?.companyId || undefined,
+          user: validationResult.user || session?.user || null,
+          company_id: (validationResult.user?.company_id || session?.companyId) || undefined,
           session_id: session?.sessionId,
           loading: false
         };
@@ -128,7 +76,7 @@ class AuthApiService extends ApiService {
   async login(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
       const response = await this.post<AuthResponse>(`${this.baseUrl}/login/`, {
-        login: credentials.login, // Alterado para login conforme backend espera
+        login: credentials.login,
         password: credentials.password
       });
 
@@ -191,21 +139,20 @@ class AuthApiService extends ApiService {
     } finally {
       this.clearAuthData();
       window.location.href = '/login';
-      // navigate('/login');
     }
   }
 
   /**
    * Valida o token atual
    */
-  async validate(): Promise<boolean> {
+  async validate(): Promise<ValidateResponse> {
     try {
       const token = TokenService.getAccessToken();
       const session = UserSessionService.load();
 
       if (!token || !session) {
         await this.handleInvalidToken();
-        return false;
+        return { is_valid: false };
       }
 
       // Configura os headers para a validação
@@ -221,22 +168,32 @@ class AuthApiService extends ApiService {
         // Verifica se o token é inválido
         if (response.code === 'token_not_valid' || !response.is_valid) {
           await this.handleInvalidToken(response.detail);
-          return false;
+          return { is_valid: false };
         }
 
-        return response.is_valid === true;
+        // Se a validação for bem-sucedida, tenta obter os dados do usuário
+        if (response.is_valid) {
+          // Aqui, assumimos que a API pode retornar o usuário. Se não, podemos buscar de outra forma
+          // Exemplo: Fazer uma chamada adicional para obter o usuário
+          if (!response.user) {
+            const user = this.getCurrentUser(); // Usa o usuário do session, se disponível
+            return { is_valid: true, user };
+          }
+        }
+
+        return response;
 
       } catch (error: any) {
         // Trata erro específico de token inválido
         if (error.response?.data?.code === 'token_not_valid') {
           await this.handleInvalidToken(error.response?.data?.detail);
-          return false;
+          return { is_valid: false };
         }
 
         // Trata erro de autorização
         if (error.response?.status === 401) {
           await this.handleInvalidToken('Sessão expirada');
-          return false;
+          return { is_valid: false };
         }
 
         throw new AuthenticationError(
@@ -249,7 +206,7 @@ class AuthApiService extends ApiService {
     } catch (error) {
       console.error('Erro na validação do token:', error);
       await this.handleInvalidToken();
-      return false;
+      return { is_valid: false };
     }
   }
 
@@ -368,7 +325,6 @@ class AuthApiService extends ApiService {
   private async handleSessionExpired(): Promise<void> {
     this.clearAuthData();
     window.location.href = '/login?session=expired';
-    // navigate('/login?session=expired');
   }
 
   /**

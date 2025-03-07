@@ -46,7 +46,7 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
   // Hooks
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Refs para controle de estado
   const isMounted = useRef(true);
@@ -68,17 +68,25 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
   
   // Configuração inicial para os headers de autenticação
   useEffect(() => {
-    // Configura o token de autenticação no headerManager
-    const token = localStorage.getItem('token');
-    if (token) {
-      headerManager.setAuthToken(token);
+    // Configura o token de autenticação no headerManager usando useAuth
+    if (isAuthenticated && user) {
+      const token = localStorage.getItem('access_token'); // Ajustado para a chave correta usada pelo TokenService
+      if (token) {
+        headerManager.setAuthToken(token);
+      } else {
+        // Se não houver token, redireciona para login
+        navigate('/login');
+      }
+      
+      // Configura o ID da empresa se disponível
+      if (user.company_id) {
+        headerManager.setCompanyId(user.company_id);
+      }
+    } else {
+      // Se não estiver autenticado, redireciona para login
+      navigate('/login');
     }
-    
-    // Configura o ID da empresa se disponível
-    if (user?.company_id) {
-      headerManager.setCompanyId(user.company_id);
-    }
-  }, [user?.company_id]);
+  }, [user, isAuthenticated, navigate]);
 
   /**
    * Carrega a lista de empresas
@@ -87,6 +95,11 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
   const loadCompanies = useCallback(async (page = 1) => {
     if (isLoadingRef.current || !isMounted.current) return;
     
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     try {
       isLoadingRef.current = true;
       setLoading(true);
@@ -105,7 +118,6 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
       const baseUrl = DEFAULT_API_CONFIG?.baseURL || 'http://localhost:8000/api';
       
       // Constrói a URL completa com os parâmetros
-      // Inclui searchTerm se definido
       const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
       const urlWithParams = `${baseUrl}/companies/?page=${page}&limit=10&sort_by=name&sort_order=asc&company_id=${companyId}${searchParam}`;
       
@@ -162,31 +174,17 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
         
         // Tratamento especial para erro 401 (Unauthorized)
         if (error.response.status === 401) {
-          // Verifica se há token para determinar se o erro é de token inválido ou falta de token
-          const hasToken = !!localStorage.getItem('token');
+          errorMessage = 'Você precisa fazer login para acessar esta página.';
           
-          if (hasToken) {
-            errorMessage = 'Sua sessão expirou. Por favor, faça login novamente.';
-            
-            // Limpa dados de autenticação
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            headerManager.clearAuthHeaders();
-            
-            // Redireciona para login
-            setTimeout(() => {
-              // window.location.href = '/login?expired=true';
-              navigate('/login?expired=true');
-            }, 1500);
-          } else {
-            errorMessage = 'Você precisa fazer login para acessar esta página.';
-            
-            // Redireciona para login
-            setTimeout(() => {
-              // window.location.href = '/login';
-              navigate('/login');
-            }, 1000);
-          }
+          // Limpa dados de autenticação
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          headerManager.clearAuthHeaders();
+          
+          // Redireciona para login
+          setTimeout(() => {
+            navigate('/login?expired=true');
+          }, 1500);
         }
       } else if (error.message) {
         errorMessage = error.message;
@@ -207,7 +205,7 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
       }
       isLoadingRef.current = false;
     }
-  }, [showToast, user?.company_id, searchTerm]);
+  }, [showToast, user?.company_id, searchTerm, isAuthenticated, navigate]);
 
   /**
    * Muda a página na paginação

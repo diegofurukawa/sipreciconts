@@ -33,9 +33,11 @@ import { useToast } from '@/hooks/useToast';
 import { authService } from '@/auth/services/authService';
 import { TokenService } from '@/auth/services/TokenService';
 
+// Interface ajustada para corresponder à resposta real da API
 interface SessionDetails {
   is_valid: boolean;
-  user: {
+  token_type?: string;
+  user?: {
     id: number;
     user_name: string;
     email: string;
@@ -48,7 +50,6 @@ interface SessionDetails {
     updated: string;
     last_login: string;
   };
-  token_type: string;
 }
 
 interface TokenInfo {
@@ -102,8 +103,45 @@ const UserSessionInfoPage: React.FC = () => {
   const fetchSessionDetails = async () => {
     try {
       setLoading(true);
+      // Chama a API para validar a sessão
       const validation = await authService.validate();
-      setSessionDetails(validation as SessionDetails);
+      
+      // Verifica o formato da resposta e adapta conforme necessário
+      if (validation) {
+        let sessionInfo: SessionDetails;
+        
+        // Se for um objeto com a propriedade is_valid
+        if (typeof validation === 'object' && 'is_valid' in validation) {
+          sessionInfo = validation as SessionDetails;
+        } 
+        // Se for apenas um booleano
+        else if (typeof validation === 'boolean') {
+          sessionInfo = {
+            is_valid: validation,
+            // Usa as informações do usuário atual já disponível no context
+            user: user ? {
+              id: user.id,
+              user_name: user.user_name || user.name,
+              email: user.email || '',
+              login: user.login,
+              type: user.type,
+              company: user.company_id,
+              company_name: user.company_name || '',
+              enabled: user.enabled || true,
+              created: '', // Preencher se disponível
+              updated: '', // Preencher se disponível
+              last_login: user.last_login || ''
+            } : undefined,
+            token_type: 'Bearer'
+          };
+        } else {
+          throw new Error('Formato de resposta inválido');
+        }
+        
+        setSessionDetails(sessionInfo);
+      } else {
+        throw new Error('Falha na validação da sessão');
+      }
     } catch (error) {
       console.error('Error fetching session details:', error);
       showToast({
@@ -143,6 +181,9 @@ const UserSessionInfoPage: React.FC = () => {
         title: 'Sucesso',
         message: 'Token renovado com sucesso'
       });
+      
+      // Atualizar informações da sessão após renovar o token
+      await fetchSessionDetails();
     } catch (error) {
       console.error('Error refreshing token:', error);
       showToast({
@@ -159,8 +200,7 @@ const UserSessionInfoPage: React.FC = () => {
   const handleValidateSession = async () => {
     try {
       setValidating(true);
-      const validation = await authService.validate();
-      setSessionDetails(validation as SessionDetails);
+      await fetchSessionDetails();
       
       showToast({
         type: 'success',
@@ -207,14 +247,40 @@ const UserSessionInfoPage: React.FC = () => {
   const handleRefreshUserInfo = async () => {
     try {
       setRefreshing(true);
-      await refreshUserInfo();
-      await fetchSessionDetails();
+      const updatedUser = await refreshUserInfo();
       
-      showToast({
-        type: 'success',
-        title: 'Sucesso',
-        message: 'Informações da sessão atualizadas'
-      });
+      if (updatedUser) {
+        // Atualiza o sessionDetails com as informações atualizadas do usuário
+        setSessionDetails(prev => {
+          if (!prev) return null;
+          
+          return {
+            ...prev,
+            user: {
+              id: updatedUser.id,
+              user_name: updatedUser.user_name || updatedUser.user_name,
+              email: updatedUser.email || '',
+              login: updatedUser.login,
+              type: updatedUser.type,
+              company: updatedUser.company_id,
+              company_name: updatedUser.company_name || '',
+              enabled: updatedUser.enabled || true,
+              created: updatedUser.created || '',
+              updated: updatedUser.updated || '',
+              last_login: updatedUser.last_login || ''
+            }
+          };
+        });
+        
+        showToast({
+          type: 'success',
+          title: 'Sucesso',
+          message: 'Informações da sessão atualizadas'
+        });
+      } else {
+        // Se não conseguir obter as informações atualizadas, tenta atualizar via API
+        await fetchSessionDetails();
+      }
     } catch (error) {
       console.error('Error refreshing user info:', error);
       showToast({
@@ -289,7 +355,7 @@ const UserSessionInfoPage: React.FC = () => {
           <Badge variant={sessionDetails.is_valid ? "success" : "destructive"}>
             {sessionDetails.is_valid ? 'Sessão Válida' : 'Sessão Inválida'}
           </Badge>
-          <Badge variant="outline">{sessionDetails.token_type}</Badge>
+          <Badge variant="outline">{sessionDetails.token_type || 'Bearer'}</Badge>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

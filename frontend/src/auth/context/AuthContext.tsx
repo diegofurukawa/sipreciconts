@@ -6,7 +6,7 @@ import { UserSessionService } from '@/auth/services/UserSessionService';
 import { authService } from '@/auth/services/authService';
 import { useToast } from '@/hooks/useToast';
 import type { AuthCredentials } from '@/auth/services/authService';
-import type { AuthUser } from '../types/auth_types';
+import type { AuthUser } from '@/auth/types/auth_types';
 import type { AuthState, AuthContextType, AuthProviderProps } from '@/auth/types/auth_types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,8 +86,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       token: null,
       companyId: undefined,
       sessionId: undefined,
-      isAuthenticated: false,  // Adicionar esta propriedade
-      loading: false                       // Adicionar esta propriedade
+      isAuthenticated: false,
+      loading: false
     });
     
     // Show feedback to user, only if not on login page
@@ -181,8 +181,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           token: token,
           companyId: session.companyId || undefined,
           sessionId: session.sessionId,
-          isAuthenticated: true,  // Se há um usuário e token, deveria ser true
-          loading: false         
+          isAuthenticated: true,
+          loading: false
         });
         
       } catch (error) {
@@ -222,8 +222,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         token: response.access,
         companyId: response.user?.company_id,
         sessionId: response.session_id,
-        isAuthenticated: true,  // Deve ser true após login bem-sucedido
-        loading: false        
+        isAuthenticated: true,
+        loading: false
       });
 
       showToast({
@@ -282,7 +282,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         token: null,
         companyId: undefined,
         sessionId: undefined,
-        isAuthenticated: false,  
+        isAuthenticated: false,
         loading: false
       });
       
@@ -339,9 +339,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const validationResult = await authService.validate();
       
-      // Verifica se é o objeto esperado
-      if (validationResult && 'user' in validationResult) {
-        const { user } = validationResult;
+      // Se validationResult for true, significa que a sessão é válida
+      if (validationResult === true) {
+        // Tentar carregar o usuário do localStorage
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr) as AuthUser;
+          updateUser(user);
+          return user;
+        } else {
+          throw new Error('User data not found in storage');
+        }
+      }
+      // Caso validationResult seja um objeto com 'user'
+      else if (validationResult && typeof validationResult === 'object' && 'user' in validationResult) {
+        const { user } = validationResult as { user: AuthUser };
         if (user) {
           updateUser(user);
           return user;
@@ -351,11 +363,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return null;
     } catch (error) {
       console.error('Error refreshing user info:', error);
+      // Opcional: Tratar o erro de forma mais específica, por exemplo, redirecionar para login
+      handleSessionExpired();
       return null;
     } finally {
       setLoading(false);
     }
-  }, [updateUser]);
+  }, [updateUser, handleSessionExpired]);
 
   const value = {
     isAuthenticated: !!authState.user,

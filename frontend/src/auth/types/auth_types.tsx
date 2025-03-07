@@ -53,37 +53,23 @@ export interface UserSession {
 
 export interface ValidateResponse {
   is_valid: boolean;
-  user?: AuthUser;
+  user?: AuthUser; // Adicionado campo opcional para dados do usuário
   detail?: string;
+  code?: string;
+  messages?: Array<{
+    token_class: string;
+    token_type: string;
+    message: string;
+  }>;
 }
 
-// Error codes for authentication
-export enum AuthErrorCode {
-  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
-  SERVER_ERROR = 'SERVER_ERROR',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  SESSION_EXPIRED = 'SESSION_EXPIRED',
-  TOKEN_INVALID = 'TOKEN_INVALID',
-  UNAUTHORIZED = 'UNAUTHORIZED'
-}
-
-// Custom error class for authentication
-export class AuthError extends Error {
-  constructor(
-    public code: AuthErrorCode,
-    message: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'AuthError';
-  }
-}
 
 export interface AuthState {
+  isAuthenticated: boolean;
   user: AuthUser | null;
-  token: string | null;
-  companyId?: string;
-  sessionId?: string | undefined;
+  company_id?: string;
+  loading: boolean;
+  session_id?: string;
 }
 
 export interface AuthContextType {
@@ -251,4 +237,33 @@ export interface RefreshTokenResponse {
 export interface LoginCredentials {
   login: string;
   password: string;
+}
+
+export interface TokenResponse {
+  access: string;
+  refresh?: string;
+}
+
+
+// Enum para códigos de erro
+export enum AuthErrorCode {
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  SERVER_ERROR = 'SERVER_ERROR',
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  SESSION_EXPIRED = 'SESSION_EXPIRED',
+  TOKEN_INVALID = 'TOKEN_INVALID',
+  UNAUTHORIZED = 'UNAUTHORIZED'
+}
+
+
+// Interface para erro customizado
+export class AuthenticationError extends Error {
+  constructor(
+    public code: AuthErrorCode,
+    message: string,
+    public details?: any
+  ) {
+    super(message);
+    this.name = 'AuthenticationError';
+  }
 }
