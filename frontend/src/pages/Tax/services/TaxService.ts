@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 import type { PaginatedResponse } from '@/types/api_types';
-import type { Tax, TaxListParams } from '@/pages/Tax/types/tax_types';
+import type { Tax, TaxListParams } from '@/pages/Tax/types/TaxTypes';
 
 // URL base para o serviço de impostos (removida a barra final para evitar duplicação)
 const baseUrl = DEFAULT_API_CONFIG.baseURL.endsWith('/')

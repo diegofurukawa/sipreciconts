@@ -3,7 +3,7 @@ import React, { useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   Card,
@@ -20,7 +20,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useToast } from '@/hooks/useToast';
 import { taxService } from '@/pages/Tax/services/TaxService';
 import { TAX_ROUTES } from '@/pages/Tax/routes';
-import { TAX_TYPE_OPTIONS, TAX_GROUP_OPTIONS, CALC_OPERATOR_OPTIONS } from '@/pages/Tax/types/tax_types';
+import { Tax, TAX_TYPE_OPTIONS, TAX_GROUP_OPTIONS, CALC_OPERATOR_OPTIONS } from '@/pages/Tax/types/TaxTypes';
 
 // Schema de validação
 const taxFormSchema = z.object({
@@ -51,6 +51,7 @@ const TaxForm: React.FC = () => {
   const [loading, setLoading] = React.useState(isEditMode);
   const [error, setError] = React.useState<string | null>(null);
   const [initialLoad, setInitialLoad] = React.useState(!isEditMode); // Controla o carregamento inicial
+  const [taxData, setTaxData] = React.useState<Tax | null>(null);
   
   const form = useForm<TaxFormData>({
     resolver: zodResolver(taxFormSchema),
@@ -67,20 +68,33 @@ const TaxForm: React.FC = () => {
   // Função para carregar dados do imposto
   const loadTaxData = useCallback(async () => {
     if (!isEditMode || !parsedId) return;
-
+  
     setLoading(true);
     try {
       console.log('Carregando imposto com ID:', parsedId);
       const tax = await taxService.getById(parsedId);
-      console.log('Dados do imposto recebidos:', tax);
+      console.log('Dados completos do imposto recebidos:', tax);
+      setTaxData(tax);
+      
+      // Adicione logs para cada campo individual para debug
+      console.log('acronym:', tax.acronym);
+      console.log('description:', tax.description);
+      console.log('type:', tax.type);
+      console.log('group:', tax.group);
+      console.log('calc_operator:', tax.calc_operator);
+      console.log('value:', tax.value);
+      
+      // Definir valores usando form.reset para garantir que todos os campos sejam atualizados de uma vez
       form.reset({
-        acronym: tax.acronym,
+        acronym: tax.acronym || '',
         description: tax.description || '',
-        type: tax.type,
-        group: tax.group,
-        calc_operator: tax.calc_operator,
-        value: tax.value
+        type: tax.type || 'tax',
+        group: tax.group || 'federal',
+        calc_operator: tax.calc_operator || '%',
+        value: typeof tax.value === 'string' ? parseFloat(tax.value) : (tax.value || 0)
       });
+      
+      console.log('Formulário resetado com valores:', form.getValues());
     } catch (error: any) {
       console.error('Erro ao carregar imposto:', error);
       setError(error.message || 'Não foi possível carregar os dados do imposto');
@@ -91,7 +105,7 @@ const TaxForm: React.FC = () => {
       });
     } finally {
       setLoading(false);
-      setInitialLoad(true); // Marca o carregamento inicial como concluído
+      setInitialLoad(true);
     }
   }, [isEditMode, parsedId, form, showToast]);
 
@@ -101,6 +115,35 @@ const TaxForm: React.FC = () => {
       loadTaxData();
     }
   }, [initialLoad, isEditMode, loadTaxData]);
+
+  // Efeito adicional para garantir que os selects sejam atualizados
+  useEffect(() => {
+    if (taxData && initialLoad) {
+      console.log('useEffect de atualização de selects disparado');
+      
+      // Pequeno timeout para garantir que o DOM esteja pronto
+      const timer = setTimeout(() => {
+        if (taxData.type) {
+          console.log('Forçando atualização do tipo:', taxData.type);
+          form.setValue('type', taxData.type);
+        }
+        
+        if (taxData.group) {
+          console.log('Forçando atualização do grupo:', taxData.group);
+          form.setValue('group', taxData.group);
+        }
+        
+        if (taxData.calc_operator) {
+          console.log('Forçando atualização do operador:', taxData.calc_operator);
+          form.setValue('calc_operator', taxData.calc_operator);
+        }
+        
+        form.trigger();
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [taxData, initialLoad, form]);
 
   const onSubmit = async (data: TaxFormData) => {
     try {
@@ -201,36 +244,57 @@ const TaxForm: React.FC = () => {
                 />
               </div>
 
-              {/* Tipo */}
+              {/* Tipo - Usando Controller */}
               <div>
-                <Select
-                  label="Tipo *"
-                  placeholder="Selecione um tipo"
-                  options={TAX_TYPE_OPTIONS}
-                  error={form.formState.errors.type?.message}
-                  {...form.register('type')}
+                <Controller
+                  name="type"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      label="Tipo *"
+                      placeholder="Selecione um tipo"
+                      options={TAX_TYPE_OPTIONS}
+                      error={form.formState.errors.type?.message}
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
                 />
               </div>
 
-              {/* Grupo */}
+              {/* Grupo - Usando Controller */}
               <div>
-                <Select
-                  label="Grupo *"
-                  placeholder="Selecione um grupo"
-                  options={TAX_GROUP_OPTIONS}
-                  error={form.formState.errors.group?.message}
-                  {...form.register('group')}
+                <Controller
+                  name="group"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      label="Grupo *"
+                      placeholder="Selecione um grupo"
+                      options={TAX_GROUP_OPTIONS}
+                      error={form.formState.errors.group?.message}
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
                 />
               </div>
 
-              {/* Operador de Cálculo */}
+              {/* Operador de Cálculo - Usando Controller */}
               <div>
-                <Select
-                  label="Operador de Cálculo *"
-                  placeholder="Selecione um operador"
-                  options={CALC_OPERATOR_OPTIONS}
-                  error={form.formState.errors.calc_operator?.message}
-                  {...form.register('calc_operator')}
+                <Controller
+                  name="calc_operator"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Select
+                      label="Operador de Cálculo *"
+                      placeholder="Selecione um operador"
+                      options={CALC_OPERATOR_OPTIONS}
+                      error={form.formState.errors.calc_operator?.message}
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  )}
                 />
               </div>
 

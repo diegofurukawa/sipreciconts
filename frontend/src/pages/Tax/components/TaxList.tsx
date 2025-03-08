@@ -44,7 +44,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useTaxList } from '@/pages/Tax/hooks/useTaxList';
 import { useToast } from '@/hooks/useToast';
 import { TAX_ROUTES } from '@/pages/Tax/routes';
-import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS, TAX_TYPE_OPTIONS } from '@/pages/Tax/types/tax_types';
+import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS, TAX_TYPE_OPTIONS } from '@/pages/Tax/types/TaxTypes';
 
 const TaxList: React.FC = () => {
   const navigate = useNavigate();

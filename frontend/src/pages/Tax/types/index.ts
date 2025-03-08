@@ -7,7 +7,7 @@ export {
     ,TAX_TYPE_OPTIONS
     ,formatTaxValue
     ,getOptionLabel
- } from '@pages/Tax/types/tax_types';
+ } from '@/pages/Tax/types/TaxTypes';
 
 
- export  * from '@pages/Tax/types/tax_types';
+ export  * from '@/pages/Tax/types/TaxTypes';
