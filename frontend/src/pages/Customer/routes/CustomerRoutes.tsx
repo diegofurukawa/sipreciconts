@@ -10,7 +10,7 @@ const CustomerDetailsWrapper = () => {
 };
 
 // Lazy imports com exportações nomeadas
-const CustomerPage = lazy(() => import('../').then(module => ({ default: module.Customer })));
+const CustomerPage = lazy(() => import('..').then(module => ({ default: module.Customer })));
 const CustomerList = lazy(() => import('../components/CustomerList').then(module => ({ default: module.CustomerList })));
 const CustomerForm = lazy(() => import('../components/CustomerForm').then(module => ({ default: module.CustomerForm })));
 const CustomerImport = lazy(() => import('../components/CustomerImport').then(module => ({ default: module.CustomerImport })));

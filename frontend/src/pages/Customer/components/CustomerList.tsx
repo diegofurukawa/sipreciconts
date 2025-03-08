@@ -1,206 +1,307 @@
-import React, { useState, useEffect } from 'react';
-import { Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell } from 'react';
-import { Pencil, Trash, Eye, Plus, Search, X, Download, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Download, 
+  Upload, 
+  Plus, 
+  Pencil, 
+  Trash2, 
+  Search, 
+  X,
+  RefreshCw 
+} from 'lucide-react';
+import { 
+  Card, 
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription 
+} from '@/components/ui/card';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { TablePagination } from '@/components/ui/table-pagination';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { LoadingState } from '@/components/feedback/LoadingState';
+import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { useCustomerList } from '../hooks/useCustomerList';
+import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
-// Componente principal de listagem de clientes
-const CustomerList = () => {
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+const CustomerList: React.FC = () => {
+  const navigate = useNavigate();
+  const {
+    customers,
+    loading,
+    error,
+    pagination,
+    handleSearch,
+    handlePageChange,
+    handleDelete,
+    reloadCustomers,
+    handleExport,
+    handleImport,
+  } = useCustomerList();
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [customerToDelete, setCustomerToDelete] = useState(null);
-  
-  // Estado para feedback visual ao usuário
-  const [feedback, setFeedback] = useState(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
+  const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
 
-  // Buscar dados de clientes (mock para demonstração)
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        setLoading(true);
-        // Em uma implementação real, isso seria uma chamada à API
-        
-        // Dados de exemplo para demonstração
-        const mockCustomers = [
-          { 
-            customer_id: 1, 
-            name: 'Empresa ABC Ltda', 
-            document: '12.345.678/0001-90', 
-            celphone: '(11) 98765-4321', 
-            email: 'contato@empresaabc.com.br' 
-          },
-          { 
-            customer_id: 2, 
-            name: 'João Silva', 
-            document: '123.456.789-00', 
-            celphone: '(11) 91234-5678', 
-            email: 'joao.silva@email.com' 
-          },
-          { 
-            customer_id: 3, 
-            name: 'Mercado Express', 
-            document: '87.654.321/0001-43', 
-            celphone: '(11) 97654-3210', 
-            email: 'contato@mercadoexpress.com' 
-          }
-        ];
-        
-        setCustomers(mockCustomers);
-      } catch (error) {
-        console.error('Erro ao carregar clientes:', error);
-        showFeedback('error', 'Erro ao carregar lista de clientes');
-      } finally {
-        setLoading(false);
-      }
-    };
+  console.log('Estado do useCustomerList:', { customers, loading, error, pagination });
 
-    fetchCustomers();
-  }, []);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    console.log('Termo de busca alterado:', e.target.value);
+  };
 
-  // Funções de manipulação
-  const handleSearch = () => {
-    // Implementar busca em uma aplicação real
-    console.log('Buscando por:', searchTerm);
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Submetendo busca com termo:', searchTerm);
+    handleSearch(searchTerm);
   };
 
   const handleSearchClear = () => {
     setSearchTerm('');
-    // Em uma aplicação real, recarregaria a lista completa
+    console.log('Limpando termo de busca');
+    handleSearch('');
   };
 
-  const confirmDelete = async (id) => {
-    try {
-      // Em uma implementação real, isso seria uma chamada à API
-      // await customerService.delete(id);
-      
-      // Remove o cliente do estado para simular exclusão
-      setCustomers(customers.filter(c => c.customer_id !== id));
-      showFeedback('success', 'Cliente excluído com sucesso');
-    } catch (error) {
-      console.error('Erro ao excluir cliente:', error);
-      showFeedback('error', 'Erro ao excluir cliente');
+  const handleNewClick = () => {
+    console.log('Navegando para formulário de novo cliente');
+    navigate(CADASTROS_ROUTES.CLIENTES.NEW);
+  };
+
+  const handleEditClick = (id: number) => {
+    console.log('Navegando para edição do cliente com ID:', id);
+    navigate(CADASTROS_ROUTES.CLIENTES.EDIT(id));
+  };
+
+  const handleDeleteClick = (id: number) => {
+    console.log('Abrindo diálogo de exclusão para cliente com ID:', id);
+    setDeleteDialog({ show: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteDialog.id) {
+      console.log('Confirmando exclusão do cliente com ID:', deleteDialog.id);
+      await handleDelete(deleteDialog.id);
+    }
+    setDeleteDialog({ show: false });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      console.log('Arquivo selecionado para importação:', file.name);
+      try {
+        await handleImport(file);
+        if (e.target) e.target.value = '';
+      } catch (error) {
+        console.error('Erro ao importar arquivo:', error);
+      }
     }
   };
 
-  const showFeedback = (type, message) => {
-    setFeedback({ type, message });
-    setTimeout(() => setFeedback(null), 3000);
-  };
+  if (loading && (!customers || customers.length === 0)) {
+    console.log('Exibindo estado de carregamento');
+    return <LoadingState />;
+  }
 
-  // Renderização principal
+  if (error && (!customers || customers.length === 0)) {
+    console.log('Exibindo estado de erro:', error);
+    return <ErrorState message={error} onRetry={reloadCustomers} />;
+  }
+
   return (
-    <div className="p-4">
-      {/* Feedback visual */}
-      {feedback && (
-        <div 
-          className={`fixed top-4 right-4 z-50 p-4 rounded shadow-lg text-white
-            ${feedback.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}
-        >
-          {feedback.message}
-        </div>
-      )}
-      
-      {/* Cabeçalho com busca e ações */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="relative w-64">
-          <input
-            type="text"
-            placeholder="Pesquisar clientes..."
-            className="w-full pl-8 pr-4 py-2 border rounded"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-          {searchTerm && (
-            <button
-              className="absolute right-2 top-2.5"
-              onClick={handleSearchClear}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            className="flex items-center px-3 py-2 bg-white border rounded hover:bg-gray-50"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar
-          </button>
-
-          <button
-            className="flex items-center px-3 py-2 bg-white border rounded hover:bg-gray-50"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Importar
-          </button>
-
-          <button
-            className="flex items-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Cliente
-          </button>
-        </div>
-      </div>
-
-      {/* Tabela de clientes */}
-      <div className="bg-white rounded shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Celular</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-            </tr>
-          </thead>
-          
-          <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-4 text-center">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  </div>
-                </td>
-              </tr>
-            ) : customers.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-6 py-4 text-center">
-                  <p className="text-gray-500">Nenhum cliente encontrado</p>
-                </td>
-              </tr>
-            ) : (
-              customers.map((customer) => (
-                <tr key={customer.customer_id}>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{customer.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{customer.document || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{customer.celphone}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{customer.email || '-'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                    <button className="text-blue-600 hover:text-blue-900">
-                      <Eye className="inline h-4 w-4" />
-                    </button>
-                    <button className="text-gray-600 hover:text-gray-900 ml-2">
-                      <Pencil className="inline h-4 w-4" />
-                    </button>
-                    <button 
-                      className="text-red-600 hover:text-red-900 ml-2"
-                      onClick={() => confirmDelete(customer.customer_id)}
-                    >
-                      <Trash className="inline h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <CardTitle>Clientes</CardTitle>
+              <CardDescription>Gerencie os clientes do sistema</CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="mr-2 h-4 w-4" /> Novo Cliente
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => { console.log('Abrindo input para importação'); importInputRef?.click(); }}
+              >
+                <Upload className="mr-2 h-4 w-4" /> Importar
+              </Button>
+              <input
+                type="file"
+                ref={ref => setImportInputRef(ref)}
+                className="hidden"
+                accept=".csv,.xlsx"
+                onChange={handleFileSelect}
+              />
+              <Button 
+                variant="outline"
+                onClick={() => { console.log('Iniciando exportação de clientes'); handleExport(); }}
+              >
+                <Download className="mr-2 h-4 w-4" /> Exportar
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => { console.log('Atualizando lista de clientes'); reloadCustomers(); }}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearchSubmit} className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="Buscar clientes..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={handleSearchClear}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
             )}
-          </tbody>
-        </table>
-      </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Documento</TableHead>
+                  <TableHead>Celular</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Ativo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(!customers || !Array.isArray(customers)) ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <ErrorState
+                        message="Erro: Dados dos clientes inválidos"
+                        onRetry={reloadCustomers}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : customers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <EmptyState
+                        title="Nenhum cliente encontrado"
+                        description="Cadastre um novo cliente para começar"
+                        action={
+                          <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="mr-2 h-4 w-4" /> Novo Cliente
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  customers.map((customer) => {
+                    console.log('Renderizando cliente:', customer);
+                    return (
+                      <TableRow key={customer.customer_id || customer.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">{customer.customer_id}</TableCell>
+                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>{customer.document || '-'}</TableCell>
+                        <TableCell>{customer.celphone}</TableCell>
+                        <TableCell>{customer.email || '-'}</TableCell>
+                        <TableCell>{customer.enabled ? 'Sim' : 'Não'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(Number(customer.customer_id))}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(Number(customer.customer_id))}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {customers && Array.isArray(customers) && customers.length > 0 && (
+            <div className="border-t">
+              <TablePagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => {
+                  console.log('Mudando para página:', page);
+                  handlePageChange(page);
+                }}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({ show: open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
 
-export default CustomerList;
+export default CustomerList; // Garantindo a exportação explícita

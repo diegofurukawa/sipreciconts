@@ -1,4 +1,4 @@
-export * from './customer_types';
+export * from './CustomerTypes';
 
 
 // export type {

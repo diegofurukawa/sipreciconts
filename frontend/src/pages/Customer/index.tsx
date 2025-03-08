@@ -1,7 +1,7 @@
 // src/pages/Customer/index.tsx
 import { Outlet, useLocation } from 'react-router-dom';
 import { CustomerHeader } from './components/CustomerHeader';
-import { CustomerList } from './components/CustomerList';
+import CustomerList from '@/pages/Customer/components/CustomerList';
 import { RouteDebug } from '@/components/RouteDebug';
 
 const getPageTitle = (pathname: string) => {

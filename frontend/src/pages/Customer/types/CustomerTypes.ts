@@ -19,6 +19,16 @@ export interface Customer {
   
 }
 
+export interface PaginatedResponse<T> {
+  results: T[] | { results: T[]; total_count?: number };
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+  current_page?: number;
+  total_pages?: number;
+  total?: number;
+}
+
 /**
  * Dados para criação de cliente
  */
