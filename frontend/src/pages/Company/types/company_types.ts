@@ -1,62 +1,80 @@
 // src/pages/Company/types/company_types.ts
+
+/**
+ * Interface base da Empresa
+ */
 export interface Company {
   company_id: string;
   name: string;
-  document: string;
-  email: string;
-  phone: string;
+  document?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
   enabled: boolean;
-  administrators_count?: number; // Opcional, conforme a API
-  employees_count?: number; // Opcional, conforme a API
+  created?: string;
+  updated?: string;
+  administrators_count?: number;
+  employees_count?: number;
 }
 
-export interface CompanyFormData extends Company {
-  address?: string; // Adicionado para o formulário, se necessário
+/**
+ * Parâmetros para listagem de empresas
+ */
+export interface CompanyListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
+  enabled?: boolean;
 }
 
-export interface UseCompanyListReturn {
-  companies: Company[];
-  loading: boolean;
-  error: string | null;
-  deleteLoading: number | null;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    nextPage: string | null;
-    previousPage: string | null;
-  };
-  searchTerm: string;
-  pageId: string;
-  handleDelete: (id: number) => Promise<void>;
-  handleEdit: (id: number) => void;
-  handleNew: () => void;
-  handleView: (id: number) => void;
-  handlePageChange: (page: number) => void;
-  handleSearch: (term: string) => Promise<void>;
-  handleImport: () => Promise<void>;
-  handleExport: () => Promise<void>;
-  refresh: () => void;
-  retry: () => void;
-  isDeleting: (id: number) => boolean;
-  isEmpty: boolean;
-  hasError: boolean;
-}
+/**
+ * Opcional: Labels para exibição
+ */
+export const COMPANY_TYPE_LABELS: Record<string, string> = {
+  'matriz': 'Matriz',
+  'filial': 'Filial',
+  'fornecedor': 'Fornecedor',
+  'cliente': 'Cliente'
+};
 
-export interface UseCompanyFormReturn {
-  companyData: CompanyFormData;
-  isLoading: boolean;
-  isSubmitting: boolean;
-  isEditMode: boolean;
-  onSubmit: (data: CompanyFormData) => Promise<void>;
-}
+/**
+ * Opcional: Opções para selects
+ */
+export const COMPANY_TYPE_OPTIONS = [
+  { value: 'matriz', label: 'Matriz' },
+  { value: 'filial', label: 'Filial' },
+  { value: 'fornecedor', label: 'Fornecedor' },
+  { value: 'cliente', label: 'Cliente' }
+];
 
-export const INITIAL_COMPANY_FORM_DATA: CompanyFormData = {
-  company_id: '',
-  name: '',
-  document: '',
-  email: '',
-  phone: '',
-  enabled: true,
-  address: '',
+/**
+ * Funções auxiliares para formatação
+ */
+export const formatDocument = (document?: string): string => {
+  if (!document) return '-';
+  
+  // Formata CNPJ: XX.XXX.XXX/XXXX-XX
+  if (document.length === 14) {
+    return document.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      '$1.$2.$3/$4-$5'
+    );
+  }
+  
+  // Formata CPF: XXX.XXX.XXX-XX
+  if (document.length === 11) {
+    return document.replace(
+      /^(\d{3})(\d{3})(\d{3})(\d{2})$/,
+      '$1.$2.$3-$4'
+    );
+  }
+  
+  return document;
+};
+
+export const getOptionLabel = (value: string, optionsRecord: Record<string, string>): string => {
+  if (!value) return '';
+  return optionsRecord[value] || value;
 };

@@ -1,9 +1,9 @@
 // src/pages/Company/index.tsx
-import { CompanyList } from './components/CompanyList';
-import type { Company } from '@/pages/Company/types';
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-// Exporta o componente CompanyList como default
-export default CompanyList;
+const Company: React.FC = () => {
+  return <Outlet />;
+};
 
-// Exporta tipos e interfaces
-export type { Company };
+export default Company;

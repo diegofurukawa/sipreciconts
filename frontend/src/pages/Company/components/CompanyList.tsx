@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  Pencil, 
-  Trash2, 
-  Plus, 
-  FileText, 
   Download, 
   Upload, 
+  Plus, 
+  Pencil, 
+  Trash2, 
   Search, 
   X,
   RefreshCw 
@@ -26,133 +26,182 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle 
-} from '@/components/ui/alert-dialog';
 import { TablePagination } from '@/components/ui/table-pagination';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { LoadingState } from '@/components/feedback/LoadingState';
-import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { useCompanyList } from '../hooks/useCompanyList';
-import { useToast } from '@/hooks/useToast';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { useCompanyList } from '@/pages/Company/hooks/useCompanyList';
+import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
 
-export const CompanyList: React.FC = () => {
-  const { 
-    companies, 
-    loading, 
-    error, 
-    deleteLoading, 
+const CompanyList: React.FC = () => {
+  const navigate = useNavigate();
+  const {
+    companies,
+    loading,
+    error,
     pagination,
-    handleDelete, 
-    handleEdit, 
-    handleNew, 
-    handleView,
-    handlePageChange,
     handleSearch,
-    handleImport,
-    handleExport,    
-    retry,
-    isDeleting,
-    isEmpty,
-    hasError,
-    pageId,
-    refresh
+    handlePageChange,
+    handleDelete,
+    reloadCompanies,
+    handleExport,
+    handleImport
   } = useCompanyList();
-  
-  const { showToast } = useToast();
-  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number | string }>({ show: false });
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
+  const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
 
-  // Log para verificar os dados recebidos
-  useEffect(() => {
-    console.log('Companies received in CompanyList:', companies);
-    console.log('Loading state:', loading, 'Error state:', error, 'Has Error:', hasError);
-  }, [companies, loading, error, hasError]);
+  // Log inicial do estado retornado pelo hook
+  console.log('Estado do useCompanyList:', {
+    companies,
+    loading,
+    error,
+    pagination,
+  });
 
+  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    console.log('Termo de busca alterado:', e.target.value);
   };
 
+  // Handle search form submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submetendo busca com termo:', searchTerm);
     handleSearch(searchTerm);
   };
 
+  // Clear search input
   const handleSearchClear = () => {
     setSearchTerm('');
+    console.log('Limpando termo de busca');
     handleSearch('');
   };
 
-  const showDeleteConfirmation = (id: number | string) => {
+  // Navigate to new company form
+  const handleNewClick = () => {
+    console.log('Navegando para formulário de nova empresa');
+    navigate(CADASTROS_ROUTES.EMPRESA.NEW);
+  };
+
+  // Navigate to edit company form
+  const handleEditClick = (id: number) => {
+    console.log('Navegando para edição da empresa com ID:', id);
+    navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
+  };
+
+  // Open delete confirmation dialog
+  const handleDeleteClick = (id: number) => {
+    console.log('Abrindo diálogo de exclusão para empresa com ID:', id);
     setDeleteDialog({ show: true, id });
   };
 
+  // Confirm company deletion
   const confirmDelete = async () => {
     if (deleteDialog.id) {
-      await handleDelete(deleteDialog.id as number); // Força conversão para number se necessário
-      setDeleteDialog({ show: false });
+      console.log('Confirmando exclusão da empresa com ID:', deleteDialog.id);
+      await handleDelete(deleteDialog.id);
     }
+    setDeleteDialog({ show: false });
   };
 
+  // Handle file input change for import
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log('Arquivo selecionado para importação:', file.name);
       try {
-        await handleImport();
+        await handleImport(file);
+        // Clear input after upload
         if (e.target) {
           e.target.value = '';
         }
-        showToast({
-          type: 'success',
-          title: 'Sucesso',
-          message: 'Arquivo importado com sucesso'
-        });
       } catch (error) {
-        showToast({
-          type: 'error',
-          title: 'Erro',
-          message: 'Erro ao importar arquivo'
-        });
+        console.error('Erro ao importar arquivo:', error);
       }
     }
   };
 
+  // Show loading state if loading and no company data
+  if (loading && (!companies || companies.length === 0)) {
+    console.log('Exibindo estado de carregamento');
+    return <LoadingState />;
+  }
+
+  // Show error state if there's an error and no company data
+  if (error && (!companies || companies.length === 0)) {
+    console.log('Exibindo estado de erro:', error);
+    return (
+      <ErrorState 
+        message={error}
+        onRetry={reloadCompanies}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Header Card */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>Empresas</CardTitle>
-              <CardDescription>Gerencie as empresas cadastradas no sistema</CardDescription>
+              <CardDescription>Gerencie as empresas do sistema</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleNew} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" /> Nova Empresa
+              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Empresa
               </Button>
-              <Button variant="outline" onClick={() => fileInputRef?.click()}>
-                <Upload className="mr-2 h-4 w-4" /> Importar
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  console.log('Abrindo input para importação');
+                  importInputRef?.click();
+                }}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Importar
               </Button>
               <input
                 type="file"
-                ref={(ref) => setFileInputRef(ref)}
+                ref={ref => setImportInputRef(ref)}
                 className="hidden"
                 accept=".csv,.xlsx"
                 onChange={handleFileSelect}
               />
-              <Button variant="outline" onClick={handleExport}>
-                <Download className="mr-2 h-4 w-4" /> Exportar
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  console.log('Iniciando exportação de empresas');
+                  handleExport();
+                }}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Exportar
               </Button>
-              <Button variant="outline" onClick={refresh}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  console.log('Atualizando lista de empresas');
+                  reloadCompanies();
+                }}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Atualizar
               </Button>
             </div>
           </div>
@@ -165,7 +214,7 @@ export const CompanyList: React.FC = () => {
               placeholder="Buscar empresas..."
               value={searchTerm}
               onChange={handleSearchChange}
-              className="w-full py-2.5 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             {searchTerm && (
               <button
@@ -180,102 +229,64 @@ export const CompanyList: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Estado de Erro */}
-      {hasError && (
-        <Card>
-          <CardContent className="p-0">
-            <ErrorState
-              title="Erro ao carregar empresas"
-              message={error || "Não foi possível carregar a lista de empresas"}
-              onRetry={retry}
-              pageId={pageId}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Estado de Carregamento Inicial */}
-      {loading && companies.length === 0 && (
-        <Card>
-          <CardContent className="p-0">
-            <LoadingState message="Carregando empresas..." pageId={pageId} />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Tabela de Empresas */}
-      {(companies.length > 0 || (!loading && !hasError)) && (
-        <Card>
-          <CardContent className="p-0 relative">
-            {loading && companies.length > 0 && (
-              <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-              </div>
-            )}
-            
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
+      {/* Company Table */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Documento</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>Ativo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(!companies || !Array.isArray(companies)) ? (
                   <TableRow>
-                    <TableHead className="w-1/6">Código</TableHead>
-                    <TableHead className="w-1/3">Nome</TableHead>
-                    <TableHead className="w-1/6">Documento</TableHead>
-                    <TableHead className="w-1/6">Email</TableHead>
-                    <TableHead className="w-1/6">Telefone</TableHead>
-                    <TableHead className="w-1/6 text-right">Ativo</TableHead>
-                    <TableHead className="w-1/6 text-right">Ações</TableHead>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <ErrorState
+                        message="Erro: Dados das empresas inválidos"
+                        onRetry={reloadCompanies}
+                      />
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isEmpty && !loading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-64">
-                        <EmptyState
-                          title="Nenhuma empresa encontrada"
-                          description={searchTerm 
-                            ? "Nenhuma empresa corresponde aos critérios de busca" 
-                            : "Cadastre uma nova empresa para começar"
-                          }
-                          pageId={pageId}
-                          action={
-                            <Button onClick={handleNew} className="bg-emerald-600 hover:bg-emerald-700">
-                              <Plus className="mr-2 h-4 w-4" /> Nova Empresa
-                            </Button>
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    companies.map((company) => (
-                      <TableRow 
-                        key={company.company_id || company.id} 
-                        className="hover:bg-gray-50 transition duration-150"
-                      >
-                        <TableCell>{company.company_id || '-'}</TableCell>
-                        <TableCell className="font-medium">{company.name || '-'}</TableCell>
+                ) : companies.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <EmptyState
+                        title="Nenhuma empresa encontrada"
+                        description="Cadastre uma nova empresa para começar"
+                        action={
+                          <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Nova Empresa
+                          </Button>
+                        }
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  companies.map((company) => {
+                    console.log('Renderizando empresa:', company);
+                    return (
+                      <TableRow key={company.company_id || company.id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">{company.company_id}</TableCell>
+                        <TableCell>{company.name}</TableCell>
                         <TableCell>{company.document || '-'}</TableCell>
                         <TableCell>{company.email || '-'}</TableCell>
                         <TableCell>{company.phone || '-'}</TableCell>
+                        <TableCell>{company.enabled ? 'Sim' : 'Não'}</TableCell>
                         <TableCell className="text-right">
-                          {company.enabled !== undefined ? (company.enabled ? 'Sim' : 'Não') : '-'}
-                        </TableCell>
-                        <TableCell className="text-right space-x-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleView(company.company_id || company.id)}
-                            className="text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50"
-                            title="Ver detalhes"
-                          >
-                            <FileText className="h-4 w-4" />
-                            <span className="sr-only">Ver detalhes</span>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(company.company_id || company.id)}
-                            className="text-blue-600 hover:text-blue-900 hover:bg-blue-50"
-                            title="Editar"
+                            onClick={() => handleEditClick(company.company_id || company.id)}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                           >
                             <Pencil className="h-4 w-4" />
                             <span className="sr-only">Editar</span>
@@ -283,54 +294,50 @@ export const CompanyList: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => showDeleteConfirmation(company.company_id || company.id)}
-                            className="text-red-600 hover:text-red-900 hover:bg-red-50"
-                            title="Excluir"
-                            disabled={isDeleting(company.company_id || company.id)}
+                            onClick={() => handleDeleteClick(company.company_id || company.id)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
                           >
-                            {isDeleting(company.company_id || company.id) ? (
-                              <div className="h-4 w-4 border-2 border-r-transparent border-red-500 rounded-full animate-spin"></div>
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
+                            <Trash2 className="h-4 w-4" />
                             <span className="sr-only">Excluir</span>
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            {!isEmpty && pagination.totalPages > 1 && (
-              <div className="border-t">
-                <TablePagination
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  onPageChange={handlePageChange}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
 
-      {/* Diálogo de Confirmação de Exclusão */}
+          {/* Pagination */}
+          {companies && Array.isArray(companies) && companies.length > 0 && (
+            <div className="border-t">
+              <TablePagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => {
+                  console.log('Mudando para página:', page);
+                  handlePageChange(page);
+                }}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({ show: open })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir esta empresa? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir esta empresa? 
+              Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 text-white hover:bg-red-700">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
