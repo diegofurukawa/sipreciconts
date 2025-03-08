@@ -177,49 +177,45 @@
 │   │   │   ├── PageStates
 │   │   │   │   ├── index.ts
 │   │   │   │   └── PageStates.tsx
-│   │   │   ├── ProfileDropdownMenu
-│   │   │   │   └── index.tsx
 │   │   │   ├── RouteDebug.tsx
-│   │   │   ├── ui
-│   │   │   │   ├── accordion
-│   │   │   │   │   ├── accordion.test.tsx
-│   │   │   │   │   ├── accordion.tsx
-│   │   │   │   │   └── index.tsx
-│   │   │   │   ├── alert-dialog
-│   │   │   │   │   ├── alert-dialog.test.tsx
-│   │   │   │   │   ├── alert-dialog.tsx
-│   │   │   │   │   └── index.ts
-│   │   │   │   ├── avatar.tsx
-│   │   │   │   ├── badge.tsx
-│   │   │   │   ├── button.tsx
-│   │   │   │   ├── card.tsx
-│   │   │   │   ├── date-formatters.tsx
-│   │   │   │   ├── dialog.tsx
-│   │   │   │   ├── dropdown-menu.tsx
-│   │   │   │   ├── form-field.tsx
-│   │   │   │   ├── index.ts
-│   │   │   │   ├── input.tsx
-│   │   │   │   ├── label.tsx
-│   │   │   │   ├── pagination.tsx
-│   │   │   │   ├── progress.tsx
-│   │   │   │   ├── select.tsx
-│   │   │   │   ├── sheet.tsx
-│   │   │   │   ├── simplealert
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   └── SimpleAlert.tsx
-│   │   │   │   ├── skeleton.tsx
-│   │   │   │   ├── switch.tsx
-│   │   │   │   ├── table-pagination
-│   │   │   │   │   ├── index.ts
-│   │   │   │   │   ├── table-pagination.test.tsx
-│   │   │   │   │   └── table-pagination.tsx
-│   │   │   │   ├── table.tsx
-│   │   │   │   └── toast
-│   │   │   │       ├── index.ts
-│   │   │   │       ├── toast.test.tsx
-│   │   │   │       └── toast.tsx
-│   │   │   └── UserProfileDropdown
-│   │   │       └── index.tsx
+│   │   │   └── ui
+│   │   │       ├── accordion
+│   │   │       │   ├── accordion.test.tsx
+│   │   │       │   ├── accordion.tsx
+│   │   │       │   └── index.tsx
+│   │   │       ├── alert-dialog
+│   │   │       │   ├── alert-dialog.test.tsx
+│   │   │       │   ├── alert-dialog.tsx
+│   │   │       │   └── index.ts
+│   │   │       ├── avatar.tsx
+│   │   │       ├── badge.tsx
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── date-formatters.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       ├── dropdown-menu.tsx
+│   │   │       ├── form-field.tsx
+│   │   │       ├── index.ts
+│   │   │       ├── input.tsx
+│   │   │       ├── label.tsx
+│   │   │       ├── pagination.tsx
+│   │   │       ├── progress.tsx
+│   │   │       ├── select.tsx
+│   │   │       ├── sheet.tsx
+│   │   │       ├── simplealert
+│   │   │       │   ├── index.ts
+│   │   │       │   └── SimpleAlert.tsx
+│   │   │       ├── skeleton.tsx
+│   │   │       ├── switch.tsx
+│   │   │       ├── table-pagination
+│   │   │       │   ├── index.ts
+│   │   │       │   ├── table-pagination.test.tsx
+│   │   │       │   └── table-pagination.tsx
+│   │   │       ├── table.tsx
+│   │   │       └── toast
+│   │   │           ├── index.ts
+│   │   │           ├── toast.test.tsx
+│   │   │           └── toast.tsx
 │   │   ├── config
 │   │   │   ├── api_config.ts
 │   │   │   ├── index.ts
@@ -360,8 +356,12 @@
 │   │   │   │       ├── index.ts
 │   │   │   │       └── tax_types.ts
 │   │   │   └── UserProfile
+│   │   │       ├── components
+│   │   │       │   ├── ProfileDropdownMenu.tsx
+│   │   │       │   └── UserProfileDropdown.tsx
 │   │   │       ├── index.tsx
-│   │   │       ├── routes.tsx
+│   │   │       ├── routes
+│   │   │       │   └── UserProfile_routes.tsx
 │   │   │       └── SessionInfoPage.tsx
 │   │   ├── providers
 │   │   ├── react-app-env.d.ts

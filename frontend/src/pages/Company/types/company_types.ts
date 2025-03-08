@@ -1,6 +1,5 @@
 // src/pages/Company/types/company_types.ts
 export interface Company {
-  id?: number; // Adicionado se a API retornar um ID único
   company_id: string;
   name: string;
   document: string;

@@ -1,5 +1,4 @@
-// src/pages/Company/components/CompanyList.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Pencil, 
   Trash2, 
@@ -68,9 +67,15 @@ export const CompanyList: React.FC = () => {
   } = useCompanyList();
   
   const { showToast } = useToast();
-  const [deleteDialog, setDeleteDialog] = useState<{show: boolean; id?: number}>({show: false});
+  const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number | string }>({ show: false });
   const [searchTerm, setSearchTerm] = useState('');
   const [fileInputRef, setFileInputRef] = useState<HTMLInputElement | null>(null);
+
+  // Log para verificar os dados recebidos
+  useEffect(() => {
+    console.log('Companies received in CompanyList:', companies);
+    console.log('Loading state:', loading, 'Error state:', error, 'Has Error:', hasError);
+  }, [companies, loading, error, hasError]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -86,14 +91,14 @@ export const CompanyList: React.FC = () => {
     handleSearch('');
   };
 
-  const showDeleteConfirmation = (id: number) => {
-    setDeleteDialog({show: true, id});
+  const showDeleteConfirmation = (id: number | string) => {
+    setDeleteDialog({ show: true, id });
   };
 
   const confirmDelete = async () => {
     if (deleteDialog.id) {
-      await handleDelete(deleteDialog.id);
-      setDeleteDialog({show: false});
+      await handleDelete(deleteDialog.id as number); // Força conversão para number se necessário
+      setDeleteDialog({ show: false });
     }
   };
 
@@ -105,6 +110,11 @@ export const CompanyList: React.FC = () => {
         if (e.target) {
           e.target.value = '';
         }
+        showToast({
+          type: 'success',
+          title: 'Sucesso',
+          message: 'Arquivo importado com sucesso'
+        });
       } catch (error) {
         showToast({
           type: 'error',
@@ -133,13 +143,16 @@ export const CompanyList: React.FC = () => {
               </Button>
               <input
                 type="file"
-                ref={ref => setFileInputRef(ref)}
+                ref={(ref) => setFileInputRef(ref)}
                 className="hidden"
                 accept=".csv,.xlsx"
                 onChange={handleFileSelect}
               />
               <Button variant="outline" onClick={handleExport}>
                 <Download className="mr-2 h-4 w-4" /> Exportar
+              </Button>
+              <Button variant="outline" onClick={refresh}>
+                <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
               </Button>
             </div>
           </div>
@@ -167,6 +180,7 @@ export const CompanyList: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Estado de Erro */}
       {hasError && (
         <Card>
           <CardContent className="p-0">
@@ -180,7 +194,8 @@ export const CompanyList: React.FC = () => {
         </Card>
       )}
 
-      {loading && !companies.length && (
+      {/* Estado de Carregamento Inicial */}
+      {loading && companies.length === 0 && (
         <Card>
           <CardContent className="p-0">
             <LoadingState message="Carregando empresas..." pageId={pageId} />
@@ -188,9 +203,10 @@ export const CompanyList: React.FC = () => {
         </Card>
       )}
 
-      {!hasError && (!loading || companies.length > 0) && (
+      {/* Tabela de Empresas */}
+      {(companies.length > 0 || (!loading && !hasError)) && (
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 relative">
             {loading && companies.length > 0 && (
               <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
@@ -211,7 +227,7 @@ export const CompanyList: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isEmpty ? (
+                  {isEmpty && !loading ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-64">
                         <EmptyState
@@ -231,20 +247,23 @@ export const CompanyList: React.FC = () => {
                     </TableRow>
                   ) : (
                     companies.map((company) => (
-                      <TableRow key={company.company_id} className="hover:bg-gray-50 transition duration-150">
-                        <TableCell>{company.company_id}</TableCell>
-                        <TableCell className="font-medium">{company.name}</TableCell>
+                      <TableRow 
+                        key={company.company_id || company.id} 
+                        className="hover:bg-gray-50 transition duration-150"
+                      >
+                        <TableCell>{company.company_id || '-'}</TableCell>
+                        <TableCell className="font-medium">{company.name || '-'}</TableCell>
                         <TableCell>{company.document || '-'}</TableCell>
                         <TableCell>{company.email || '-'}</TableCell>
                         <TableCell>{company.phone || '-'}</TableCell>
                         <TableCell className="text-right">
-                          {company.enabled ? 'Sim' : 'Não'}
+                          {company.enabled !== undefined ? (company.enabled ? 'Sim' : 'Não') : '-'}
                         </TableCell>
                         <TableCell className="text-right space-x-1">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleView(company.id!)}
+                            onClick={() => handleView(company.company_id || company.id)}
                             className="text-emerald-600 hover:text-emerald-900 hover:bg-emerald-50"
                             title="Ver detalhes"
                           >
@@ -254,7 +273,7 @@ export const CompanyList: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEdit(company.id!)}
+                            onClick={() => handleEdit(company.company_id || company.id)}
                             className="text-blue-600 hover:text-blue-900 hover:bg-blue-50"
                             title="Editar"
                           >
@@ -264,12 +283,12 @@ export const CompanyList: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => showDeleteConfirmation(company.id!)}
+                            onClick={() => showDeleteConfirmation(company.company_id || company.id)}
                             className="text-red-600 hover:text-red-900 hover:bg-red-50"
                             title="Excluir"
-                            disabled={isDeleting(company.id!)}
+                            disabled={isDeleting(company.company_id || company.id)}
                           >
-                            {isDeleting(company.id!) ? (
+                            {isDeleting(company.company_id || company.id) ? (
                               <div className="h-4 w-4 border-2 border-r-transparent border-red-500 rounded-full animate-spin"></div>
                             ) : (
                               <Trash2 className="h-4 w-4" />
@@ -297,7 +316,8 @@ export const CompanyList: React.FC = () => {
         </Card>
       )}
 
-      <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({show: open})}>
+      {/* Diálogo de Confirmação de Exclusão */}
+      <AlertDialog open={deleteDialog.show} onOpenChange={(open) => setDeleteDialog({ show: open })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>

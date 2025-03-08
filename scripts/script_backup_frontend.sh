@@ -35,7 +35,7 @@ echo "Backup directory: $BACKUP_DIR"
 
 # Patterns to exclude (directories and files)
 EXCLUDE_DIRS=( "backup/frontend" "backend" "backup" "migrations" "Feature_Requests" "Diversos" "diagrams" "Dev_Diary" ".pytest_cache" "__pycache__" "logs" "Logs" "old" "import" ".venv" "venv" "backup" "export" "documentation" "node_modules" )
-EXCLUDE_FILES=( "*.log" "*.sh" "__init__.py" "*.sqlite3" "*.ico" "*.png" "*.svg" "*.sample" "*.idx" "*." "FETCH_HEAD" "HEAD" "ORIG_HEAD" "COMMIT_EDITMSG" "packed-refs" "*.rev" "*.pack" "3f4300ba61354baef9f5b9ada4ad9c9ce749a9" "7714bd891f28b8c5a3e6875ee8eb1b7aca532d" "97638cb81c74bfb1315972b60380cc6dde7681" ".gitignore" ".gitattributes" ".env.example")
+EXCLUDE_FILES=( "*.config.ts" "README.md" "*.json" "*.config.js" "*.log" "*.sh" "__init__.py" "*.sqlite3" "*.ico" "*.png" "*.svg" "*.sample" "*.idx" "*." "FETCH_HEAD" "HEAD" "ORIG_HEAD" "COMMIT_EDITMSG" "packed-refs" "*.rev" "*.pack" "3f4300ba61354baef9f5b9ada4ad9c9ce749a9" "7714bd891f28b8c5a3e6875ee8eb1b7aca532d" "97638cb81c74bfb1315972b60380cc6dde7681" ".gitignore" ".gitattributes" ".env.example")
 
 # Build the `-not -path` parameter for `find` to ignore directories
 EXCLUDE_PATHS=()

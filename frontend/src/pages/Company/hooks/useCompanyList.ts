@@ -21,6 +21,8 @@ interface CompanyApiResponse {
   results: Company[];
 }
 
+
+
 /**
  * Hook para gerenciar listagem de empresas
  * Integrado com o sistema de logging e estados de página
@@ -42,6 +44,10 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
     nextPage: null as string | null,
     previousPage: null as string | null
   });
+
+  // setCompanies([
+  //   { company_id: "COMP001", name: "Test Company", document: "12.345.678/0001-99", email: "test@test.com", phone: "5511987654321", enabled: true }
+  // ]);
 
   // Hooks
   const { showToast } = useToast();
@@ -92,8 +98,6 @@ export const useCompanyList = ({ initialData = [] }: UseCompanyListProps = {}) =
    * Carrega a lista de empresas
    * @param page Número da página a ser carregada
    */
-// src/pages/Company/hooks/useCompanyList.ts
-// ... (código anterior até a função loadCompanies)
 
 const loadCompanies = useCallback(async (page = 1) => {
   if (isLoadingRef.current || !isMounted.current) return;
