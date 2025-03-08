@@ -34,6 +34,13 @@ export const TAX_TYPE_LABELS: Record<string, string> = {
   'fee': 'Taxa'
 };
 
+// Opções para selects
+export const TAX_TYPE_OPTIONS = [
+  { value: 'tax', label: 'Imposto' },
+  { value: 'fee', label: 'Taxa' }
+];
+
+
 export const TAX_GROUP_LABELS: Record<string, string> = {
   'federal': 'Federal',
   'state': 'Estadual',
@@ -49,12 +56,6 @@ export const CALC_OPERATOR_LABELS: Record<string, string> = {
   '*': 'Multiplicação',
   '/': 'Divisão'
 };
-
-// Opções para selects
-export const TAX_TYPE_OPTIONS = [
-  { value: 'tax', label: 'Imposto' },
-  { value: 'fee', label: 'Taxa' }
-];
 
 export const TAX_GROUP_OPTIONS = [
   { value: 'federal', label: 'Federal' },

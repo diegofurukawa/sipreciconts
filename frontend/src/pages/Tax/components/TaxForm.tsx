@@ -256,7 +256,21 @@ const TaxForm: React.FC = () => {
                       options={TAX_TYPE_OPTIONS}
                       error={form.formState.errors.type?.message}
                       value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      onChange={(selected) => {
+                        console.log('Seleção:', selected);
+                        // Se o Select retorna o objeto inteiro {value, label}
+                        if (typeof selected === 'object' && selected !== null && 'value' in selected) {
+                          field.onChange(selected.value);
+                        } 
+                        // Se o Select retorna o evento do DOM
+                        else if (selected && selected.target && 'value' in selected.target) {
+                          field.onChange(selected.target.value);
+                        }
+                        // Se o Select retorna apenas o valor
+                        else {
+                          field.onChange(selected);
+                        }
+                      }}
                     />
                   )}
                 />
@@ -274,7 +288,21 @@ const TaxForm: React.FC = () => {
                       options={TAX_GROUP_OPTIONS}
                       error={form.formState.errors.group?.message}
                       value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      onChange={(selected) => {
+                        console.log('Seleção:', selected);
+                        // Se o Select retorna o objeto inteiro {value, label}
+                        if (typeof selected === 'object' && selected !== null && 'value' in selected) {
+                          field.onChange(selected.value);
+                        } 
+                        // Se o Select retorna o evento do DOM
+                        else if (selected && selected.target && 'value' in selected.target) {
+                          field.onChange(selected.target.value);
+                        }
+                        // Se o Select retorna apenas o valor
+                        else {
+                          field.onChange(selected);
+                        }
+                      }}
                     />
                   )}
                 />
@@ -292,7 +320,21 @@ const TaxForm: React.FC = () => {
                       options={CALC_OPERATOR_OPTIONS}
                       error={form.formState.errors.calc_operator?.message}
                       value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
+                      onChange={(selected) => {
+                        console.log('Seleção:', selected);
+                        // Se o Select retorna o objeto inteiro {value, label}
+                        if (typeof selected === 'object' && selected !== null && 'value' in selected) {
+                          field.onChange(selected.value);
+                        } 
+                        // Se o Select retorna o evento do DOM
+                        else if (selected && selected.target && 'value' in selected.target) {
+                          field.onChange(selected.target.value);
+                        }
+                        // Se o Select retorna apenas o valor
+                        else {
+                          field.onChange(selected);
+                        }
+                      }}
                     />
                   )}
                 />
