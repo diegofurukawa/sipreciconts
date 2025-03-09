@@ -2,7 +2,12 @@
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export const CompanyHeader = () => {
+interface CompanyHeaderProps {
+  title: string;
+  subtitle?: string;
+}
+
+export const CompanyHeader: React.FC<CompanyHeaderProps> = ({ title, subtitle }) => {
   const navigate = useNavigate();
 
   return (
@@ -16,16 +21,15 @@ export const CompanyHeader = () => {
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Empresa</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Gerencie as informações da sua empresa
-            </p>
+            <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+            {subtitle && (
+              <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
-
 
 export default CompanyHeader;

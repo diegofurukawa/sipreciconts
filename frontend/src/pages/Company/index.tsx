@@ -1,36 +1,37 @@
-// // src/pages/Company/index.tsx
-// import React from 'react';
-// import { Outlet } from 'react-router-dom';
-
-// const Company: React.FC = () => {
-//   return <Outlet />;
-// };
-
-// export default Company;
-
-
-// src/pages/Tax/index.tsx
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+// src/pages/Company/index.tsx
+import { Outlet, useLocation } from 'react-router-dom';
+import { CompanyHeader } from './components/CompanyHeader';
+import CompanyList from './components/CompanyList';
 import { ErrorBoundary } from '@/components/ErrorBoundary/index';
-import { LoadingState } from '@/components/feedback/LoadingState';
-import CompanyList from '@/pages/Company/components/CompanyList';
-import CompanyForm from '@/pages/Company/components/CompanyForm';
+
+const getPageTitle = (pathname: string) => {
+  if (pathname.endsWith('/novo')) return 'Nova Empresa';
+  if (pathname.includes('/editar')) return 'Editar Empresa';
+  if (pathname.includes('/importar')) return 'Importar Empresas';
+  return 'Empresas';
+};
 
 const Company = () => {
+  const location = useLocation();
+  const title = getPageTitle(location.pathname);
+  
+  // Verifica se estamos na rota raiz de empresas
+  const isRootPath = location.pathname === '/cadastros/empresa';
+  
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingState />}>
-        <Routes>
-          <Route index element={<CompanyList />} />
-          <Route path="novo" element={<CompanyForm />} />
-          <Route path=":id/editar" element={<CompanyForm />} />
-          <Route path="*" element={<Navigate to="/cadastros/empresa" replace />} />
-        </Routes>
-      </Suspense>
+      <div className="space-y-6">
+        <CompanyHeader title={title} />
+        <div className="container mx-auto px-4 py-6">
+          {isRootPath ? <CompanyList /> : <Outlet />}
+        </div>
+      </div>
     </ErrorBoundary>
-    
   );
 };
 
+// Exportação nomeada da função helper
+export { getPageTitle };
+
+// Exportação default do componente principal para uso nas rotas
 export default Company;

@@ -2,13 +2,16 @@
 ├── components
 │   ├── CompanyForm.tsx
 │   ├── CompanyHeader.tsx
-│   └── CompanyList.tsx
+│   ├── CompanyList.tsx
+│   └── index.ts
 ├── hooks
+│   ├── index.ts
 │   ├── useCompanyForm.ts
 │   └── useCompanyList.ts
+├── index copy.tsx
 ├── index.tsx
 ├── routes
-│   ├── CompanyRoutes.ts
+│   ├── CompanyRoutes.tsx
 │   └── index.ts
 ├── services
 │   └── CompanyService.ts
@@ -20,4 +23,4 @@
 └── utils
     └── validators.ts
 
-7 directories, 13 files
+7 directories, 16 files

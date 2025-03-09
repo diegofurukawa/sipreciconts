@@ -1,11 +1,11 @@
+// src/pages/Company/routes/CompanyRoutes.tsx
 import { lazy } from 'react';
 import type { AppRouteObject } from '@/types/routes.types';
 
-// Lazy imports com exportações nomeadas
-const CompanyPage = lazy(() => import('@/pages/Company').then(module => ({ default: module.Company })));
-const CompanyList = lazy(() => import('@/pages/Company/components').then(module => ({ default: module.CompanyList })));
-const CompanyForm = lazy(() => import('@/pages/Company/components').then(module => ({ default: module.CompanyForm })));
-
+// Lazy imports com default exports
+const Company = lazy(() => import('@/pages/Company'));
+const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
+const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
 
 // Tipos separados primeiro
 export interface CompanyRouteConfig {
@@ -17,7 +17,7 @@ export interface CompanyRouteConfig {
 }
 
 // Constantes de rotas do módulo
-export const COMPANY_ROUTES = {
+export const COMPANY_ROUTES: CompanyRouteConfig = {
   ROOT: '/cadastros/empresa',
   NEW: '/cadastros/empresa/novo',
   EDIT: (id: string | number) => `/cadastros/empresa/${id}/editar`,
@@ -26,30 +26,25 @@ export const COMPANY_ROUTES = {
 } as const;
 
 // Configuração de rotas do módulo
-const companyRoutes: AppRouteObject = {
-  path: 'company',
-  element: <CompanyPage />,
-  title: 'company',
+export const companyRoutes: AppRouteObject = {
+  path: 'empresa',
+  element: <Company />,
+  title: 'Empresas',
   children: [
     {
       path: '',
       element: <CompanyList />,
-      title: 'Lista de company'
+      title: 'Lista de Empresas'
     },
     {
       path: 'novo',
       element: <CompanyForm />,
-      title: 'Novo Cliente'
+      title: 'Nova Empresa'
     },
     {
       path: ':id/editar',
       element: <CompanyForm />,
-      title: 'Editar Cliente'
+      title: 'Editar Empresa'
     }
   ]
-};
-
-// Exportação nomeada das rotas (removido export default)
-export {
-  companyRoutes
 };
