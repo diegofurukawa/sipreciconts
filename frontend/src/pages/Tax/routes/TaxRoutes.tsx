@@ -1,6 +1,6 @@
 // src/routes/modules/tax.routes.tsx
 import React from 'react';
-import type { AppRouteObject } from '../../types/routes.types';
+import type { AppRouteObject } from '@/types/routes.types';
 import { lazyImportDefault } from '@/utils/lazyImport';
 
 // Importações lazy com o utilitário

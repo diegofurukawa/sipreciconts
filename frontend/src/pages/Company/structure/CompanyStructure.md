@@ -7,11 +7,17 @@
 │   ├── useCompanyForm.ts
 │   └── useCompanyList.ts
 ├── index.tsx
-├── routes.ts
+├── routes
+│   ├── CompanyRoutes.ts
+│   └── index.ts
 ├── services
-│   └── company.ts
+│   └── CompanyService.ts
+├── structure
+│   └── CompanyStructure.md
 ├── types
-│   ├── company_types.ts
+│   ├── CompanyTypes.ts
 │   └── index.ts
 └── utils
     └── validators.ts
+
+7 directories, 13 files

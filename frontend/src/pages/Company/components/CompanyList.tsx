@@ -96,10 +96,35 @@ const CompanyList: React.FC = () => {
     navigate(CADASTROS_ROUTES.EMPRESA.NEW);
   };
 
-  // Navigate to edit company form
-  const handleEditClick = (id: number) => {
+  // Vamos atualizar apenas a função handleEditClick no CompanyList.tsx
+
+  // Parte do componente CompanyList.tsx que precisa ser atualizada:
+
+  const handleEditClick = (id: number | string) => {
     console.log('Navegando para edição da empresa com ID:', id);
-    navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
+    
+    // Garante que o ID seja uma string para usar na URL
+    const companyId = id.toString();
+    
+    // Constrói a URL de edição corretamente
+    const editUrl = `/cadastros/empresa/${companyId}/editar`;
+    
+    console.log('URL de edição construída:', editUrl);
+    navigate(editUrl);
+  };
+
+  // Alternativamente, usando a constante CADASTROS_ROUTES:
+  const handleEditClickAlt = (id: number | string) => {
+    console.log('Navegando para edição da empresa com ID:', id);
+    
+    // Converte para número se for string para garantir compatibilidade com a função EDIT
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
+    
+    // Usa a função de rota definida em CADASTROS_ROUTES.EMPRESA.EDIT
+    const editUrl = CADASTROS_ROUTES.EMPRESA.EDIT(numericId);
+    
+    console.log('URL de edição construída:', editUrl);
+    navigate(editUrl);
   };
 
   // Open delete confirmation dialog
@@ -275,7 +300,7 @@ const CompanyList: React.FC = () => {
                     console.log('Renderizando empresa:', company);
                     return (
                       <TableRow key={company.company_id || company.id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">{company.company_id}</TableCell>
+                        <TableCell className="font-medium">{company.id}</TableCell>
                         <TableCell>{company.name}</TableCell>
                         <TableCell>{company.document || '-'}</TableCell>
                         <TableCell>{company.email || '-'}</TableCell>

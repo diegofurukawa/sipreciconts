@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { companyService } from '../services/CompanyService';
-import type { Company, CompanyListParams } from '@/pages/Company/types/company_types';
+import type { Company, CompanyListParams } from '@/pages/Company/types/CompanyTypes';
 
 interface UseCompanyListReturn {
   companies: Company[];

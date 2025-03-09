@@ -1,1 +1,1 @@
-export * from './CompanyRoutes';
+export {companyRoutes, COMPANY_ROUTES} from './CompanyRoutes';

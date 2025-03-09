@@ -1,4 +1,4 @@
-export * from './company_types';
+export * from './CompanyTypes';
 
 // export type {
 //     Company,

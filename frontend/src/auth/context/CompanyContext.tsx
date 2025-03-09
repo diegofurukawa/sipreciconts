@@ -1,6 +1,6 @@
 // src/contexts/CompanyContext.tsx
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Company } from '@/pages/Company/types/company_types';
+import { Company } from '@/pages/Company/types/CompanyTypes';
 
 // Importação corrigida - importe a instância apiService, não a classe
 import { apiService } from '@/services/apiMainService';

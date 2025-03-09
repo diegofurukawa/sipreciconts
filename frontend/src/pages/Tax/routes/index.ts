@@ -1,1 +1,1 @@
-export * from './TaxRoutes';
+export {TAX_ROUTES, taxRoutes} from './TaxRoutes';

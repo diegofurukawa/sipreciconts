@@ -14,16 +14,17 @@
 │   └── useCustomerList.ts
 ├── index.tsx
 ├── routes
-│   └── index.tsx
+│   ├── CustomerRoutes.tsx
+│   └── index.ts
 ├── services
-│   ├── customer.ts
+│   ├── CustomerService.ts
 │   └── index.ts
 ├── structure
-│   └── customer_tree.md
+│   └── CustomerStructure.md
 ├── types
-│   ├── customer_types.ts
+│   ├── CustomerTypes.ts
 │   └── index.ts
 └── utils
     └── validators.ts
 
-7 directories, 19 files
+7 directories, 20 files

@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 import type { PaginatedResponse } from '@/types/api_types';
-import type { Company, CompanyListParams } from '@/pages/Company/types/company_types';
+import type { Company, CompanyListParams } from '@/pages/Company/types/CompanyTypes';
 
 // URL base para o serviço de empresas
 const baseUrl = DEFAULT_API_CONFIG.baseURL.endsWith('/')
