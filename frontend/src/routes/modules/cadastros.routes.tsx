@@ -6,18 +6,6 @@ import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes'; // Importando as novas rotas
 import { companyRoutes, COMPANY_ROUTES } from '@/pages/Company/routes'; // Importando as novas rotas
 
-// Lazy imports para otimização de carregamento
-// const CustomerPage = lazy(() => import('@/pages/Customer'));
-// const CustomerList = lazy(() => import('@/pages/Customer/components/CustomerList'));
-// const CustomerForm = lazy(() => import('@/pages/Customer/components/CustomerForm'));
-// const CustomerImport = lazy(() => import('@/pages/Customer/components/CustomerImport'));
-// const CustomerDetails = lazy(() => import('@/pages/Customer/components/CustomerDetails'));
-
-// Fix: Correctly import Company components from the structure we have
-// const CompanyPage = lazy(() => import('@/pages/Company'));
-// const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
-// const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
-
 // const SupplyPage = lazy(() => import('@/pages/Supply'));
 const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
 // const SupplyForm = lazy(() => import('@/pages/Supply/components/SupplyForm'));

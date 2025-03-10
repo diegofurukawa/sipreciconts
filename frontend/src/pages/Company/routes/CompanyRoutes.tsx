@@ -2,8 +2,8 @@
 import { lazy } from 'react';
 import type { AppRouteObject } from '@/types/routes.types';
 
-// Lazy imports com default exports
-const Company = lazy(() => import('@/pages/Company'));
+// Lazy imports sem exportações nomeadas (simplificado para evitar erros)
+const CompanyPage = lazy(() => import('@/pages/Company'));
 const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
 const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
 
@@ -17,7 +17,7 @@ export interface CompanyRouteConfig {
 }
 
 // Constantes de rotas do módulo
-export const COMPANY_ROUTES: CompanyRouteConfig = {
+export const COMPANY_ROUTES = {
   ROOT: '/cadastros/empresa',
   NEW: '/cadastros/empresa/novo',
   EDIT: (id: string | number) => `/cadastros/empresa/${id}/editar`,
@@ -26,9 +26,9 @@ export const COMPANY_ROUTES: CompanyRouteConfig = {
 } as const;
 
 // Configuração de rotas do módulo
-export const companyRoutes: AppRouteObject = {
+const companyRoutes: AppRouteObject = {
   path: 'empresa',
-  element: <Company />,
+  element: <CompanyPage />,
   title: 'Empresas',
   children: [
     {
@@ -48,3 +48,9 @@ export const companyRoutes: AppRouteObject = {
     }
   ]
 };
+
+// Exportação nomeada das rotas
+export { companyRoutes };
+
+// Exportação default para compatibilidade
+export default companyRoutes;

@@ -7,7 +7,7 @@ interface CompanyHeaderProps {
   subtitle?: string;
 }
 
-export const CompanyHeader: React.FC<CompanyHeaderProps> = ({ title, subtitle }) => {
+export const CompanyHeader = ({ title, subtitle }: CompanyHeaderProps) => {
   const navigate = useNavigate();
 
   return (

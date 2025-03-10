@@ -2,7 +2,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { CompanyHeader } from './components/CompanyHeader';
 import CompanyList from './components/CompanyList';
-import { ErrorBoundary } from '@/components/ErrorBoundary/index';
+import { RouteDebug } from '@/components/RouteDebug';
 
 const getPageTitle = (pathname: string) => {
   if (pathname.endsWith('/novo')) return 'Nova Empresa';
@@ -19,19 +19,21 @@ const Company = () => {
   const isRootPath = location.pathname === '/cadastros/empresa';
   
   return (
-    <ErrorBoundary>
-      <div className="space-y-6">
-        <CompanyHeader title={title} />
-        <div className="container mx-auto px-4 py-6">
-          {isRootPath ? <CompanyList /> : <Outlet />}
-        </div>
+    <div className="space-y-6">
+      <CompanyHeader title={title} />
+      <div className="container mx-auto px-4 py-6">
+        {isRootPath ? <CompanyList /> : <Outlet />}
       </div>
-    </ErrorBoundary>
+      <RouteDebug />
+    </div>
   );
 };
 
-// Exportação nomeada da função helper
+// Exportação nomeada da função helper (caso seja necessária em outros lugares)
 export { getPageTitle };
 
-// Exportação default do componente principal para uso nas rotas
+// Exportação nomeada do componente principal (conforme padrão de outros módulos)
+export { Company };
+
+// Exportação default para compatibilidade
 export default Company;
