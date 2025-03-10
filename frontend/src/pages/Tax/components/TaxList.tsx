@@ -44,7 +44,7 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useTaxList } from '@/pages/Tax/hooks/useTaxList';
 import { useToast } from '@/hooks/useToast';
 import { TAX_ROUTES } from '@/pages/Tax/routes';
-import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS, TAX_TYPE_OPTIONS } from '@/pages/Tax/types/TaxTypes';
+import { formatTaxValue, getOptionLabel, TAX_TYPE_LABELS, TAX_GROUP_LABELS, CALC_OPERATOR_LABELS } from '@/pages/Tax/types/TaxTypes';
 
 const TaxList: React.FC = () => {
   const navigate = useNavigate();
@@ -69,28 +69,33 @@ const TaxList: React.FC = () => {
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    console.log('Termo de busca alterado:', e.target.value);
   };
 
   // Handle search form submission
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submetendo busca com termo:', searchTerm);
     handleSearch(searchTerm);
   };
 
   // Clear search input
   const handleSearchClear = () => {
     setSearchTerm('');
+    console.log('Limpando termo de busca');
     handleSearch('');
   };
 
   // Navigate to new tax form
   const handleNewClick = useCallback(() => {
+    console.log('Navegando para formulário de novo imposto');
     navigate(TAX_ROUTES.NEW);
   }, [navigate]);
 
   // Navigate to edit tax form
   const handleEditClick = useCallback((id: number) => {
     if (id !== undefined && id !== null && !isNaN(Number(id))) {
+      console.log('Navegando para edição do imposto com ID:', id);
       navigate(TAX_ROUTES.EDIT(id));
     } else {
       showToast({
@@ -104,6 +109,7 @@ const TaxList: React.FC = () => {
   // Open delete confirmation dialog
   const handleDeleteClick = useCallback((id: number) => {
     if (id !== undefined && id !== null && !isNaN(Number(id))) {
+      console.log('Abrindo diálogo de exclusão para imposto com ID:', id);
       setDeleteDialog({ show: true, id });
     } else {
       showToast({
@@ -117,6 +123,7 @@ const TaxList: React.FC = () => {
   // Confirm tax deletion
   const confirmDelete = async () => {
     if (deleteDialog.id) {
+      console.log('Confirmando exclusão do imposto com ID:', deleteDialog.id);
       await handleDelete(deleteDialog.id);
     }
     setDeleteDialog({ show: false });
@@ -125,6 +132,7 @@ const TaxList: React.FC = () => {
   // Handle export button click
   const handleExportClick = async () => {
     try {
+      console.log('Iniciando exportação de impostos');
       await handleExport();
       showToast({
         type: 'success',
@@ -144,6 +152,7 @@ const TaxList: React.FC = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log('Arquivo selecionado para importação:', file.name);
       try {
         await handleImport(file);
         // Clear input after upload
@@ -166,12 +175,14 @@ const TaxList: React.FC = () => {
   };
 
   // Show loading state if loading and no tax data
-  if (loading && !taxes.length) {
+  if (loading && (!taxes || taxes.length === 0)) {
+    console.log('Exibindo estado de carregamento');
     return <LoadingState />;
   }
 
   // Show error state if there's an error and no tax data
-  if (error && !taxes.length) {
+  if (error && (!taxes || taxes.length === 0)) {
+    console.log('Exibindo estado de erro:', error);
     return (
       <ErrorState 
         message={error}
@@ -197,7 +208,10 @@ const TaxList: React.FC = () => {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => importInputRef?.click()}
+                onClick={() => {
+                  console.log('Abrindo input para importação');
+                  importInputRef?.click();
+                }}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Importar
@@ -215,6 +229,16 @@ const TaxList: React.FC = () => {
               >
                 <Download className="mr-2 h-4 w-4" />
                 Exportar
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  console.log('Atualizando lista de impostos');
+                  reloadTaxes();
+                }}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Atualizar
               </Button>
             </div>
           </div>
@@ -249,7 +273,6 @@ const TaxList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {/* <TableHead>TaxId</TableHead> */}
                   <TableHead>Sigla</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Grupo</TableHead>
@@ -260,7 +283,16 @@ const TaxList: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {taxes.length === 0 ? (
+                {(!taxes || !Array.isArray(taxes)) ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-32 text-center">
+                      <ErrorState
+                        message="Erro: Dados dos impostos inválidos"
+                        onRetry={reloadTaxes}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : taxes.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-32 text-center">
                       <EmptyState
@@ -276,51 +308,54 @@ const TaxList: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  taxes.map((tax) => (
-                    <TableRow key={tax.tax_id} className="hover:bg-gray-50">
-                      
-                      {/* <TableCell>{getOptionLabel(tax.tax_id, TAX_TYPE_OPTIONS)}</TableCell> */}
-                      <TableCell className="font-medium">{tax.acronym}</TableCell>
-                      
-                      <TableCell>{getOptionLabel(tax.type, TAX_TYPE_LABELS)}</TableCell>
-                      <TableCell>{getOptionLabel(tax.group, TAX_GROUP_LABELS)}</TableCell>
-                      <TableCell>{getOptionLabel(tax.calc_operator, CALC_OPERATOR_LABELS)}</TableCell>
-                      <TableCell>{formatTaxValue(tax.value, tax.calc_operator)}</TableCell>
-                      <TableCell>{tax.description || '-'}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditClick(tax.tax_id!)}
-                          className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteClick(tax.tax_id!)}
-                          className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Excluir</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  taxes.map((tax) => {
+                    console.log('Renderizando imposto:', tax);
+                    return (
+                      <TableRow key={tax.tax_id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">{tax.acronym}</TableCell>
+                        <TableCell>{getOptionLabel(tax.type, TAX_TYPE_LABELS)}</TableCell>
+                        <TableCell>{getOptionLabel(tax.group, TAX_GROUP_LABELS)}</TableCell>
+                        <TableCell>{getOptionLabel(tax.calc_operator, CALC_OPERATOR_LABELS)}</TableCell>
+                        <TableCell>{formatTaxValue(tax.value, tax.calc_operator)}</TableCell>
+                        <TableCell>{tax.description || '-'}</TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditClick(tax.tax_id!)}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          >
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(tax.tax_id!)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Excluir</span>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
           </div>
 
           {/* Pagination */}
-          {taxes.length > 0 && (
+          {taxes && Array.isArray(taxes) && taxes.length > 0 && (
             <div className="border-t">
               <TablePagination
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
-                onPageChange={handlePageChange}
+                onPageChange={(page) => {
+                  console.log('Mudando para página:', page);
+                  handlePageChange(page);
+                }}
               />
             </div>
           )}

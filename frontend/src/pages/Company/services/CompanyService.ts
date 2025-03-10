@@ -58,9 +58,10 @@ export const companyService = {
 
   /**
    * Busca uma empresa específica pelo ID
+   * Aceita ID como string (CO001) ou número
    */
-  async getById(id: number): Promise<Company> {
-    if (id === undefined || id === null || isNaN(id)) {
+  async getById(id: string | number): Promise<Company> {
+    if (id === undefined || id === null || id === '') {
       throw new Error('ID da empresa inválido');
     }
     try {
@@ -91,8 +92,12 @@ export const companyService = {
 
   /**
    * Atualiza uma empresa existente
+   * Aceita ID como string (CO001) ou número
    */
-  async update(id: number, data: Partial<Company>): Promise<Company> {
+  async update(id: string | number, data: Partial<Company>): Promise<Company> {
+    if (id === undefined || id === null || id === '') {
+      throw new Error('ID da empresa inválido');
+    }
     try {
       const response = await axios.put(`${baseUrl}/${id}/`, data, {
         headers: getHeaders(),
@@ -106,8 +111,12 @@ export const companyService = {
 
   /**
    * Remove uma empresa (soft delete)
+   * Aceita ID como string (CO001) ou número
    */
-  async delete(id: number): Promise<void> {
+  async delete(id: string | number): Promise<void> {
+    if (id === undefined || id === null || id === '') {
+      throw new Error('ID da empresa inválido');
+    }
     try {
       await axios.delete(`${baseUrl}/${id}/`, {
         headers: getHeaders(),

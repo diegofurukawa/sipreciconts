@@ -96,9 +96,27 @@ const CompanyList: React.FC = () => {
     navigate(CADASTROS_ROUTES.EMPRESA.NEW);
   };
 
-  // Navigate to edit company form
-  const handleEditClick = (id: number) => {
+  // // Navigate to edit company form
+  // const handleEditClick = (id: string) => {
+  //   console.log('Navegando para edição da empresa com ID:', id);
+  //   // navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
+  //   navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
+  // };
+
+  // Função para navegação para a edição de empresa
+  const handleEditClick = (id: string) => {
     console.log('Navegando para edição da empresa com ID:', id);
+    
+    if (!id) {
+      showToast({
+        type: 'error',
+        title: 'Erro',
+        message: 'ID da empresa inválido'
+      });
+      return;
+    }
+    
+    // Navegando para a rota específica de edição usando o ID
     navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
   };
 
@@ -217,13 +235,13 @@ const CompanyList: React.FC = () => {
               className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             {searchTerm && (
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchClear}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </form>
         </CardContent>
@@ -274,7 +292,7 @@ const CompanyList: React.FC = () => {
                   companies.map((company) => {
                     console.log('Renderizando empresa:', company);
                     return (
-                      <TableRow key={company.company_id || company.id} className="hover:bg-gray-50">
+                      <TableRow key={company.company_id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{company.company_id}</TableCell>
                         <TableCell>{company.name}</TableCell>
                         <TableCell>{company.document || '-'}</TableCell>
@@ -348,3 +366,7 @@ const CompanyList: React.FC = () => {
 };
 
 export default CompanyList;
+
+function showToast(arg0: { type: string; title: string; message: string; }) {
+  throw new Error('Function not implemented.');
+}

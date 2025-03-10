@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// Removidos imports de componentes não disponíveis
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useToast } from '@/hooks/useToast';
@@ -39,13 +38,12 @@ const CompanyForm: React.FC = () => {
   const navigate = useNavigate();
   const { showToast } = useToast();
   
-  // Converter e validar o ID para evitar NaN
-  const parsedId = id ? parseInt(id) : null;
-  const isEditMode = !!parsedId && !isNaN(parsedId);
+  // Determinar se estamos em modo de edição
+  // Não convertemos para número, apenas verificamos se existe um ID na URL e se não é "novo"
+  const isEditMode = !!id && id !== 'novo';
   
   // Logar para depuração
   console.log('CompanyForm - ID da URL:', id);
-  console.log('CompanyForm - ID convertido:', parsedId);
   console.log('CompanyForm - Modo de edição:', isEditMode);
   
   const [loading, setLoading] = React.useState(isEditMode);
@@ -87,12 +85,15 @@ const CompanyForm: React.FC = () => {
 
   // Função para carregar dados da empresa
   const loadCompanyData = useCallback(async () => {
-    if (!isEditMode || !parsedId) return;
+    if (!isEditMode || !id) return;
   
     setLoading(true);
     try {
-      console.log('Carregando empresa com ID:', parsedId);
-      const company = await companyService.getById(parsedId);
+      console.log('Carregando empresa com ID:', id);
+      
+      // Passamos o ID diretamente para o serviço, sem conversão para número
+      const company = await companyService.getById(id);
+      
       console.log('Dados completos da empresa recebidos:', company);
       setCompanyData(company);
       
@@ -129,7 +130,7 @@ const CompanyForm: React.FC = () => {
       setLoading(false);
       setInitialLoad(true);
     }
-  }, [isEditMode, parsedId, form, showToast]);
+  }, [isEditMode, id, form, showToast]);
 
   // Efeito para carregar dados apenas uma vez
   useEffect(() => {
@@ -148,9 +149,12 @@ const CompanyForm: React.FC = () => {
         document: data.document?.replace(/\D/g, '')
       };
       
-      if (isEditMode && parsedId) {
-        console.log('Atualizando empresa com ID:', parsedId, 'Dados:', cleanedData);
-        await companyService.update(parsedId, cleanedData);
+      if (isEditMode && id) {
+        console.log('Atualizando empresa com ID:', id, 'Dados:', cleanedData);
+        
+        // Passamos o ID diretamente para o serviço, sem conversão para número
+        await companyService.update(id, cleanedData);
+        
         showToast({
           type: 'success',
           title: 'Sucesso',

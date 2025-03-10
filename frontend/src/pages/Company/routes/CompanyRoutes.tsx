@@ -4,7 +4,7 @@ import type { AppRouteObject } from '@/types/routes.types';
 
 // Lazy imports simplificados para evitar problemas com .then()
 const CompanyPage = lazy(() => import('@/pages/Company'));
-const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
+// const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
 const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
 
 // Tipos separados primeiro
