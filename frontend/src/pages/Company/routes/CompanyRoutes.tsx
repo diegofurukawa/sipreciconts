@@ -2,7 +2,7 @@
 import { lazy } from 'react';
 import type { AppRouteObject } from '@/types/routes.types';
 
-// Lazy imports sem exportações nomeadas (simplificado para evitar erros)
+// Lazy imports simplificados para evitar problemas com .then()
 const CompanyPage = lazy(() => import('@/pages/Company'));
 const CompanyList = lazy(() => import('@/pages/Company/components/CompanyList'));
 const CompanyForm = lazy(() => import('@/pages/Company/components/CompanyForm'));
@@ -26,31 +26,24 @@ export const COMPANY_ROUTES = {
 } as const;
 
 // Configuração de rotas do módulo
-const companyRoutes: AppRouteObject = {
-  path: 'empresa',
-  element: <CompanyPage />,
-  title: 'Empresas',
-  children: [
-    {
-      path: '',
-      element: <CompanyList />,
-      title: 'Lista de Empresas'
-    },
-    {
-      path: 'novo',
-      element: <CompanyForm />,
-      title: 'Nova Empresa'
-    },
-    {
-      path: ':id/editar',
-      element: <CompanyForm />,
-      title: 'Editar Empresa'
-    }
-  ]
-};
+// Importante: exportamos como array para manter consistência com outros módulos
+export const companyRoutes: AppRouteObject[] = [
+  {
+    path: 'empresa',
+    element: <CompanyPage />,
+    title: 'Empresas'
+  },
+  {
+    path: 'empresa/novo',
+    element: <CompanyForm />,
+    title: 'Nova Empresa'
+  },
+  {
+    path: 'empresa/:id/editar',
+    element: <CompanyForm />,
+    title: 'Editar Empresa'
+  }
+];
 
-// Exportação nomeada das rotas
-export { companyRoutes };
-
-// Exportação default para compatibilidade
+// Exportação default do array de rotas para compatibilidade
 export default companyRoutes;

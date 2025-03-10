@@ -4,7 +4,7 @@ import type { AppRouteObject } from '../../types/routes.types';
 
 import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes'; // Importando as novas rotas
-import { companyRoutes, COMPANY_ROUTES } from '@/pages/Company/routes'; // Importando as novas rotas
+import companyRoutes, { COMPANY_ROUTES } from '@/pages/Company/routes';
 
 // const SupplyPage = lazy(() => import('@/pages/Supply'));
 const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
@@ -13,7 +13,7 @@ const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
 export const cadastrosRoutes: AppRouteObject[] = [
 
   //Rotas para Emrpesas
-  companyRoutes,
+  ...companyRoutes,
 
   // Rotas de Cliente
   customerRoutes,

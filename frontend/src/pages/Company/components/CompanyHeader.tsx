@@ -3,11 +3,11 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface CompanyHeaderProps {
-  title: string;
+  title?: string;
   subtitle?: string;
 }
 
-export const CompanyHeader = ({ title, subtitle }: CompanyHeaderProps) => {
+export const CompanyHeader = ({ title = "Empresa", subtitle }: CompanyHeaderProps) => {
   const navigate = useNavigate();
 
   return (

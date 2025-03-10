@@ -1,39 +1,24 @@
 // src/pages/Company/index.tsx
-import { Outlet, useLocation } from 'react-router-dom';
-import { CompanyHeader } from './components/CompanyHeader';
+import React, { Suspense } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/ErrorBoundary/index';
+import { LoadingState } from '@/components/feedback/LoadingState';
 import CompanyList from './components/CompanyList';
-import { RouteDebug } from '@/components/RouteDebug';
-
-const getPageTitle = (pathname: string) => {
-  if (pathname.endsWith('/novo')) return 'Nova Empresa';
-  if (pathname.includes('/editar')) return 'Editar Empresa';
-  if (pathname.includes('/importar')) return 'Importar Empresas';
-  return 'Empresas';
-};
+import CompanyForm from './components/CompanyForm';
 
 const Company = () => {
-  const location = useLocation();
-  const title = getPageTitle(location.pathname);
-  
-  // Verifica se estamos na rota raiz de empresas
-  const isRootPath = location.pathname === '/cadastros/empresa';
-  
   return (
-    <div className="space-y-6">
-      <CompanyHeader title={title} />
-      <div className="container mx-auto px-4 py-6">
-        {isRootPath ? <CompanyList /> : <Outlet />}
-      </div>
-      <RouteDebug />
-    </div>
+    <ErrorBoundary>
+      <Suspense fallback={<LoadingState />}>
+        <Routes>
+          <Route index element={<CompanyList />} />
+          <Route path="novo" element={<CompanyForm />} />
+          <Route path=":id/editar" element={<CompanyForm />} />
+          <Route path="*" element={<Navigate to="/cadastros/empresa" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 
-// Exportação nomeada da função helper (caso seja necessária em outros lugares)
-export { getPageTitle };
-
-// Exportação nomeada do componente principal (conforme padrão de outros módulos)
-export { Company };
-
-// Exportação default para compatibilidade
 export default Company;
