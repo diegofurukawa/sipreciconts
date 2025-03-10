@@ -1,5 +1,5 @@
 // src/pages/Customer/components/CustomerForm.tsx
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
@@ -20,7 +20,6 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useToast } from '@/hooks/useToast';
 import { customerService } from '@/pages/Customer/services/CustomerService';
 import { CUSTOMER_ROUTES } from '@/pages/Customer/routes';
-import type { Customer } from '@/pages/Customer/types/CustomerTypes';
 
 // Schema de validação
 const customerFormSchema = z.object({
@@ -58,7 +57,7 @@ const CustomerForm: React.FC = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [error, setError] = useState<string | null>(null);
   const [initialLoad, setInitialLoad] = useState(!isEditMode); // Controla o carregamento inicial
-  const [customerData, setCustomerData] = useState<Customer | null>(null);
+  const [customerData, setCustomerData] = useState<any | null>(null);
   
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),

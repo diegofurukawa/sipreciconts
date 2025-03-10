@@ -1,11 +1,15 @@
+// src/pages/Customer/services/CustomerService.ts
 import axios from 'axios';
 import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
-import type { Customer, CustomerListParams, PaginatedResponse } from '@/pages/Customer/types/index';
+import type { PaginatedResponse } from '@/types/api_types';
+import type { Customer, CustomerListParams } from '@/pages/Customer/types';
 
+// URL base para o serviço de clientes
 const baseUrl = DEFAULT_API_CONFIG.baseURL.endsWith('/')
   ? `${DEFAULT_API_CONFIG.baseURL}customers`
   : `${DEFAULT_API_CONFIG.baseURL}/customers`;
 
+// Função para obter headers com autenticação
 const getHeaders = () => {
   const token = localStorage.getItem('access_token');
   const headers: Record<string, string> = {
@@ -16,6 +20,7 @@ const getHeaders = () => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  // Adiciona company_id se disponível
   const user = localStorage.getItem('user');
   if (user) {
     try {
@@ -146,7 +151,7 @@ export const customerService = {
     }
   },
 
-  async export(format: 'csv' | 'xlsx' = 'csv'): Promise<Blob> {
+  async export(format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> {
     console.log('Iniciando exportação de clientes no formato:', format);
     try {
       const response = await axios.get(`${baseUrl}/export/`, {
@@ -194,6 +199,86 @@ export const customerService = {
       throw error;
     }
   },
+
+  // Métodos adicionais para o CustomerDetails
+  async restore(id: number): Promise<Customer> {
+    if (id === undefined || id === null || isNaN(id)) {
+      throw new Error('ID do cliente inválido');
+    }
+    console.log('Restaurando cliente com ID:', id);
+    try {
+      const response = await axios.post(`${baseUrl}/${id}/restore/`, {}, {
+        headers: getHeaders(),
+      });
+      console.log('Resposta da API (restore):', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error(`Erro ao restaurar cliente ${id}:`, error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async hardDelete(id: number): Promise<void> {
+    if (id === undefined || id === null || isNaN(id)) {
+      throw new Error('ID do cliente inválido');
+    }
+    console.log('Excluindo permanentemente cliente com ID:', id);
+    try {
+      const response = await axios.delete(`${baseUrl}/${id}/hard-delete/`, {
+        headers: getHeaders(),
+      });
+      console.log('Resposta da API (hardDelete):', response.data);
+    } catch (error: any) {
+      console.error(`Erro ao excluir permanentemente cliente ${id}:`, error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  async validate(data: Partial<Customer>): Promise<{
+    valid: boolean;
+    errors?: Record<string, string[]>;
+  }> {
+    try {
+      const response = await axios.post(`${baseUrl}/validate/`, data, {
+        headers: getHeaders(),
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao validar dados do cliente:', error);
+      throw error;
+    }
+  },
+
+  async checkDocumentExists(document: string): Promise<{ exists: boolean }> {
+    try {
+      const response = await axios.get(`${baseUrl}/check-document/`, {
+        headers: getHeaders(),
+        params: { document },
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao verificar documento:', error);
+      throw error;
+    }
+  },
+
+  async downloadTemplate(format: 'csv' | 'xlsx' = 'csv'): Promise<Blob> {
+    try {
+      const response = await axios.get(`${baseUrl}/template/`, {
+        headers: {
+          ...getHeaders(),
+          'Accept': format === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv',
+        },
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao baixar modelo:', error);
+      throw error;
+    }
+  }
 };
 
 export default customerService;

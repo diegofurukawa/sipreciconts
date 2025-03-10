@@ -1,149 +1,204 @@
-// src/components/Supply/SupplyForm.tsx
+// src/pages/Supply/components/SupplyForm.tsx
 import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Supply, UNIT_MEASURES, SUPPLY_TYPES } from '../../types/supply';
-import { SupplyService } from '../../services/api/supply';
+import { Controller } from 'react-hook-form';
+import { ArrowLeft } from 'lucide-react';
+import { 
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { TextArea } from '@/components/ui/textarea';
+import { LoadingState } from '@/components/feedback/LoadingState';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { useSupplyForm } from '@/pages/Supply/hooks';
+import { SUPPLY_TYPES, UNIT_MEASURES } from '@/pages/Supply/types';
 
-interface SupplyFormProps {
-  supply: Supply | null;
-  onSuccess: () => void;
-  onCancel: () => void;
-}
-
-const SupplyForm: React.FC<SupplyFormProps> = ({
-  supply,
-  onSuccess,
-  onCancel,
-}) => {
+const SupplyForm: React.FC = () => {
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Supply>({
-    defaultValues: supply || {
-      unit_measure: 'UN',
-      type: 'MAT'
-    },
-  });
+    form,
+    loading,
+    error,
+    isEditMode,
+    onSubmit,
+    handleCancel
+  } = useSupplyForm();
+  
+  if (loading) {
+    return <LoadingState />;
+  }
 
-  const onSubmit = async (data: Supply) => {
-    try {
-      if (supply?.id) {
-        await SupplyService.update(supply.id, data);
-      } else {
-        await SupplyService.create(data);
-      }
-      onSuccess();
-    } catch (error) {
-      console.error('Erro ao salvar insumo:', error);
-    }
-  };
+  if (error) {
+    return (
+      <ErrorState 
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Nome *
-        </label>
-        <input
-          type="text"
-          {...register('name', { required: 'Nome é obrigatório' })}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-        />
-        {errors.name && (
-          <span className="text-red-500 text-sm">{errors.name.message}</span>
-        )}
+    <div className="space-y-6">
+      <div className="flex items-center">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={handleCancel} 
+          className="mr-2"
+        >
+          <ArrowLeft />
+        </Button>
+        <h1 className="text-2xl font-semibold">
+          {isEditMode ? 'Editar Insumo' : 'Novo Insumo'}
+        </h1>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Apelido
-        </label>
-        <input
-          type="text"
-          {...register('nick_name')}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-        />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{isEditMode ? 'Editar Insumo' : 'Novo Insumo'}</CardTitle>
+        </CardHeader>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-6">
+            {/* Seção de Identificação */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700 bg-gray-50 px-3 py-2 rounded-md">Identificação</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Nome do Insumo */}
+                <div className="md:col-span-2">
+                  <Input
+                    label="Nome *"
+                    placeholder="Nome do insumo"
+                    error={form.formState.errors.name?.message}
+                    {...form.register('name')}
+                  />
+                </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Código EAN
-        </label>
-        <input
-          type="text"
-          {...register('ean_code')}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-        />
-      </div>
+                {/* Apelido */}
+                <div>
+                  <Input
+                    label="Apelido"
+                    placeholder="Apelido ou nome curto"
+                    error={form.formState.errors.nick_name?.message}
+                    {...form.register('nick_name')}
+                  />
+                </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">
-          Descrição
-        </label>
-        <textarea
-          {...register('description')}
-          rows={3}
-// src/components/Supply/SupplyForm.tsx (continuação)
-className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-/>
-</div>
+                {/* Código EAN */}
+                <div>
+                  <Input
+                    label="Código EAN"
+                    placeholder="Código de barras EAN/UPC"
+                    error={form.formState.errors.ean_code?.message}
+                    {...form.register('ean_code')}
+                  />
+                </div>
+              </div>
+            </div>
 
-<div>
-<label className="block text-sm font-medium text-gray-700">
-  Tipo *
-</label>
-<select
-  {...register('type', { required: 'Tipo é obrigatório' })}
-  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
->
-  {SUPPLY_TYPES.map(type => (
-    <option key={type.value} value={type.value}>
-      {type.label}
-    </option>
-  ))}
-</select>
-{errors.type && (
-  <span className="text-red-500 text-sm">{errors.type.message}</span>
-)}
-</div>
+            {/* Seção de Classificação */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-700 bg-gray-50 px-3 py-2 rounded-md">Classificação</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Tipo de Insumo */}
+                <div>
+                  <Controller
+                    name="type"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        label="Tipo *"
+                        placeholder="Selecione um tipo"
+                        options={SUPPLY_TYPES}
+                        error={form.formState.errors.type?.message}
+                        value={field.value}
+                        onChange={(selected) => {
+                          // Se o Select retorna o objeto inteiro {value, label}
+                          if (typeof selected === 'object' && selected !== null && 'value' in selected) {
+                            field.onChange(selected.value);
+                          } 
+                          // Se o Select retorna o evento do DOM
+                          else if (selected && selected.target && 'value' in selected.target) {
+                            field.onChange(selected.target.value);
+                          }
+                          // Se o Select retorna apenas o valor
+                          else {
+                            field.onChange(selected);
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </div>
 
-<div>
-<label className="block text-sm font-medium text-gray-700">
-  Unidade de Medida *
-</label>
-<select
-  {...register('unit_measure', { required: 'Unidade de medida é obrigatória' })}
-  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
->
-  {UNIT_MEASURES.map(measure => (
-    <option key={measure.value} value={measure.value}>
-      {measure.label}
-    </option>
-  ))}
-</select>
-{errors.unit_measure && (
-  <span className="text-red-500 text-sm">{errors.unit_measure.message}</span>
-)}
-</div>
+                {/* Unidade de Medida */}
+                <div>
+                  <Controller
+                    name="unit_measure"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        label="Unidade de Medida *"
+                        placeholder="Selecione uma unidade"
+                        options={UNIT_MEASURES}
+                        error={form.formState.errors.unit_measure?.message}
+                        value={field.value}
+                        onChange={(selected) => {
+                          // Se o Select retorna o objeto inteiro {value, label}
+                          if (typeof selected === 'object' && selected !== null && 'value' in selected) {
+                            field.onChange(selected.value);
+                          } 
+                          // Se o Select retorna o evento do DOM
+                          else if (selected && selected.target && 'value' in selected.target) {
+                            field.onChange(selected.target.value);
+                          }
+                          // Se o Select retorna apenas o valor
+                          else {
+                            field.onChange(selected);
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </div>
 
-<div className="flex justify-end space-x-2 pt-4">
-<button
-  type="button"
-  onClick={onCancel}
-  className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
->
-  Cancelar
-</button>
-<button
-  type="submit"
-  className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600"
->
-  Salvar
-</button>
-</div>
-</form>
-);
+                {/* Descrição - Span 2 colunas */}
+                <div className="md:col-span-2">
+                  <TextArea
+                    label="Descrição"
+                    placeholder="Descrição detalhada do insumo"
+                    error={form.formState.errors.description?.message}
+                    {...form.register('description')}
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+          
+          <CardFooter className="flex justify-end space-x-2 border-t pt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleCancel}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-emerald-600 hover:bg-emerald-700" 
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
 };
 
 export default SupplyForm;

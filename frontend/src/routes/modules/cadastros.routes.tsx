@@ -3,12 +3,10 @@ import { lazy } from 'react';
 import type { AppRouteObject } from '../../types/routes.types';
 
 import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
-import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes'; // Importando as novas rotas
-import companyRoutes, { COMPANY_ROUTES } from '@/pages/Company/routes';
+import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes'; 
+import { companyRoutes, COMPANY_ROUTES } from '@/pages/Company/routes';
 
-// const SupplyPage = lazy(() => import('@/pages/Supply'));
-const SupplyList = lazy(() => import('@/pages/Supply/components/SupplyList'));
-// const SupplyForm = lazy(() => import('@/pages/Supply/components/SupplyForm'));
+import { supplyRoutes, SUPPLY_ROUTES } from '@/pages/Supply/routes';
 
 export const cadastrosRoutes: AppRouteObject[] = [
 
@@ -16,37 +14,13 @@ export const cadastrosRoutes: AppRouteObject[] = [
   ...companyRoutes,
 
   // Rotas de Cliente
-  customerRoutes,
+  ...customerRoutes,
 
   // Rotas de Impostos
   ...taxRoutes, // Adicionando as rotas de impostos
 
   // Rotas de Insumos
-  {
-    path: 'insumos',
-    element: <SupplyList />,
-    title: 'Insumos'
-  },
-  // {
-  //   path: 'insumos/novo',
-  //   element: <SupplyForm />,
-  //   title: 'Novo Insumo'
-  // },
-  // {
-  //   path: 'insumos/:id/editar',
-  //   element: <SupplyForm />,
-  //   title: 'Editar Insumo'
-  // },
-  {
-    path: 'insumos/:id',
-    element: <SupplyList />,
-    title: 'Detalhes do Insumo'
-  },
-  {
-    path: 'insumos/categorias',
-    element: <SupplyList />,
-    title: 'Categorias de Insumos'
-  },
+  ...supplyRoutes
 ];
 
 // Constantes de rotas para uso em links e navegação
@@ -58,13 +32,7 @@ export const CADASTROS_ROUTES = {
 
   IMPOSTOS: TAX_ROUTES,
 
-  INSUMOS: {
-    ROOT: '/cadastros/insumos',
-    NEW: '/cadastros/insumos/novo',
-    EDIT: (id: string | number) => `/cadastros/insumos/${id}/editar`,
-    DETAILS: (id: string | number) => `/cadastros/insumos/${id}`,
-    CATEGORIES: '/cadastros/insumos/categorias',
-  },
+  INSUMOS: SUPPLY_ROUTES,
 } as const;
 
 // Tipos para as rotas
