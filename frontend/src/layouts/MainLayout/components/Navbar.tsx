@@ -15,6 +15,7 @@ import {
   Settings,
   BarChart3,
   type LucideIcon,
+  User2Icon,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/auth/context/AuthContext";
@@ -66,7 +67,12 @@ const MENU_ITEMS: MenuGroup[] = [
         label: 'Insumos', 
         path: ROUTES.PRIVATE.CADASTROS.INSUMOS.ROOT, 
         icon: Package 
-      }
+      },
+      { 
+        label: 'Usuários', 
+        path: ROUTES.PRIVATE.CADASTROS.USUARIOS.ROOT, 
+        icon: User2Icon 
+      }      
     ]
   },
   {

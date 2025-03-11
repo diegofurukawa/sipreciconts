@@ -10,7 +10,7 @@ import { useAuth } from './useAuth';
 interface UseCompanyReturn {
   // State
   currentCompany: Company | null;
-  availableCompanies: Company[];
+  // availableCompanies: Company[];
   loading: boolean;
   error: string | null;
   
@@ -109,9 +109,9 @@ export const useCompany = (): UseCompanyReturn => {
       dispatch({ type: 'SET_ERROR', payload: null });
       
       // Verify if company is in available companies
-      const isAvailable = state.availableCompanies.some(
-        company => company.company_id === companyId
-      );
+      // const isAvailable = state.availableCompanies.some(
+      //   company => company.company_id === companyId
+      // );
       
       if (!isAvailable) {
         throw new Error('Empresa não disponível');
@@ -144,7 +144,7 @@ export const useCompany = (): UseCompanyReturn => {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.availableCompanies, dispatch, navigate, showToast]);
+  }, [dispatch, navigate, showToast]);
   
   /**
    * Refresh company data
@@ -176,7 +176,7 @@ export const useCompany = (): UseCompanyReturn => {
   return {
     // State
     currentCompany: state.currentCompany,
-    availableCompanies: state.availableCompanies,
+    // availableCompanies: state.availableCompanies,
     loading: state.loading,
     error: state.error,
     

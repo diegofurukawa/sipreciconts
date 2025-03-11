@@ -5,27 +5,28 @@ import type { AppRouteObject } from '../../types/routes.types';
 import { customerRoutes, CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes'; 
 import { companyRoutes, COMPANY_ROUTES } from '@/pages/Company/routes';
-
 import { supplyRoutes, SUPPLY_ROUTES } from '@/pages/Supply/routes';
+import { userRoutes, USER_ROUTES } from '@/pages/User/routes';
 
 export const cadastrosRoutes: AppRouteObject[] = [
-
-  //Rotas para Emrpesas
+  //Rotas para Empresas
   ...companyRoutes,
 
   // Rotas de Cliente
   ...customerRoutes,
 
   // Rotas de Impostos
-  ...taxRoutes, // Adicionando as rotas de impostos
+  ...taxRoutes,
 
   // Rotas de Insumos
-  ...supplyRoutes
+  ...supplyRoutes,
+  
+  // Rotas de Usuários
+  ...userRoutes
 ];
 
 // Constantes de rotas para uso em links e navegação
 export const CADASTROS_ROUTES = {
-
   EMPRESA: COMPANY_ROUTES,
   
   CLIENTES: CUSTOMER_ROUTES,
@@ -33,6 +34,8 @@ export const CADASTROS_ROUTES = {
   IMPOSTOS: TAX_ROUTES,
 
   INSUMOS: SUPPLY_ROUTES,
+  
+  USUARIOS: USER_ROUTES
 } as const;
 
 // Tipos para as rotas

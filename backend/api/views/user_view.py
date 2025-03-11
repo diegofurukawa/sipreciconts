@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import viewsets, status, filters
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Q
@@ -18,8 +19,15 @@ class UserViewSet(viewsets.ModelViewSet):
     ViewSet para gerenciamento de usuários.
     Fornece endpoints para CRUD de usuários e operações de importação/exportação.
     """
+    queryset = User.objects.filter(enabled=True)
     serializer_class = UserSerializer
+
     permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['user_name', 'email', 'login']
+    ordering_fields = ['login', 'user_name']
+    ordering = ['login']
     
     def get_queryset(self):
         """

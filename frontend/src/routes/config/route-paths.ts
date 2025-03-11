@@ -1,4 +1,9 @@
 // src/routes/config/route-paths.ts
+import { COMPANY_ROUTES } from '@/pages/Company/routes';
+import { CUSTOMER_ROUTES } from '@/pages/Customer/routes';
+import { TAX_ROUTES } from '@/pages/Tax/routes';
+import { SUPPLY_ROUTES } from '@/pages/Supply/routes';
+import { USER_ROUTES } from '@/pages/User/routes';
 
 export const ROUTES = {
   PUBLIC: {
@@ -12,8 +17,6 @@ export const ROUTES = {
     HOME: '/',
     DASHBOARD: '/dashboard',
     
-    // Adicione esta seção ao objeto ROUTES.PRIVATE na rota routes-path.ts:
-
     USER_PROFILE: {
       ROOT: '/perfil',
       SESSION: '/perfil/session',
@@ -23,36 +26,11 @@ export const ROUTES = {
     },
     
     CADASTROS: {
-      EMPRESA: {
-        ROOT: '/cadastros/empresa',
-        NOVO: '/cadastros/empresa/novo',
-        EDITAR: (id: string | number) => `/cadastros/empresa/${id}`,
-        DETALHES: (id: string | number) => `/cadastros/empresa/${id}/detalhes`,
-      },
-      CLIENTES: {
-        ROOT: '/cadastros/clientes',
-        NOVO: '/cadastros/clientes/novo',
-        EDITAR: (id: string | number) => `/cadastros/clientes/${id}`,
-        DETALHES: (id: string | number) => `/cadastros/clientes/${id}/detalhes`,
-        IMPORTAR: '/cadastros/clientes/importar',
-      },
-      IMPOSTOS: {
-        ROOT: '/cadastros/impostos',
-        NOVO: '/cadastros/impostos/novo',
-        EDITAR: (id: string | number) => `/cadastros/impostos/${id}`,
-        DETALHES: (id: string | number) => `/cadastros/impostos/${id}/detalhes`,
-      },
-      INSUMOS: {
-        ROOT: '/cadastros/insumos',
-        NOVO: '/cadastros/insumos/novo',
-        EDITAR: (id: string | number) => `/cadastros/insumos/${id}`,
-        DETALHES: (id: string | number) => `/cadastros/insumos/${id}/detalhes`,
-        CATEGORIAS: {
-          ROOT: '/cadastros/insumos/categorias',
-          NOVO: '/cadastros/insumos/categorias/novo',
-          EDITAR: (id: string | number) => `/cadastros/insumos/categorias/${id}`,
-        },
-      }
+      EMPRESA: COMPANY_ROUTES,
+      CLIENTES: CUSTOMER_ROUTES,
+      IMPOSTOS: TAX_ROUTES,
+      INSUMOS: SUPPLY_ROUTES,
+      USUARIOS: USER_ROUTES
     },
 
     COMERCIAL: {
