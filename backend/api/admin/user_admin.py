@@ -67,8 +67,12 @@ class UserAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """
         Sobrescreve o método de salvamento
-        Agora não usa mais set_password, usa o próprio save do modelo
-        que já trata a criptografia da senha
+        Garante que a senha seja sempre hasheada corretamente usando set_password
         """
-        obj._password_changed = 'password' in form.changed_data
+        if 'password' in form.changed_data:
+            # Salva a senha em texto puro em uma variável temporária
+            password = form.cleaned_data['password']
+            # Usa o mecanismo padrão do Django para hash de senha
+            obj.set_password(password)
+        
         super().save_model(request, obj, form, change)
