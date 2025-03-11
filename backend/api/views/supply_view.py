@@ -19,7 +19,7 @@ class SupplyViewSet(BaseViewSet):
     serializer_class = SupplySerializer
 
     permission_classes = [IsAuthenticated]
-    lookup_field = 'company_id'
+    lookup_field = 'supply_id'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'nick_name', 'ean_code', 'description']  # Campos para busca
     ordering_fields = ['name', 'created', 'updated']

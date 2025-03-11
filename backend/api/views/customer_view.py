@@ -22,7 +22,7 @@ class CustomerViewSet(BaseViewSet):
     queryset = Customer.objects.all()  # BaseViewSet já filtra por enabled=True
 
     permission_classes = [IsAuthenticated]
-    lookup_field = 'company_id'
+    lookup_field = 'customer_id'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'document', 'email', 'celphone', 'address', 'complement']
     ordering_fields = ['name', 'created', 'updated']

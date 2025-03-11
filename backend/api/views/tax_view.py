@@ -18,11 +18,23 @@ class TaxViewSet(viewsets.ModelViewSet):
     serializer_class = TaxSerializer
 
     permission_classes = [IsAuthenticated]
-    lookup_field = 'company_id'
+    lookup_field = 'tax_id'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['acronym', 'description', 'group', 'type']
     ordering_fields = ['acronym', 'description', 'created', 'updated']
     ordering = ['acronym']
+
+    def get_queryset(self):
+        """
+        Retorna queryset filtrado por company e enabled
+        """
+        if not self.request.user.company:
+            return Tax.objects.none()
+            
+        return Tax.objects.filter(
+            company=self.request.user.company,
+            enabled=True
+        )
 
     def perform_create(self, serializer):
         """
