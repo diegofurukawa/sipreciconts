@@ -1,4 +1,5 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -19,6 +20,13 @@ class CustomerViewSet(BaseViewSet):
     """
     serializer_class = CustomerSerializer
     queryset = Customer.objects.all()  # BaseViewSet já filtra por enabled=True
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'company_id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'document', 'email', 'celphone', 'address', 'complement']
+    ordering_fields = ['name', 'created', 'updated']
+    ordering = ['name']
     
     def get_queryset(self):
         """

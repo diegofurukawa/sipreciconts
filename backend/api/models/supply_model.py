@@ -16,24 +16,30 @@ class Supply(BaseModel):
         KILOGRAM = 'KG', 'Kilograma' 
         MILLILITER = 'ML', 'Mililitro'        
         LITRE = 'L', 'Litro'
-        
+        METROCUBICO = 'M3', 'Metro Cubico'
+
         # About Distance
         METRO = 'M', 'Metro'
-        # METROCUBICO = 'M3', 'Metro Cubico'
+        KILOMETER = 'KM', 'Kilometros'
+        
+        # About Area        
         METROQUADRADO = 'M2', 'Metro Quadrado'
 
         # About Time
-        DAY = 'DAY', 'Dia'  # Adicionando a unidade de medida "Dia"
-        HOUR = 'HR', 'Hora'  # Você também pode adicionar outras unidades úteis
+        DAY = 'DAY', 'Dia'  
+        HOUR = 'HR', 'Hora'  
         MONTH = 'MON', 'Mês'
+        YEAR = 'YEAR', 'Ano'
 
     class SupplyType(models.TextChoices):
         VEHICLE = 'VEI', 'Veículo'
         WEAPON = 'ARM', 'Armamento'
         MATERIAL = 'MAT', 'Material'
         UNIFORM = 'UNI', 'Uniforme'
-        EQUIPMENT = 'EQUIP', 'Equipamento'  # Adicionando o tipo "Equipamento"
-        SERVICE = 'SERV', 'Serviço'  # Você também pode adicionar outras categorias
+        EQUIPMENT = 'EQUIP', 'Equipamento'
+        SERVICE = 'SERV', 'Serviço'
+        LABOUR = 'MAO', 'Mão de Obra'  
+
 
     name = models.CharField('Nome', max_length=200)
     nick_name = models.CharField('Apelido', max_length=100, null=True, blank=True)

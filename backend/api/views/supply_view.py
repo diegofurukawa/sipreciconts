@@ -1,7 +1,6 @@
 
 # backend/api/views/supply.py
 from jsonschema import ValidationError
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.http import HttpResponse
@@ -12,11 +11,19 @@ import pandas as pd
 from ..models import Supply
 from ..serializers import SupplySerializer
 from .base_view import BaseViewSet
+from rest_framework import viewsets, status, filters
+from rest_framework.permissions import IsAuthenticated
 
 class SupplyViewSet(BaseViewSet):
-    """ViewSet for managing supplies"""
-    queryset = Supply.objects.all()  # BaseViewSet já filtra por enabled=True e company
+    queryset = Supply.objects.filter(enabled=True)
     serializer_class = SupplySerializer
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'company_id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'nick_name', 'ean_code', 'description']  # Campos para busca
+    ordering_fields = ['name', 'created', 'updated']
+    ordering = ['name']
 
     def get_queryset(self):
         """
@@ -123,16 +130,38 @@ class SupplyViewSet(BaseViewSet):
             error_rows = []
 
             unit_measure_map = {
+                # About Quantity
                 'Unidade': 'UN',
-                'Kilograma': 'KG',
-                'Mililitro': 'ML'
+
+                # About Capacity
+                'Kilograma': 'KG', 
+                'Mililitro': 'ML', 
+                'Litro': 'L',
+                'Metro Cubico': 'M3',
+
+                # About Distance
+                'Metro': 'M',
+                'Kilometros': 'KM',
+
+                # About Area        
+                'Metro Quadrado': 'M2',
+
+                # About Time
+                'Dia': 'DAY',
+                'Hora': 'HR',
+                'Mês': 'MON',
+                'Ano':'YEAR'
             }
             
             type_map = {
                 'Veículo': 'VEI',
                 'Armamento': 'ARM',
                 'Material': 'MAT',
-                'Uniforme': 'UNI'
+                'Uniforme': 'UNI',
+                'Equipamento': 'EQUIP',
+                'Serviço': 'SERV',
+                'Mão de Obra': 'MAO'
+
             }
 
             for index, row in df.iterrows():

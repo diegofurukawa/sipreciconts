@@ -1,4 +1,5 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
@@ -15,6 +16,13 @@ from ..serializers import CustomerSerializer, TaxSerializer
 class TaxViewSet(viewsets.ModelViewSet):
     queryset = Tax.objects.filter(enabled=True)
     serializer_class = TaxSerializer
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'company_id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['acronym', 'description', 'group', 'type']
+    ordering_fields = ['acronym', 'description', 'created', 'updated']
+    ordering = ['acronym']
 
     def perform_create(self, serializer):
         """
