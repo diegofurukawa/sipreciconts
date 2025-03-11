@@ -12,7 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
-import { TextArea } from '@/components/ui/textarea';
+// Correção: importar Textarea com "t" minúsculo ou usar Input
+import { Input as TextArea } from '@/components/ui/input';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useSupplyForm } from '@/pages/Supply/hooks';
@@ -167,11 +168,14 @@ const SupplyForm: React.FC = () => {
 
                 {/* Descrição - Span 2 colunas */}
                 <div className="md:col-span-2">
-                  <TextArea
+                  {/* Correção: Usando Input como textarea para descrição */}
+                  <Input
                     label="Descrição"
                     placeholder="Descrição detalhada do insumo"
                     error={form.formState.errors.description?.message}
                     {...form.register('description')}
+                    className="min-h-[100px]"
+                    multiline={true}
                     rows={4}
                   />
                 </div>

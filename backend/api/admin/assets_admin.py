@@ -232,7 +232,11 @@ class AssetMovementAdmin(admin.ModelAdmin):
     )
 
     def save_model(self, request, obj, form, change):
-        if not change:  # Se é uma nova instância
-            obj.created_by = request.user
-        obj.updated_by = request.user
+        if not change:  # Se for uma criação (não uma edição)
+            # Associa a empresa do usuário logado ao objeto
+            obj.company = request.user.company
         super().save_model(request, obj, form, change)
+    
+    def get_queryset(self, request):
+        # Filtra para mostrar apenas registros da empresa do usuário logado
+        return super().get_queryset(request).filter(company=request.user.company)

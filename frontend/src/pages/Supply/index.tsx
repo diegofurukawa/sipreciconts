@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary/index';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { SupplyList } from '@/pages/Supply/components';
-import { SupplyForm } from '@/pages/Supply/components';
+import  SupplyForm from '@/pages/Supply/components';
 import { SupplyImport } from '@/pages/Supply/components';
 
 const Supply = () => {

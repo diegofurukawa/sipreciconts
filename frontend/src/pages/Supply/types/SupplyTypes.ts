@@ -4,7 +4,7 @@
  * Interface base do Insumo
  */
 export interface Supply {
-    id?: number;
+    supply_id?: number;
     name: string;
     nick_name?: string;
     ean_code?: string;

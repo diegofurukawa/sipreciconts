@@ -107,11 +107,28 @@ export function useSupplyForm(): UseSupplyFormReturn {
       navigate(SUPPLY_ROUTES.ROOT);
     } catch (error: any) {
       console.error('Erro ao salvar insumo:', error);
+      
+      // Exibir mensagem de erro detalhada
       showToast({
         type: 'error',
         title: 'Erro',
         message: error.message || 'Erro ao salvar insumo'
       });
+      
+      // Se o erro estiver relacionado a campos específicos, podemos definir erros no formulário
+      if (error.response && error.response.data) {
+        const fieldErrors = error.response.data;
+        
+        // Para cada campo com erro, definimos o erro no formulário
+        Object.entries(fieldErrors).forEach(([field, errors]) => {
+          if (Array.isArray(errors) && errors.length > 0) {
+            form.setError(field as any, {
+              type: 'manual',
+              message: errors[0]
+            });
+          }
+        });
+      }
     } finally {
       setLoading(false);
     }

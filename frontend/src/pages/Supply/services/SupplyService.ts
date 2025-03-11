@@ -3,6 +3,7 @@ import axios from 'axios';
 import { DEFAULT_API_CONFIG } from '@/services/apiMainService/config';
 import type { PaginatedResponse } from '@/types/api_types';
 import type { Supply, SupplyListParams } from '@/pages/Supply/types';
+import { extractErrorMessages } from '../utils';
 
 // URL base para o serviço de insumos
 const baseUrl = DEFAULT_API_CONFIG.baseURL.endsWith('/')
@@ -107,13 +108,18 @@ export const SupplyService = {
    */
   async update(id: number, data: Partial<Supply>): Promise<Supply> {
     try {
+      console.log(`Atualizando insumo com ID: ${id}`, data);
       const response = await axios.put(`${baseUrl}/${id}/`, data, {
         headers: getHeaders(),
       });
+      console.log('Resposta da API:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Erro ao atualizar insumo ${id}:`, error);
-      throw error;
+      
+      // Extrair mensagem de erro mais específica
+      const errorMessage = extractErrorMessages(error);
+      throw new Error(errorMessage);
     }
   },
 

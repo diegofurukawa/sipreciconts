@@ -1,5 +1,6 @@
 
 # backend/api/views/supply.py
+from jsonschema import ValidationError
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -14,8 +15,29 @@ from .base_view import BaseViewSet
 
 class SupplyViewSet(BaseViewSet):
     """ViewSet for managing supplies"""
-    queryset = Supply.objects.filter(enabled=True)
+    queryset = Supply.objects.all()  # BaseViewSet já filtra por enabled=True e company
     serializer_class = SupplySerializer
+
+    def get_queryset(self):
+        """
+        Retorna queryset filtrado por company e enabled
+        """
+        if not self.request.user.company:
+            return Supply.objects.none()
+            
+        return Supply.objects.filter(
+            company=self.request.user.company,
+            enabled=True
+        )
+
+    def perform_create(self, serializer):
+        """
+        Sobrescreve criação para incluir company automaticamente
+        """
+        if not self.request.user.company:
+            raise ValidationError('Usuário não está associado a uma empresa')
+            
+        serializer.save(company=self.request.user.company)
 
     @action(detail=False, methods=['GET'])
     def export(self, request):

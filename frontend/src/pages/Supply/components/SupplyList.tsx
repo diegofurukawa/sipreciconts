@@ -264,7 +264,7 @@ const SupplyList: React.FC = () => {
                   </TableRow>
                 ) : (
                   supplies.map((supply) => (
-                    <TableRow key={supply.id} className="hover:bg-gray-50">
+                    <TableRow key={supply.supply_id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">{supply.name}</TableCell>
                       <TableCell>{supply.nick_name || '-'}</TableCell>
                       <TableCell>{supply.ean_code || '-'}</TableCell>
@@ -274,7 +274,7 @@ const SupplyList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleEditClick(supply.id!)}
+                          onClick={() => handleEditClick(supply.supply_id!)}
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                         >
                           <Pencil className="h-4 w-4" />
@@ -283,7 +283,7 @@ const SupplyList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteClick(supply.id!)}
+                          onClick={() => handleDeleteClick(supply.supply_id!)}
                           className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
                         >
                           <Trash2 className="h-4 w-4" />
