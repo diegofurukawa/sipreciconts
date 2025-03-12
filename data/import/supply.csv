@@ -1,0 +1,49 @@
+Nome;Apelido;Código EAN;Descrição;Unidade de Medida;Tipo
+Notebook Dell Latitude 5420;Notebook Dell;7891234567890;Notebook corporativo com processador Intel Core i5, 8GB RAM, 256GB SSD;Unidade;Equipamento
+Monitor Dell P2422H 24";Monitor 24";7891234567891;Monitor LED Full HD 24 polegadas, resolução 1920x1080;Unidade;Equipamento
+Teclado Wireless Logitech K780;Teclado;7891234567892;Teclado sem fio multidispositivo com suporte para smartphone;Unidade;Equipamento
+Mouse Logitech MX Master 3;Mouse;7891234567893;Mouse wireless de alta precisão com bateria recarregável;Unidade;Equipamento
+Headset Jabra Evolve 40;Headset;7891234567894;Headset profissional com cancelamento de ruído;Unidade;Equipamento
+Papel Sulfite A4 75g/m²;Papel A4;7891234567895;Papel branco para impressão, pacote com 500 folhas;Unidade;Material
+Caneta Esferográfica Azul;Caneta;7891234567896;Caneta esferográfica de tinta azul, ponta média;Unidade;Material
+Grampeador de Mesa 26/6;Grampeador;7891234567897;Grampeador de mesa para até 25 folhas, compatível com grampos 26/6;Unidade;Material
+Cartucho de Tinta HP 664 Preto;Cartucho HP;7891234567898;Cartucho de tinta preta para impressoras HP Deskjet;Unidade;Material
+Toner Samsung MLT-D111S;Toner Samsung;7891234567899;Toner para impressora Samsung Xpress M2020W/M2070W;Unidade;Material
+Agenda Executiva 2023;Agenda;7891234567900;Agenda executiva anual, capa dura, 192 folhas;Unidade;Material
+Carimbo Automático Trodat;Carimbo;7891234567901;Carimbo automático personalizado com placa de texto;Unidade;Material
+Perfurador de Papel 2 Furos;Perfurador;7891234567902;Perfurador metálico para até 20 folhas;Unidade;Material
+Clips Galvanizado Nº 2/0;Clips;7891234567903;Caixa com 100 unidades de clips galvanizados nº 2/0;Unidade;Material
+Post-it 76x76mm Amarelo;Post-it;7891234567904;Bloco autoadesivo com 100 folhas amarelas;Unidade;Material
+Gasolina Comum;Combustível;7891234567905;Combustível para veículos a gasolina;Litro;Material
+Óleo Diesel S10;Diesel;7891234567906;Combustível diesel com baixo teor de enxofre para veículos;Litro;Material
+Smartphone Samsung Galaxy A52;Celular;7891234567907;Smartphone com 128GB, 6GB RAM, Tela 6.5" Super AMOLED;Unidade;Equipamento
+Tablet Apple iPad 10.2";Tablet;7891234567908;Tablet com tela de 10.2", 64GB armazenamento;Unidade;Equipamento
+Câmera de Segurança IP;Câmera IP;7891234567909;Câmera de segurança IP com visão noturna e detecção de movimento;Unidade;Equipamento
+Roupa de Proteção Individual;EPI;7891234567910;Conjunto de proteção com calça e camisa em material resistente;Unidade;Uniforme
+Colete Refletivo;Colete;7891234567911;Colete de segurança com faixas refletivas, padrão ABNT;Unidade;Uniforme
+Capacete de Proteção;Capacete;7891234567912;Capacete de segurança para proteção contra impactos;Unidade;Uniforme
+Luvas de Proteção;Luvas;7891234567913;Par de luvas de proteção contra cortes e abrasão;Unidade;Uniforme
+Botina de Segurança;Botina;7891234567914;Calçado de segurança com biqueira de proteção;Unidade;Uniforme
+Revólver Taurus .38;Revólver;7891234567915;Revólver calibre .38 para segurança patrimonial;Unidade;Armamento
+Colete Balístico Nível IIIA;Colete;7891234567916;Colete à prova de balas nível IIIA;Unidade;Armamento
+Toyota Hilux 4x4;Hilux;7891234567917;Caminhonete 4x4 para transporte em terrenos acidentados;Unidade;Veículo
+Ford Ranger XLT;Ranger;7891234567918;Picape 4x4 diesel para transporte de cargas;Unidade;Veículo
+Honda CG 160;Moto;7891234567919;Motocicleta para serviços de mensageria;Unidade;Veículo
+Serviço de Limpeza;Limpeza;7891234567920;Serviço de limpeza e conservação de ambientes;Hora;Serviço
+Serviço de Vigilância;Vigilância;7891234567921;Serviço de vigilância patrimonial 24h;Hora;Serviço
+Serviço de Manutenção Predial;Manutenção;7891234567922;Serviço de manutenção para instalações prediais;Hora;Serviço
+Técnico de Informática;Técnico TI;7891234567923;Serviço técnico para manutenção de computadores e redes;Hora;Mão de Obra
+Engenheiro Civil;Engenheiro;7891234567924;Consultoria e acompanhamento de obras civis;Hora;Mão de Obra
+Assistente Administrativo;Assistente;7891234567925;Profissional para serviços administrativos gerais;Hora;Mão de Obra
+Vigia Noturno;Vigia;7891234567926;Profissional para vigilância noturna;Hora;Mão de Obra
+Motorista Categoria D;Motorista;7891234567927;Motorista profissional com habilitação categoria D;Hora;Mão de Obra
+Cimento Portland CP II 50kg;Cimento;7891234567928;Saco de cimento Portland composto, 50kg;Unidade;Material
+Tinta Látex Acrílica 18L;Tinta;7891234567929;Tinta látex acrílica para paredes internas e externas;Unidade;Material
+Areia Média;Areia;7891234567930;Areia média lavada para construção civil;Metro Cubico;Material
+Brita nº 1;Brita;7891234567931;Brita nº 1 para concreto e assentamentos;Metro Cubico;Material
+Tijolo Cerâmico 6 Furos;Tijolo;7891234567932;Tijolo cerâmico de 6 furos para alvenaria;Unidade;Material
+Vergalhão CA-50 10mm;Vergalhão;7891234567933;Barra de aço CA-50 10mm para construção;Metro;Material
+Piso Cerâmico 60x60cm;Piso;7891234567934;Piso cerâmico acetinado 60x60cm;Metro Quadrado;Material
+Telha Cerâmica Portuguesa;Telha;7891234567935;Telha cerâmica tipo portuguesa para cobertura;Unidade;Material
+Serviço de Consultoria Jurídica;Consultoria;7891234567936;Serviço de assessoria jurídica para contratos;Hora;Serviço
+Serviço de Contabilidade;Contabilidade;7891234567937;Serviço de contabilidade para pessoa jurídica;Mês;Serviço

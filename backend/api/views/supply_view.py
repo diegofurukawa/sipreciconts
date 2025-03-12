@@ -1,5 +1,3 @@
-
-# backend/api/views/supply.py
 from jsonschema import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +5,7 @@ from django.http import HttpResponse
 import csv
 import io
 from datetime import datetime
+import re
 import pandas as pd
 from ..models import Supply
 from ..serializers import SupplySerializer
@@ -51,7 +50,8 @@ class SupplyViewSet(BaseViewSet):
         """Export supplies to CSV"""
         try:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'insumos_{timestamp}.csv'
+            company_name = request.user.company.name.lower().replace(' ', '_')
+            filename = f'insumos_{company_name}_{timestamp}.csv'
             
             response = HttpResponse(
                 content_type='text/csv',
@@ -109,26 +109,45 @@ class SupplyViewSet(BaseViewSet):
             file = request.FILES['file']
             filename = file.name.lower()
             
+            # Determinar formato e ler arquivo
             if filename.endswith('.csv'):
-                df = pd.read_csv(file, encoding='utf-8-sig', sep=';')
+                try:
+                    decoded_file = file.read().decode('utf-8-sig')
+                    io_string = io.StringIO(decoded_file)
+                    reader = csv.DictReader(io_string, delimiter=';')
+                    rows = list(reader)
+                except Exception as e:
+                    return Response(
+                        {'error': f'Erro ao ler arquivo CSV: {str(e)}'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
             elif filename.endswith(('.xls', '.xlsx')):
-                df = pd.read_excel(file)
+                try:
+                    df = pd.read_excel(file)
+                    rows = df.to_dict('records')
+                except Exception as e:
+                    return Response(
+                        {'error': f'Erro ao ler arquivo Excel: {str(e)}'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
             else:
                 return Response(
                     {'error': 'Formato de arquivo não suportado. Use CSV, XLS ou XLSX.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            required_columns = {'Nome', 'Unidade de Medida', 'Tipo'}
-            if not required_columns.issubset(set(df.columns)):
+            # Verificar cabeçalhos obrigatórios
+            required_fields = {'Nome', 'Unidade de Medida', 'Tipo'}
+            if not all(field in rows[0].keys() for field in required_fields):
                 return Response(
-                    {'error': f'Colunas obrigatórias faltando. Necessárias: {required_columns}'},
+                    {'error': f'Colunas obrigatórias faltando. Necessárias: {required_fields}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
             success_count = 0
             error_rows = []
 
+            # Mapas para conversão de valores
             unit_measure_map = {
                 # About Quantity
                 'Unidade': 'UN',
@@ -150,7 +169,7 @@ class SupplyViewSet(BaseViewSet):
                 'Dia': 'DAY',
                 'Hora': 'HR',
                 'Mês': 'MON',
-                'Ano':'YEAR'
+                'Ano': 'YEAR'
             }
             
             type_map = {
@@ -161,49 +180,60 @@ class SupplyViewSet(BaseViewSet):
                 'Equipamento': 'EQUIP',
                 'Serviço': 'SERV',
                 'Mão de Obra': 'MAO'
-
             }
 
-            for index, row in df.iterrows():
+            company_id = self.request.user.company.company_id
+
+            for index, row in enumerate(rows):
                 try:
+                    # Limpar e validar dados
+                    name = str(row.get('Nome', '')).strip()
+                    if not name:
+                        raise ValidationError('Nome é obrigatório')
+                    
+                    # Preparar dados
                     supply_data = {
-                        'name': str(row['Nome']).strip(),
-                        'unit_measure': unit_measure_map.get(row['Unidade de Medida'], 'UN'),
-                        'type': type_map.get(row['Tipo'], 'MAT')
+                        'name': name,
+                        'unit_measure': unit_measure_map.get(row.get('Unidade de Medida', ''), 'UN'),
+                        'type': type_map.get(row.get('Tipo', ''), 'MAT'),
+                        'company_id': company_id  # company_id é o código da empresa
                     }
 
-                    if 'Apelido' in df.columns and pd.notna(row['Apelido']):
-                        supply_data['nick_name'] = str(row['Apelido']).strip()
+                    # Adicionar campos opcionais se existirem
+                    if row.get('Apelido'):
+                        supply_data['nick_name'] = str(row.get('Apelido')).strip()
                     
-                    if 'Código EAN' in df.columns and pd.notna(row['Código EAN']):
-                        supply_data['ean_code'] = str(row['Código EAN']).strip()
+                    if row.get('Código EAN'):
+                        supply_data['ean_code'] = str(row.get('Código EAN')).strip()
                     
-                    if 'Descrição' in df.columns and pd.notna(row['Descrição']):
-                        supply_data['description'] = str(row['Descrição']).strip()
+                    if row.get('Descrição'):
+                        supply_data['description'] = str(row.get('Descrição')).strip()
 
-                    if not supply_data['name']:
-                        raise ValueError('Nome é obrigatório')
-
+                    # Verificar existência pelo código EAN
                     existing_supply = None
                     if 'ean_code' in supply_data and supply_data['ean_code']:
                         existing_supply = Supply.objects.filter(
                             ean_code=supply_data['ean_code'],
+                            company__company_id=company_id,
                             enabled=True
                         ).first()
 
                     if existing_supply:
+                        # Atualizar existente
                         for key, value in supply_data.items():
-                            setattr(existing_supply, key, value)
+                            if key != 'company_id':  # Não permite alterar company_id
+                                setattr(existing_supply, key, value)
                         existing_supply.save()
                     else:
+                        # Criar novo
                         Supply.objects.create(**supply_data)
 
                     success_count += 1
 
                 except Exception as e:
                     error_rows.append({
-                        'row': index + 2,
-                        'data': row.to_dict(),
+                        'row': index + 2,  # +2 para contar cabeçalho e índice base 0
+                        'data': row,
                         'error': str(e)
                     })
 

@@ -7,6 +7,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from django.db.models import Q
+from django.contrib.auth.hashers import make_password
 from ..models.user_model import User
 from ..serializers.user_serializer import UserSerializer
 import csv
@@ -66,60 +67,95 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         Importa usuários de um arquivo CSV/TXT
         """
-        if 'file' not in request.FILES:
-            return Response(
-                {'error': 'Nenhum arquivo foi enviado.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        file = request.FILES['file']
-        if not file.name.endswith(('.csv', '.txt')):
-            return Response(
-                {'error': 'Formato de arquivo inválido. Use CSV ou TXT.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         try:
+            if 'file' not in request.FILES:
+                return Response(
+                    {'error': 'Nenhum arquivo foi enviado.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            file = request.FILES['file']
+            if not file.name.endswith(('.csv', '.txt')):
+                return Response(
+                    {'error': 'Formato de arquivo inválido. Use CSV ou TXT.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Decodificar arquivo
             decoded_file = file.read().decode('utf-8-sig')
             io_string = io.StringIO(decoded_file)
             reader = csv.DictReader(io_string, delimiter=';')
+            
+            # Verificar cabeçalhos obrigatórios
+            required_headers = {'Nome', 'Email', 'Login'}
+            headers = set(reader.fieldnames) if reader.fieldnames else set()
+            if not required_headers.issubset(headers):
+                return Response(
+                    {'error': f'Cabeçalhos obrigatórios faltando. Necessários: {required_headers}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
             success_count = 0
             error_rows = []
             company = request.user.company
 
-            required_fields = {'Nome', 'Email', 'Login'}
-            if not all(field in reader.fieldnames for field in required_fields):
-                return Response(
-                    {'error': f'Campos obrigatórios faltando. Necessários: {required_fields}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
             for row in reader:
                 try:
-                    user_data = {
-                        'user_name': row.get('Nome', '').strip(),
-                        'email': row.get('Email', '').strip(),
-                        'login': row.get('Login', '').strip(),
-                        'type': row.get('Tipo', 'Usuario').strip(),
-                        'password': 'ChangeMe123!',
-                        'password_confirm': 'ChangeMe123!',
-                        'company': company.id if company else None
-                    }
-
+                    # Extrair e validar dados
+                    user_name = row.get('Nome', '').strip()
+                    email = row.get('Email', '').strip()
+                    login = row.get('Login', '').strip()
+                    tipo = row.get('Tipo', 'Usuario').strip()
+                    
                     # Validações básicas
-                    if not user_data['user_name'] or not user_data['email'] or not user_data['login']:
-                        raise ValueError("Campos obrigatórios não preenchidos")
-
-                    serializer = self.get_serializer(data=user_data)
-                    if serializer.is_valid():
-                        serializer.save()
+                    if not user_name:
+                        raise ValueError("Nome é obrigatório")
+                    
+                    if not email:
+                        raise ValueError("Email é obrigatório")
+                    
+                    if not login:
+                        raise ValueError("Login é obrigatório")
+                        
+                    # Verificar tipo válido
+                    if tipo not in ['Admin', 'Usuario']:
+                        tipo = 'Usuario'  # Valor padrão
+                    
+                    # Verificar existência do usuário
+                    existing_user = User.objects.filter(
+                        Q(login=login) | Q(email=email),
+                        company_id=company.company_id,
+                        enabled=True
+                    ).first()
+                    
+                    if existing_user:
+                        # Atualizar usuário existente (sem redefinir senha)
+                        existing_user.user_name = user_name
+                        existing_user.type = tipo
+                        
+                        # Atualiza o email apenas se for diferente
+                        if existing_user.login == login and existing_user.email != email:
+                            existing_user.email = email
+                            
+                        existing_user.save()
                         success_count += 1
                     else:
-                        error_rows.append({
-                            'row': row,
-                            'errors': serializer.errors
-                        })
+                        # Criar novo usuário
+                        senha_padrao = 'ChangeMe123!'
+                        
+                        user = User(
+                            user_name=user_name,
+                            email=email,
+                            login=login,
+                            type=tipo,
+                            company=company,
+                            enabled=True
+                        )
+                        
+                        # Usar método seguro para definir senha
+                        user.set_password(senha_padrao)
+                        user.save()
+                        success_count += 1
 
                 except Exception as e:
                     error_rows.append({
@@ -127,8 +163,14 @@ class UserViewSet(viewsets.ModelViewSet):
                         'error': str(e)
                     })
 
+            # Mensagem de retorno
+            message = f'{success_count} usuários importados com sucesso.'
+            if error_rows:
+                message += f' {len(error_rows)} erros encontrados.'
+
             return Response({
-                'message': f'{success_count} usuários importados com sucesso.',
+                'success': True,
+                'message': message,
                 'errors': error_rows if error_rows else None,
                 'total_rows': success_count + len(error_rows)
             })
@@ -146,7 +188,8 @@ class UserViewSet(viewsets.ModelViewSet):
         """
         try:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'usuarios_{timestamp}.csv'
+            company_name = request.user.company.name.lower().replace(' ', '_') if request.user.company else 'all'
+            filename = f'usuarios_{company_name}_{timestamp}.csv'
             
             response = HttpResponse(
                 content_type='text/csv',

@@ -66,3 +66,6 @@ frontend/build/
 .DS_Store
 Thumbs.db
 frontend/package-lock.json
+
+# Arquivos Exportados de Teste
+*/data/export

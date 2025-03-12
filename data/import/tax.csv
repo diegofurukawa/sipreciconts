@@ -1,0 +1,21 @@
+Descrição;Tipo;Sigla;Grupo;Operador;Valor
+Imposto sobre Circulação de Mercadorias e Serviços;Imposto;ICMS;Estadual;Percentual;18.00
+Imposto sobre Produtos Industrializados;Imposto;IPI;Federal;Percentual;10.00
+Imposto de Renda Pessoa Jurídica;Imposto;IRPJ;Federal;Percentual;15.00
+Contribuição Social sobre Lucro Líquido;Imposto;CSLL;Federal;Percentual;9.00
+Programa de Integração Social;Imposto;PIS;Federal;Percentual;1.65
+Contribuição para Financiamento da Seguridade Social;Imposto;COFINS;Federal;Percentual;7.60
+Imposto sobre Serviços;Imposto;ISS;Municipal;Percentual;5.00
+Instituto Nacional do Seguro Social;Imposto;INSS;Federal;Percentual;20.00
+Fundo de Garantia do Tempo de Serviço;Imposto;FGTS;Federal;Percentual;8.00
+Taxa de Licença para Funcionamento;Taxa;TLF;Municipal;Fixo;150.00
+Taxa de Fiscalização de Anúncios;Taxa;TFA;Municipal;Fixo;200.00
+Taxa de Coleta de Lixo;Taxa;TCL;Municipal;Fixo;120.00
+Contribuição Sindical Patronal;Taxa;CSP;Federal;Percentual;0.20
+Imposto sobre Operações Financeiras;Imposto;IOF;Federal;Percentual;1.50
+Imposto Predial e Territorial Urbano;Imposto;IPTU;Municipal;Percentual;1.00
+Imposto sobre a Propriedade de Veículos Automotores;Imposto;IPVA;Estadual;Percentual;3.50
+Contribuição de Intervenção no Domínio Econômico;Imposto;CIDE;Federal;Percentual;10.00
+Adicional de Frete para Renovação da Marinha Mercante;Taxa;AFRMM;Federal;Percentual;25.00
+Impostos de Importação;Imposto;II;Federal;Percentual;60.00
+Imposto sobre Transmissão Causa Mortis e Doação;Imposto;ITCMD;Estadual;Percentual;4.00

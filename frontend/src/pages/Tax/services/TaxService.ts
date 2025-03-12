@@ -139,7 +139,7 @@ export const taxService = {
         },
       };
 
-      const response = await axios.post(`${baseUrl}/import`, formData, config);
+      const response = await axios.post(`${baseUrl}/import_taxes/`, formData, config);
       return response.data;
     } catch (error) {
       console.error('Erro ao importar impostos:', error);

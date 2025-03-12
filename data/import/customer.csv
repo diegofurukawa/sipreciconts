@@ -1,0 +1,70 @@
+Nome;Tipo de Cliente;Documento;Celular;Email;Endereço;Complemento
+João Silva;Individual;123.456.789-00;(11) 98765-4321;joao.silva@email.com;Rua das Flores, 123, São Paulo, SP;Apto 302
+Maria Santos;Empresarial;98.765.432/0001-10;(11) 97654-3210;maria@empresasantos.com;Av. Paulista, 1500, São Paulo, SP;Sala 405
+Carlos Oliveira;Individual;987.654.321-00;(21) 99876-5432;carlos.oliveira@email.com;Rua do Carmo, 45, Rio de Janeiro, RJ;Casa 2
+Ana Costa;Individual;456.789.123-00;(31) 98765-1234;ana.costa@email.com;Av. Afonso Pena, 1000, Belo Horizonte, MG;Bloco B, Apto 501
+Empresa XYZ Ltda;Empresarial;12.345.678/0001-90;(11) 3456-7890;contato@empresaxyz.com;Rua Augusta, 789, São Paulo, SP;Andar 12
+Pedro Souza;Individual;234.567.890-12;(41) 99123-4567;pedro.souza@email.com;Rua XV de Novembro, 200, Curitiba, PR;Casa
+Distribuidora ABC;Empresarial;45.678.901/0001-23;(21) 3567-8901;vendas@abcdistribuidora.com;Av. Brasil, 5000, Rio de Janeiro, RJ;Galpão 7
+Fernanda Lima;Individual;345.678.901-23;(51) 98901-2345;fernanda.lima@email.com;Av. Ipiranga, 300, Porto Alegre, RS;Apto 1001
+Consultoria Sigma;Empresarial;78.901.234/0001-56;(31) 2345-6789;contato@sigma.com;Av. do Contorno, 500, Belo Horizonte, MG;Sala 302
+Roberto Alves;Individual;567.890.123-45;(81) 99234-5678;roberto.alves@email.com;Rua das Palmeiras, 50, Recife, PE;
+Supermercados Boa Compra;Empresarial;23.456.789/0001-67;(11) 4567-8901;sac@boacompra.com;Av. das Nações, 1200, Barueri, SP;Loja Âncora
+Juliana Mendes;Individual;678.901.234-56;(27) 98345-6789;juliana.mendes@email.com;Av. Nossa Senhora da Penha, 78, Vitória, ES;Apto 402
+Tech Solutions S.A.;Empresarial;34.567.890/0001-78;(48) 3456-7890;contato@techsolutions.com;Rua João Pinto, 102, Florianópolis, SC;Andar 5
+Marcos Pereira;Individual;789.012.345-67;(62) 99456-7890;marcos.pereira@email.com;Rua 10, 200, Goiânia, GO;Quadra 15, Lote 8
+Farmácia Saúde Total;Empresarial;56.789.012/0001-89;(71) 3567-8901;sac@saudetotal.com;Av. Sete de Setembro, 500, Salvador, BA;Loja 3
+Camila Rodrigues;Individual;890.123.456-78;(92) 98567-8901;camila.rodrigues@email.com;Rua Barroso, 150, Manaus, AM;Casa
+Loja Moda Elegante;Empresarial;67.890.123/0001-90;(85) 2345-6789;vendas@modaelegante.com;Rua Barão do Rio Branco, 1010, Fortaleza, CE;Loja 22, Shopping Central
+Lucas Ferreira;Individual;901.234.567-89;(83) 99678-9012;lucas.ferreira@email.com;Av. Epitácio Pessoa, 1500, João Pessoa, PB;Apto 705
+Construções Forte Ltda;Empresarial;78.901.234/0001-01;(91) 3456-7890;contato@construcoesforte.com;Av. Almirante Barroso, 100, Belém, PA;Sala 810
+Eduarda Campos;Individual;012.345.678-90;(65) 98789-0123;eduarda.campos@email.com;Rua Marechal Deodoro, 500, Cuiabá, MT;
+João Silva;Individual;123.456.789-00;(11) 98765-4321;joao.silva@email.com;Rua das Flores, 123, São Paulo, SP;Apto 302
+Maria Santos;Empresarial;98.765.432/0001-10;(11) 97654-3210;maria@empresasantos.com;Av. Paulista, 1500, São Paulo, SP;Sala 405
+Carlos Oliveira;Individual;987.654.321-00;(21) 99876-5432;carlos.oliveira@email.com;Rua do Carmo, 45, Rio de Janeiro, RJ;Casa 2
+Ana Costa;Individual;456.789.123-00;(31) 98765-1234;ana.costa@email.com;Av. Afonso Pena, 1000, Belo Horizonte, MG;Bloco B, Apto 501
+Empresa XYZ Ltda;Empresarial;12.345.678/0001-90;(11) 3456-7890;contato@empresaxyz.com;Rua Augusta, 789, São Paulo, SP;Andar 12
+Pedro Souza;Individual;234.567.890-12;(41) 99123-4567;pedro.souza@email.com;Rua XV de Novembro, 200, Curitiba, PR;Casa
+Distribuidora ABC;Empresarial;45.678.901/0001-23;(21) 3567-8901;vendas@abcdistribuidora.com;Av. Brasil, 5000, Rio de Janeiro, RJ;Galpão 7
+Fernanda Lima;Individual;345.678.901-23;(51) 98901-2345;fernanda.lima@email.com;Av. Ipiranga, 300, Porto Alegre, RS;Apto 1001
+Consultoria Sigma;Empresarial;78.901.234/0001-56;(31) 2345-6789;contato@sigma.com;Av. do Contorno, 500, Belo Horizonte, MG;Sala 302
+Roberto Alves;Individual;567.890.123-45;(81) 99234-5678;roberto.alves@email.com;Rua das Palmeiras, 50, Recife, PE;
+Amanda Ferreira;Individual;678.901.234-56;(11) 99345-6789;amanda.ferreira@email.com;Rua Bela Cintra, 450, São Paulo, SP;Apto 54
+Comércio Bom Preço;Empresarial;89.012.345/0001-67;(31) 3456-7890;atendimento@bompreco.com;Av. Amazonas, 1200, Belo Horizonte, MG;Loja 23
+Ricardo Mendes;Individual;789.012.345-67;(21) 98456-7890;ricardo.mendes@email.com;Rua Voluntários da Pátria, 500, Rio de Janeiro, RJ;Casa 5
+Tecnologia Avançada;Empresarial;90.123.456/0001-78;(11) 2345-6789;contato@tecavancada.com;Av. Engenheiro Luís Carlos Berrini, 500, São Paulo, SP;Conjunto 1503
+Gabriela Santos;Individual;890.123.456-78;(41) 99567-8901;gabriela.santos@email.com;Rua Marechal Deodoro, 300, Curitiba, PR;Apto 1202
+Mercado Central Ltda;Empresarial;01.234.567/0001-89;(31) 3678-9012;sac@mercadocentral.com;Av. Olegário Maciel, 742, Belo Horizonte, MG;Loja 15
+Bruno Costa;Individual;901.234.567-89;(11) 98678-9012;bruno.costa@email.com;Rua Oscar Freire, 900, São Paulo, SP;Apto 84
+Farmácia Popular;Empresarial;12.345.678/0001-90;(21) 2789-0123;contato@farmaciapopular.com;Av. Rio Branco, 156, Rio de Janeiro, RJ;Loja 12
+Juliana Oliveira;Individual;012.345.678-90;(51) 99789-0123;juliana.oliveira@email.com;Rua dos Andradas, 500, Porto Alegre, RS;Bloco A, Apto 303
+Construções Modernas;Empresarial;23.456.789/0001-01;(11) 3890-1234;info@construcoesmodernas.com;Av. Brigadeiro Faria Lima, 3900, São Paulo, SP;Andar 20
+Leonardo Almeida;Individual;123.456.789-01;(31) 98901-2345;leonardo.almeida@email.com;Rua Pernambuco, 1000, Belo Horizonte, MG;Casa
+Auto Peças Rápidas;Empresarial;34.567.890/0001-12;(41) 3012-3456;vendas@autopecasrapidas.com;Rua Mateus Leme, 2000, Curitiba, PR;Galpão 3
+Carolina Silva;Individual;234.567.890-12;(21) 99012-3456;carolina.silva@email.com;Av. Atlântica, 1500, Rio de Janeiro, RJ;Apto 802
+Supermercado Econômico;Empresarial;45.678.901/0001-23;(11) 3123-4567;sac@supereconomico.com;Av. Ibirapuera, 3000, São Paulo, SP;Loja Térrea
+Fernando Nunes;Individual;345.678.901-23;(81) 98123-4567;fernando.nunes@email.com;Av. Boa Viagem, 1000, Recife, PE;Apto 1504
+Transportadora Veloz;Empresarial;56.789.012/0001-34;(51) 3234-5678;operacional@transportadoraveloz.com;Av. Farrapos, 1500, Porto Alegre, RS;Terminal 5
+Patrícia Oliveira;Individual;456.789.012-34;(11) 99234-5678;patricia.oliveira@email.com;Rua Augusta, 1200, São Paulo, SP;Apto 75
+Industria Metalúrgica;Empresarial;67.890.123/0001-45;(31) 3345-6789;vendas@industriametalurgica.com;Av. Contorno, 10000, Belo Horizonte, MG;Pavilhão 2
+Gustavo Pereira;Individual;567.890.123-45;(21) 98345-6789;gustavo.pereira@email.com;Rua Barata Ribeiro, 380, Rio de Janeiro, RJ;Apto 604
+Resort Paraíso;Empresarial;78.901.234/0001-56;(71) 3456-7890;reservas@resortparaiso.com;Av. Oceânica, 2500, Salvador, BA;
+Roberta Lima;Individual;678.901.234-56;(11) 99456-7890;roberta.lima@email.com;Rua Pamplona, 1000, São Paulo, SP;Apto 123
+Importadora Global;Empresarial;89.012.345/0001-67;(41) 3567-8901;comercial@importadoraglobal.com;Rua Comendador Araújo, 500, Curitiba, PR;Sala 1204
+Daniel Martins;Individual;789.012.345-67;(31) 98567-8901;daniel.martins@email.com;Rua da Bahia, 1100, Belo Horizonte, MG;Apto 801
+Confecções Elegantes;Empresarial;90.123.456/0001-78;(11) 3678-9012;vendas@confeccoeselegantes.com;Rua José Paulino, 500, São Paulo, SP;Loja 45
+Luciana Castro;Individual;890.123.456-78;(21) 99678-9012;luciana.castro@email.com;Av. Vieira Souto, 500, Rio de Janeiro, RJ;Apto 1003
+Panificadora Sabor;Empresarial;01.234.567/0001-89;(51) 3789-0123;contato@panificadorasabor.com;Av. Protásio Alves, 1000, Porto Alegre, RS;Loja 2
+Marcelo Santos;Individual;901.234.567-89;(11) 98789-0123;marcelo.santos@email.com;Rua Haddock Lobo, 650, São Paulo, SP;Apto 44
+Academia Fitness Total;Empresarial;12.345.678/0001-90;(31) 3890-1234;contato@fitnesstotal.com;Av. do Contorno, 5000, Belo Horizonte, MG;Loja 10
+Renata Gomes;Individual;012.345.678-90;(41) 99890-1234;renata.gomes@email.com;Rua Padre Anchieta, 1500, Curitiba, PR;Casa
+Distribuidora de Bebidas;Empresarial;23.456.789/0001-01;(21) 3901-2345;pedidos@distribuidoradebebidas.com;Estrada do Galeão, 1500, Rio de Janeiro, RJ;Galpão 10
+Vinícius Torres;Individual;123.456.789-01;(11) 99901-2345;vinicius.torres@email.com;Alameda Santos, 800, São Paulo, SP;Apto 92
+Clínica Saúde Plena;Empresarial;34.567.890/0001-12;(31) 3012-3456;atendimento@clinicasaudeplena.com;Av. Brasil, 1000, Belo Horizonte, MG;Sala 505
+Tatiana Cardoso;Individual;234.567.890-12;(51) 98012-3456;tatiana.cardoso@email.com;Rua Gonçalo de Carvalho, 200, Porto Alegre, RS;Casa
+Restaurante Sabor Caseiro;Empresarial;45.678.901/0001-23;(11) 3123-4567;reservas@saborcaseiro.com;Rua dos Pinheiros, 300, São Paulo, SP;Loja 2
+André Oliveira;Individual;345.678.901-23;(21) 99123-4567;andre.oliveira@email.com;Rua Visconde de Pirajá, 550, Rio de Janeiro, RJ;Apto 702
+Móveis Requinte;Empresarial;56.789.012/0001-34;(41) 3234-5678;vendas@moveisrequinte.com;Av. Sete de Setembro, 3000, Curitiba, PR;Loja 15
+Larissa Mendes;Individual;456.789.012-34;(31) 98234-5678;larissa.mendes@email.com;Rua Rio de Janeiro, 900, Belo Horizonte, MG;Apto 503
+Escola de Idiomas;Empresarial;67.890.123/0001-45;(11) 3345-6789;contato@escoladeidiomas.com;Av. Paulista, 900, São Paulo, SP;8º Andar
+Rafael Barros;Individual;567.890.123-45;(51) 99345-6789;rafael.barros@email.com;Av. Independência, 800, Porto Alegre, RS;Casa 5
