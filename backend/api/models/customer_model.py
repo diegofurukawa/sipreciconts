@@ -9,7 +9,7 @@ class Customer(BaseModel):
     document = models.CharField(
         'Documento',
         max_length=20,
-        unique=True,
+        unique=False,
         null=True,
         blank=True
     )
@@ -43,6 +43,13 @@ class Customer(BaseModel):
         indexes = [
             models.Index(fields=['company_id']),
             models.Index(fields=['customer_id']),            
+        ]
+        constraints = [
+            # Esta restrição garante que o documento seja único apenas dentro da mesma empresa
+            models.UniqueConstraint(
+                fields=['document', 'company'],
+                name='unique_document_per_company'
+            )
         ]
 
     def __str__(self):

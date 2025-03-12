@@ -43,7 +43,7 @@ class Supply(BaseModel):
 
     name = models.CharField('Nome', max_length=200)
     nick_name = models.CharField('Apelido', max_length=100, null=True, blank=True)
-    ean_code = models.CharField('Código EAN', max_length=13, null=True, blank=True, unique=True)
+    ean_code = models.CharField('Código EAN', max_length=13, null=True, blank=True, unique=False)
     description = models.TextField('Descrição', null=True, blank=True)
     unit_measure = models.CharField(
         'Unidade de Medida',
@@ -66,6 +66,13 @@ class Supply(BaseModel):
         indexes = [
             models.Index(fields=['company_id']),
             models.Index(fields=['supply_id']),            
+        ]
+        constraints = [
+            # Esta restrição garante que o ean_code seja único apenas dentro da mesma empresa
+            models.UniqueConstraint(
+                fields=['ean_code', 'company'],
+                name='unique_ean_code_per_company'
+            )
         ]
         
 

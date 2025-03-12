@@ -43,6 +43,14 @@ class Tax(BaseModel):
             models.Index(fields=['company_id']),
             models.Index(fields=['tax_id']),            
         ]
+        constraints = [
+            # Esta restrição garante que o acronym seja único apenas dentro da mesma empresa
+            models.UniqueConstraint(
+                fields=['acronym', 'company'],
+                name='unique_acronym_per_company'
+            )
+        ]
+
 
     def __str__(self):
         return f"{self.acronym} - {self.description}"
