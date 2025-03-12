@@ -40,13 +40,25 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/useToast';
-import { customerService, type CustomerImportResponse } from '@/services/api/modules/customer';
-import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
+import { customerService } from '@/services/api/modules/customer';
+import { CUSTOMER_ROUTES } from '@/pages/Customer/routes';
+
+// Tipo para a resposta da importação
+interface ImportResponse {
+  total_processed: number;
+  success_count: number;
+  error_count: number;
+  errors?: Array<{
+    row: number;
+    message: string;
+    data: Record<string, any>;
+  }>;
+}
 
 const CustomerImport = () => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<CustomerImportResponse | null>(null);
+  const [result, setResult] = useState<ImportResponse | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [importOptions, setImportOptions] = useState({
     update_existing: false,
@@ -103,6 +115,7 @@ const CustomerImport = () => {
       setImporting(true);
       setUploadProgress(0);
       
+      // Chamar o serviço de importação com opções e callback de progresso
       const result = await customerService.import(
         file,
         importOptions,
@@ -125,10 +138,11 @@ const CustomerImport = () => {
         });
       }
     } catch (error: any) {
+      console.error('Erro na importação:', error);
       showToast({
         type: 'error',
         title: 'Erro',
-        message: 'Erro ao importar clientes'
+        message: error.response?.data?.message || 'Erro ao importar clientes'
       });
     } finally {
       setImporting(false);
@@ -148,10 +162,11 @@ const CustomerImport = () => {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
+      console.error('Erro ao baixar modelo:', error);
       showToast({
         type: 'error',
         title: 'Erro',
-        message: 'Erro ao baixar modelo'
+        message: 'Erro ao baixar modelo de importação'
       });
     }
   };
@@ -164,7 +179,7 @@ const CustomerImport = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.ROOT)}
+            onClick={() => navigate(CUSTOMER_ROUTES.ROOT)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -293,6 +308,7 @@ const CustomerImport = () => {
           <Button
             onClick={handleImport}
             disabled={!file || importing}
+            className="bg-emerald-600 hover:bg-emerald-700"
           >
             {importing ? (
               <>
@@ -349,7 +365,7 @@ const CustomerImport = () => {
                       <TableCell>{error.row}</TableCell>
                       <TableCell className="text-red-600">{error.message}</TableCell>
                       <TableCell>
-                        {Object.entries(error.data)
+                        {Object.entries(error.data || {})
                           .map(([key, value]) => `${key}: ${value}`)
                           .join(', ')}
                       </TableCell>
@@ -363,7 +379,7 @@ const CustomerImport = () => {
           <CardFooter className="border-t pt-6">
             <Button
               variant="outline"
-              onClick={() => navigate(CADASTROS_ROUTES.CLIENTES.ROOT)}
+              onClick={() => navigate(CUSTOMER_ROUTES.ROOT)}
             >
               Voltar para lista
             </Button>

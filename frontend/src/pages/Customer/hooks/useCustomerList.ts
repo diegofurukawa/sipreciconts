@@ -121,34 +121,58 @@ export const useCustomerList = () => {
     }));
   }, []);
 
-  const handleExport = useCallback(async () => {
-    if (!currentCompany?.company_id) return;
+  // const handleExport = useCallback(async () => {
+  //   if (!currentCompany?.company_id) return;
+  //   try {
+  //     setLoading(true);
+  //     const blob = await customerService.export('xlsx');
+  //     const url = window.URL.createObjectURL(blob);
+  //     const a = document.createElement('a');
+  //     a.href = url;
+  //     a.download = 'clientes.xlsx';
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     window.URL.revokeObjectURL(url);
+  //     showToast({
+  //       type: 'success',
+  //       title: 'Sucesso',
+  //       message: 'Arquivo exportado com sucesso',
+  //     });
+  //   } catch (error: any) {
+  //     console.error('Erro ao exportar clientes:', error);
+  //     showToast({
+  //       type: 'error',
+  //       title: 'Erro',
+  //       message: error.message || 'Erro ao exportar clientes',
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [currentCompany?.company_id, showToast]);
+
+  const handleExport = async () => {
     try {
       setLoading(true);
-      const blob = await customerService.export('xlsx');
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'clientes.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
+      
+      await customerService.export();
+      
       showToast({
         type: 'success',
         title: 'Sucesso',
-        message: 'Arquivo exportado com sucesso',
+        message: 'Exportação concluída com sucesso'
       });
-    } catch (error: any) {
-      console.error('Erro ao exportar clientes:', error);
+    } catch (error) {
+      console.error('Erro na exportação:', error);
       showToast({
         type: 'error',
         title: 'Erro',
-        message: error.message || 'Erro ao exportar clientes',
+        message: 'Ocorreu um erro ao exportar os clientes'
       });
     } finally {
       setLoading(false);
     }
-  }, [currentCompany?.company_id, showToast]);
+  };
+
 
   const handleImport = useCallback(async (file: File) => {
     if (!currentCompany?.company_id) return;

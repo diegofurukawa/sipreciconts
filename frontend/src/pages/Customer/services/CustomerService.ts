@@ -151,31 +151,54 @@ export const customerService = {
     }
   },
 
-  async export(format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> {
-    console.log('Iniciando exportação de clientes no formato:', format);
+  // Método export no CustomerService.ts
+  async export(): Promise<void> {
     try {
-      const response = await axios.get(`${baseUrl}/export/`, {
-        headers: {
-          ...getHeaders(),
-          'Accept': format === 'xlsx'
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv',
-        },
-        responseType: 'blob',
+      // Endpoint correto para exportação
+      const url = `${baseUrl}/export/`;
+      
+      const response = await axios.get(url, {
+        headers: getHeaders(), // Apenas os headers padrão que incluem a autenticação
+        responseType: 'blob', // Importante para receber o arquivo corretamente
       });
-      console.log('Resposta da API (export) - Tamanho do blob:', response.data.size);
-      return response.data;
+      
+      // Inicia o download do arquivo
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'clientes.xlsx';
+      
+      // Tenta extrair o nome do arquivo do header Content-Disposition, se disponível
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      const downloadUrl = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      
     } catch (error: any) {
-      console.error('Erro ao exportar clientes:', error.response?.data || error.message);
+      console.error('Erro ao exportar clientes:', error);
       throw error;
     }
   },
 
-  async import(file: File, onProgress?: (percentage: number) => void): Promise<any> {
-    console.log('Iniciando importação de arquivo:', file.name);
+  // Método import corrigido no CustomerService.ts
+  async import(file: File, options = {}, onProgress?: (percentage: number) => void): Promise<any> {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      
+      // Adicionar opções como parâmetros separados
+      Object.entries(options).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
 
       const config = {
         headers: {
@@ -185,14 +208,14 @@ export const customerService = {
         onUploadProgress: (progressEvent: any) => {
           if (onProgress && progressEvent.total) {
             const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log('Progresso da importação:', percentage, '%');
             onProgress(percentage);
           }
         },
       };
 
-      const response = await axios.post(`${baseUrl}/import/`, formData, config);
-      console.log('Resposta da API (import):', response.data);
+      // Usando o endpoint correto
+      const url = `${baseUrl}/import_customers/`;
+      const response = await axios.post(url, formData, config);
       return response.data;
     } catch (error: any) {
       console.error('Erro ao importar clientes:', error.response?.data || error.message);

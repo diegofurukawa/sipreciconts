@@ -11,7 +11,7 @@ export interface User {
   password?: string;
   type: string;
   company_id: string | null;
-  is_active: boolean;
+  enabled: boolean;
   created_at?: string;
   updated_at?: string;
   last_login?: string;
@@ -27,15 +27,15 @@ export interface UserFormData {
   password: string;
   user_type: string;
   company_id: string | null;
-  is_active: boolean;
+  enabled: boolean;
 }
 
 /**
  * Tipos de usuário disponíveis no sistema
  */
 export const USER_TYPES = [
-  { value: 'admin', label: 'Administrador' },
-  { value: 'user', label: 'Usuário Padrão' },
+  { value: 'Admin', label: 'Administrador' },
+  { value: 'Usuario', label: 'Usuário Padrão' },
   { value: 'viewer', label: 'Visualizador' }
 ];
 
@@ -58,7 +58,7 @@ export interface UserListParams {
   search?: string;
   user_type?: string;
   company_id?: string;
-  is_active?: boolean;
+  enabled?: boolean;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }

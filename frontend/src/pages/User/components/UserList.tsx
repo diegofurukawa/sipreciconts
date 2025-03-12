@@ -177,8 +177,7 @@ const UserList: React.FC = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>Login</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Empresa</TableHead>
+                  <TableHead>Tipo</TableHead>                                                 
                   <TableHead>Status</TableHead>
                   <TableHead>Último Login</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
@@ -219,10 +218,9 @@ const UserList: React.FC = () => {
                         <Badge variant="outline">
                           {USER_TYPE_LABELS[user.type] || user.type}
                         </Badge>
-                      </TableCell>
-                      <TableCell>{user.company?.name || '-'}</TableCell>
+                      </TableCell>                      
                       <TableCell>
-                        {user.is_active ? (
+                        {user.enabled ? (
                           <div className="flex items-center">
                             <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
                             <span>Ativo</span>
