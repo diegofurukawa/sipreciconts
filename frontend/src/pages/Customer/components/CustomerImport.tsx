@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { useToast } from '@/hooks/useToast';
-import { customerService } from '@/services/api/modules/customer';
+import { customerService } from '@/pages/Customer/services';
 import { CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 
 // Tipo para a resposta da importação
