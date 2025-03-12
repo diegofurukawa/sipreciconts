@@ -47,7 +47,9 @@ class SupplyViewSet(BaseViewSet):
 
     @action(detail=False, methods=['GET'])
     def export(self, request):
-        """Export supplies to CSV"""
+        """
+        Endpoint para exportar insumos para CSV
+        """
         try:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             company_name = request.user.company.name.lower().replace(' ', '_')
@@ -75,7 +77,7 @@ class SupplyViewSet(BaseViewSet):
                 'Última Atualização'
             ])
 
-            supplies = self.get_queryset()
+            supplies = self.get_queryset().order_by('name')
             for supply in supplies:
                 writer.writerow([
                     supply.name,
@@ -92,7 +94,7 @@ class SupplyViewSet(BaseViewSet):
 
         except Exception as e:
             return Response(
-                {'error': f'Erro ao exportar dados: {str(e)}'},
+                {'detail': f'Erro ao exportar dados: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

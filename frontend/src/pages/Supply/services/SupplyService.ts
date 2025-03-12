@@ -142,26 +142,36 @@ export const SupplyService = {
    */
   async export(): Promise<void> {
     try {
-      const response = await axios.get(`${baseUrl}/export/`, {
-        headers: {
-          ...getHeaders(),
-          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        },
-        responseType: 'blob',
+      // Endpoint correto para exportação
+      const url = `${baseUrl}/export/`;
+      
+      const response = await axios.get(url, {
+        headers: getHeaders(), // Apenas os headers padrão que incluem a autenticação
+        responseType: 'blob', // Importante para receber o arquivo corretamente
       });
       
-      // Criar URL para o blob e iniciar download
-      const href = URL.createObjectURL(response.data);
-      const link = document.createElement('a');
-      link.href = href;
-      link.setAttribute('download', 'insumos.xlsx');
-      document.body.appendChild(link);
-      link.click();
+      // Inicia o download do arquivo
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'insumos.csv';
       
-      // Limpar o objeto URL após o download
-      document.body.removeChild(link);
-      URL.revokeObjectURL(href);
-    } catch (error) {
+      // Tenta extrair o nome do arquivo do header Content-Disposition, se disponível
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      const downloadUrl = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      
+    } catch (error: any) {
       console.error('Erro ao exportar insumos:', error);
       throw error;
     }
@@ -202,44 +212,6 @@ export const SupplyService = {
       throw error;
     }
   }
-  
-  
-
-  // Método import corrigido no SupplyService.ts
-  // async import(file: File, options = {}, onProgress?: (percentage: number) => void): Promise<any> {
-  //   try {
-  //     const formData = new FormData();
-  //     formData.append('file', file);
-      
-  //     // Adicionar opções como parâmetros separados
-  //     Object.entries(options).forEach(([key, value]) => {
-  //       formData.append(key, String(value));
-  //     });
-
-  //     const config = {
-  //       headers: {
-  //         ...getHeaders(),
-  //         'Content-Type': 'multipart/form-data',
-  //       },
-  //       onUploadProgress: (progressEvent: any) => {
-  //         if (onProgress && progressEvent.total) {
-  //           const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-  //           onProgress(percentage);
-  //         }
-  //       },
-  //     };
-
-  //     // Usando o endpoint correto
-  //     const url = `${baseUrl}/import_supplies/`;
-  //     const response = await axios.post(url, formData, config);
-  //     return response.data;
-  //   } catch (error: any) {
-  //     console.error('Erro ao importar insumos:', error.response?.data || error.message);
-  //     throw error;
-  //   }
-  // }
-
-
 };
 
 export default SupplyService;

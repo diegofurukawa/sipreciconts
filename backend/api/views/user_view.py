@@ -213,7 +213,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 'Data de Criação'
             ])
 
-            users = self.get_queryset()
+            users = self.get_queryset().order_by('login')
             for user in users:
                 writer.writerow([
                     str(user.user_name),
@@ -230,6 +230,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response(
-                {'error': f'Erro ao exportar dados: {str(e)}'},
+                {'detail': f'Erro ao exportar dados: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

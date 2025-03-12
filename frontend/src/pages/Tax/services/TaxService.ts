@@ -150,38 +150,51 @@ export const taxService = {
   /**
    * Exporta impostos
    */
-  async export(format: 'csv' | 'xlsx' = 'xlsx'): Promise<Blob> {
+  async export(): Promise<void> {
     try {
-      const response = await axios.get(`${baseUrl}/export`, {
-        headers: {
-          ...getHeaders(),
-          'Accept': format === 'xlsx'
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv',
-        },
+      // Endpoint correto para exportação
+      const url = `${baseUrl}/export/`;
+      
+      const response = await axios.get(url, {
+        headers: getHeaders(),
         responseType: 'blob',
       });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao exportar impostos:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Valida dados do imposto
-   */
-  async validate(data: Partial<Tax>): Promise<{
-    valid: boolean;
-    errors?: Record<string, string[]>;
-  }> {
-    try {
-      const response = await axios.post(`${baseUrl}/validate`, data, {
-        headers: getHeaders(),
+      
+      // Inicia o download do arquivo
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'impostos.csv';
+      
+      // Tenta extrair o nome do arquivo do header Content-Disposition
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      // Criar um Blob explicitamente para evitar problemas de tipo
+      const blob = new Blob([response.data], { 
+        type: response.headers['content-type'] || 'application/octet-stream' 
       });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao validar dados do imposto:', error);
+      
+      // Criar URL de objeto usando o blob explícito
+      const downloadUrl = URL.createObjectURL(blob);
+      
+      // Criar elemento de download e acionar
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpeza
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+      }, 100);
+      
+    } catch (error: any) {
+      console.error('Erro ao exportar impostos:', error);
       throw error;
     }
   },

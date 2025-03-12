@@ -80,7 +80,7 @@ class TaxViewSet(BaseViewSet):
                 'Última Atualização'
             ])
 
-            taxes = self.get_queryset()
+            taxes = self.get_queryset().order_by('acronym')
             for tax in taxes:
                 writer.writerow([
                     tax.description,
@@ -97,7 +97,7 @@ class TaxViewSet(BaseViewSet):
             
         except Exception as e:
             return Response(
-                {'error': f'Erro ao exportar dados: {str(e)}'},
+                {'detail': f'Erro ao exportar dados: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
