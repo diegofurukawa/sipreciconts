@@ -21,6 +21,7 @@ from .asset_movement_serializer import AssetMovementSerializer
 from .user_serializer import UserSerializer
 from .usersession_serializer import UserSessionSerializer
 from .auth_serializer import LoginSerializer
+from .supplies_price_list_serializer import SuppliesPriceListSerializer
 # from .contract import ContractSerializer, ContractDetailSerializer, ContractListSerializer
 # from .quote import QuoteSerializer, QuoteDetailSerializer, QuoteListSerializer
 
@@ -54,6 +55,7 @@ __all__ = [
 
     # Supply
     'SupplySerializer',
+    'SuppliesPriceListSerializer',
 
     # Asset
     'AssetSerializer',

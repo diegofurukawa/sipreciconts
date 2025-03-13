@@ -2,7 +2,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from "@/auth/context/AuthContext";
-import { MainLayout } from '@/layouts/MainLayout';
+import { MainLayout } from '@/layouts/MainLayout/MainLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 
 // Import direto das páginas principais usando named imports

@@ -15,6 +15,8 @@ from .asset_location_model import AssetLocation
 from .location_model import Location
 from .usersession_model import UserSession
 from .managers_model import CustomUserManager
+from .supplies_price_list_model import SuppliesPriceList
+
 
 __all__ = [
     'BaseModel',
@@ -32,6 +34,7 @@ __all__ = [
     'CalcOperator',
 
     'Supply',
+    'SuppliesPriceList',
     
     'Location',
 

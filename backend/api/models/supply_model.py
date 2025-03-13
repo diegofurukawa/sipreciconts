@@ -3,9 +3,6 @@ from django.db import models
 from .base_model import BaseModel
 
 class Supply(BaseModel):
-
-
-
     """Model for supplies/materials management"""
     
     class UnitMeasure(models.TextChoices):

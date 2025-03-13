@@ -7,6 +7,7 @@ import { taxRoutes, TAX_ROUTES } from '@/pages/Tax/routes';
 import { companyRoutes, COMPANY_ROUTES } from '@/pages/Company/routes';
 import { supplyRoutes, SUPPLY_ROUTES } from '@/pages/Supply/routes';
 import { userRoutes, USER_ROUTES } from '@/pages/User/routes';
+import { suppliesPriceListRoutes, SUPPLIES_PRICE_LIST_ROUTES } from '@/pages/SuppliesPriceList/routes';
 
 export const cadastrosRoutes: AppRouteObject[] = [
   //Rotas para Empresas
@@ -21,6 +22,9 @@ export const cadastrosRoutes: AppRouteObject[] = [
   // Rotas de Insumos
   ...supplyRoutes,
   
+  // Rotas de Lista de Preços de Insumos
+  ...suppliesPriceListRoutes,
+  
   // Rotas de Usuários
   ...userRoutes
 ];
@@ -34,6 +38,8 @@ export const CADASTROS_ROUTES = {
   IMPOSTOS: TAX_ROUTES,
 
   INSUMOS: SUPPLY_ROUTES,
+  
+  LISTA_PRECOS: SUPPLIES_PRICE_LIST_ROUTES,
   
   USUARIOS: USER_ROUTES
 } as const;

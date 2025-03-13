@@ -11,6 +11,7 @@ from .company_view import CompanyViewSet
 from .user_view import UserViewSet
 from .login_view import LoginView, LogoutView, ValidateTokenView
 from .usersession_view import UserSessionViewSet
+from .supplies_price_list_view import SuppliesPriceListViewSet
 
 __all__ = [
     'BaseViewSet',

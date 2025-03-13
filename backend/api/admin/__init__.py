@@ -11,6 +11,7 @@ from .user_admin import UserAdmin
 from .location_admin import LocationAdmin
 from .asset_location_admin import AssetLocationAdmin, AssetLocation
 from .usersession_admin import UserSessionAdmin
+from .supplies_price_list_admin import SuppliesPriceListAdmin
 
 all__ = [
     'BaseAdmin', 
@@ -24,6 +25,7 @@ all__ = [
     'TaxAdmin',
     
     'SupplyAdmin',
+    'SuppliesPriceListAdmin',
     
     'LocationAdmin', 
 

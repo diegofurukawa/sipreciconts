@@ -1,6 +1,6 @@
 // src/routes/components/LayoutWrapper.tsx
 import React, { Suspense } from 'react';
-import { MainLayout } from '../../layouts/MainLayout';
+import { MainLayout } from '../../layouts/MainLayout/MainLayout';
 import { PageLoader } from './PageLoader';
 
 interface LayoutWrapperProps {

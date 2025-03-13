@@ -69,6 +69,11 @@ const MENU_ITEMS: MenuGroup[] = [
         icon: Package 
       },
       { 
+        label: 'Preço', 
+        path: ROUTES.PRIVATE.CADASTROS.LISTA_PRECOS.ROOT, 
+        icon: Package 
+      },
+      { 
         label: 'Usuários', 
         path: ROUTES.PRIVATE.CADASTROS.USUARIOS.ROOT, 
         icon: User2Icon 

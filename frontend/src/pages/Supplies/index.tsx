@@ -1,5 +1,5 @@
 // src/pages/Supplies/index.tsx
-import { MainLayout } from '../../layouts/MainLayout';
+import { MainLayout } from '../../layouts/MainLayout/MainLayout';
 import { SupplyList } from '../../components/Supply';
 
 const SuppliesPage = () => {

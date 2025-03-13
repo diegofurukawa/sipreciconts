@@ -1,4 +1,4 @@
-# api/urls.py
+# api/urls.py (Update with our new ViewSet)
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -9,6 +9,7 @@ from .views import (
     CustomerViewSet, 
     TaxViewSet,
     SupplyViewSet,
+    SuppliesPriceListViewSet,  # Novo ViewSet
     UserViewSet,
     AssetViewSet,
     AssetGroupViewSet,
@@ -33,6 +34,7 @@ router.register(r'companies', CompanyViewSet, basename='company')
 router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'taxes', TaxViewSet, basename='tax')
 router.register(r'supplies', SupplyViewSet, basename='supply')
+router.register(r'supplies-prices', SuppliesPriceListViewSet, basename='supplies-price-list')  # Nova rota
 router.register(r'users', UserViewSet, basename='user')
 
 # Assets
@@ -66,6 +68,17 @@ specific_urls = [
     path('customers/export/', 
          CustomerViewSet.as_view({'get': 'export'}), 
          name='customer-export'),
+         
+    # Novas rotas específicas para SuppliesPriceList
+    path('supplies-prices/import/', 
+         SuppliesPriceListViewSet.as_view({'post': 'import_prices'}), 
+         name='supplies-prices-import'),
+    path('supplies-prices/export/', 
+         SuppliesPriceListViewSet.as_view({'get': 'export'}), 
+         name='supplies-prices-export'),
+    path('supplies-prices/by-supply/', 
+         SuppliesPriceListViewSet.as_view({'get': 'by_supply'}), 
+         name='supplies-prices-by-supply'),
 ]
 
 # Combining all URLs

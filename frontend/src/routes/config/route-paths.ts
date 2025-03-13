@@ -3,6 +3,7 @@ import { COMPANY_ROUTES } from '@/pages/Company/routes';
 import { CUSTOMER_ROUTES } from '@/pages/Customer/routes';
 import { TAX_ROUTES } from '@/pages/Tax/routes';
 import { SUPPLY_ROUTES } from '@/pages/Supply/routes';
+import { SUPPLIES_PRICE_LIST_ROUTES } from '@/pages/SuppliesPriceList/routes';
 import { USER_ROUTES } from '@/pages/User/routes';
 
 export const ROUTES = {
@@ -30,6 +31,7 @@ export const ROUTES = {
       CLIENTES: CUSTOMER_ROUTES,
       IMPOSTOS: TAX_ROUTES,
       INSUMOS: SUPPLY_ROUTES,
+      LISTA_PRECOS: SUPPLIES_PRICE_LIST_ROUTES,
       USUARIOS: USER_ROUTES
     },
 
