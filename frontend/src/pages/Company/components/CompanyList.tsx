@@ -12,10 +12,7 @@ import {
 } from 'lucide-react';
 import { 
   Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription 
+  CardContent
 } from '@/components/ui/card';
 import { 
   Table, 
@@ -37,14 +34,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CardHeaderWithActions } from '@/components/CardHeader';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useCompanyList } from '@/pages/Company/hooks/useCompanyList';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
+import { useToast } from '@/hooks/useToast';
 
 const CompanyList: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     companies,
     loading,
@@ -96,13 +96,6 @@ const CompanyList: React.FC = () => {
     navigate(CADASTROS_ROUTES.EMPRESA.NEW);
   };
 
-  // // Navigate to edit company form
-  // const handleEditClick = (id: string) => {
-  //   console.log('Navegando para edição da empresa com ID:', id);
-  //   // navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
-  //   navigate(CADASTROS_ROUTES.EMPRESA.EDIT(id));
-  // };
-
   // Função para navegação para a edição de empresa
   const handleEditClick = (id: string) => {
     console.log('Navegando para edição da empresa com ID:', id);
@@ -152,6 +145,53 @@ const CompanyList: React.FC = () => {
     }
   };
 
+  // Renderizamos os botões de ação como componente separado
+  const headerActions = (
+    <>
+      <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+        <Plus className="mr-2 h-4 w-4" />
+        Nova Empresa
+      </Button>
+      <Button 
+        variant="outline" 
+        onClick={() => {
+          console.log('Abrindo input para importação');
+          importInputRef?.click();
+        }}
+      >
+        <Upload className="mr-2 h-4 w-4" />
+        Importar
+      </Button>
+      <input
+        type="file"
+        ref={ref => setImportInputRef(ref)}
+        className="hidden"
+        accept=".csv,.xlsx"
+        onChange={handleFileSelect}
+      />
+      <Button 
+        variant="outline"
+        onClick={() => {
+          console.log('Iniciando exportação de empresas');
+          handleExport();
+        }}
+      >
+        <Download className="mr-2 h-4 w-4" />
+        Exportar
+      </Button>
+      <Button 
+        variant="outline"
+        onClick={() => {
+          console.log('Atualizando lista de empresas');
+          reloadCompanies();
+        }}
+      >
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Atualizar
+      </Button>
+    </>
+  );
+
   // Show loading state if loading and no company data
   if (loading && (!companies || companies.length === 0)) {
     console.log('Exibindo estado de carregamento');
@@ -173,57 +213,12 @@ const CompanyList: React.FC = () => {
     <div className="space-y-6">
       {/* Header Card */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Empresas</CardTitle>
-              <CardDescription>Gerencie as empresas do sistema</CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Nova Empresa
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  console.log('Abrindo input para importação');
-                  importInputRef?.click();
-                }}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Importar
-              </Button>
-              <input
-                type="file"
-                ref={ref => setImportInputRef(ref)}
-                className="hidden"
-                accept=".csv,.xlsx"
-                onChange={handleFileSelect}
-              />
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  console.log('Iniciando exportação de empresas');
-                  handleExport();
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  console.log('Atualizando lista de empresas');
-                  reloadCompanies();
-                }}
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Atualizar
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+        {/* Usando o componente CardHeaderWithActions */}
+        <CardHeaderWithActions
+          title="Empresas"
+          description="Gerencie as empresas do sistema"
+          actions={headerActions}
+        />
         <CardContent>
           <form onSubmit={handleSearchSubmit} className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -366,7 +361,3 @@ const CompanyList: React.FC = () => {
 };
 
 export default CompanyList;
-
-function showToast(arg0: { type: string; title: string; message: string; }) {
-  throw new Error('Function not implemented.');
-}

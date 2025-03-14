@@ -13,10 +13,7 @@ import {
 } from 'lucide-react';
 import { 
   Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription 
+  CardContent
 } from '@/components/ui/card';
 import { 
   Table, 
@@ -38,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CardHeaderWithActions } from '@/components/CardHeader';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -127,6 +125,53 @@ const SupplyList: React.FC = () => {
     }
   };
 
+  // Renderizamos os botões de ação como componente separado
+  const headerActions = (
+    <>
+      <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+        <Plus className="mr-2 h-4 w-4" />
+        Novo Insumo
+      </Button>
+      <Button 
+        variant="outline" 
+        onClick={() => {
+          console.log('Abrindo input para importação');
+          importInputRef?.click();
+        }}
+      >
+        <Upload className="mr-2 h-4 w-4" />
+        Importar
+      </Button>
+      <input
+        type="file"
+        ref={ref => setImportInputRef(ref)}
+        className="hidden"
+        accept=".csv,.xlsx"
+        onChange={handleFileSelect}
+      />
+      <Button 
+        variant="outline"
+        onClick={() => {
+          console.log('Iniciando exportação de insumos');
+          handleExport();
+        }}
+      >
+        <Download className="mr-2 h-4 w-4" />
+        Exportar
+      </Button>
+      <Button 
+        variant="outline"
+        onClick={() => {
+          console.log('Atualizando lista de insumos');
+          reloadSupplies();
+        }}
+      >
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Atualizar
+      </Button>
+    </>
+  );
+
   // Show loading state if loading and no supply data
   if (loading && (!supplies || supplies.length === 0)) {
     console.log('Exibindo estado de carregamento');
@@ -148,57 +193,12 @@ const SupplyList: React.FC = () => {
     <div className="space-y-6">
       {/* Header Card */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Insumos</CardTitle>
-              <CardDescription>Gerencie os insumos do sistema</CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Insumo
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  console.log('Abrindo input para importação');
-                  importInputRef?.click();
-                }}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                Importar
-              </Button>
-              <input
-                type="file"
-                ref={ref => setImportInputRef(ref)}
-                className="hidden"
-                accept=".csv,.xlsx"
-                onChange={handleFileSelect}
-              />
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  console.log('Iniciando exportação de insumos');
-                  handleExport();
-                }}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  console.log('Atualizando lista de insumos');
-                  reloadSupplies();
-                }}
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Atualizar
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+        {/* Usando o componente CardHeaderWithActions */}
+        <CardHeaderWithActions
+          title="Insumos"
+          description="Gerencie os insumos do sistema"
+          actions={headerActions}
+        />
         <CardContent>
           <form onSubmit={handleSearchSubmit} className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -210,13 +210,13 @@ const SupplyList: React.FC = () => {
               className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             {searchTerm && (
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchClear}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </form>
         </CardContent>
@@ -264,7 +264,7 @@ const SupplyList: React.FC = () => {
                   </TableRow>
                 ) : (
                   supplies.map((supply) => (
-                    <TableRow key={supply.supply_id} className="hover:bg-gray-50">
+                    <TableRow key={supply.id} className="hover:bg-gray-50">
                       <TableCell className="font-medium">{supply.name}</TableCell>
                       <TableCell>{supply.nick_name || '-'}</TableCell>
                       <TableCell>{supply.ean_code || '-'}</TableCell>
@@ -274,7 +274,7 @@ const SupplyList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleEditClick(supply.supply_id!)}
+                          onClick={() => handleEditClick(supply.id!)}
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                         >
                           <Pencil className="h-4 w-4" />
@@ -283,7 +283,7 @@ const SupplyList: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDeleteClick(supply.supply_id!)}
+                          onClick={() => handleDeleteClick(supply.id!)}
                           className="text-red-600 hover:text-red-800 hover:bg-red-50 ml-1"
                         >
                           <Trash2 className="h-4 w-4" />

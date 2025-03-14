@@ -7,14 +7,13 @@ import {
   Trash2, 
   Search, 
   X,
-  RefreshCw
+  RefreshCw,
+  Download,
+  Upload
 } from 'lucide-react';
 import { 
   Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription 
+  CardContent
 } from '@/components/ui/card';
 import { 
   Table, 
@@ -36,6 +35,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CardHeaderWithActions } from '@/components/CardHeader';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -53,11 +53,14 @@ const SuppliesPriceListList: React.FC = () => {
     handleSearch,
     handlePageChange,
     handleDelete,
-    reloadItems
+    reloadItems,
+    handleExport,
+    handleImport
   } = useSuppliesPriceListList();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
+  const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +102,60 @@ const SuppliesPriceListList: React.FC = () => {
     setDeleteDialog({ show: false });
   };
 
+  // Handle file input change for import
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        await handleImport(file);
+        // Clear input after upload
+        if (e.target) {
+          e.target.value = '';
+        }
+      } catch (error) {
+        console.error('Erro ao importar arquivo:', error);
+      }
+    }
+  };
+
+  // Renderizamos os botões de ação como componente separado
+  const headerActions = (
+    <>
+      <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+        <Plus className="mr-2 h-4 w-4" />
+        Novo Preço
+      </Button>
+      <Button 
+        variant="outline" 
+        onClick={() => importInputRef?.click()}
+      >
+        <Upload className="mr-2 h-4 w-4" />
+        Importar
+      </Button>
+      <input
+        type="file"
+        ref={ref => setImportInputRef(ref)}
+        className="hidden"
+        accept=".csv,.xlsx"
+        onChange={handleFileSelect}
+      />
+      <Button 
+        variant="outline"
+        onClick={handleExport}
+      >
+        <Download className="mr-2 h-4 w-4" />
+        Exportar
+      </Button>
+      <Button 
+        variant="outline"
+        onClick={reloadItems}
+      >
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Atualizar
+      </Button>
+    </>
+  );
+
   // Loading state
   if (loading && (!items || items.length === 0)) {
     return <LoadingState />;
@@ -118,27 +175,12 @@ const SuppliesPriceListList: React.FC = () => {
     <div className="space-y-6">
       {/* Header Card */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Lista de Preços de Insumos</CardTitle>
-              <CardDescription>Gerencie os preços de insumos do sistema</CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Preço
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={reloadItems}
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Atualizar
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+        {/* Usando o componente CardHeaderWithActions */}
+        <CardHeaderWithActions
+          title="Lista de Preços de Insumos"
+          description="Gerencie os preços de insumos do sistema"
+          actions={headerActions}
+        />
         <CardContent>
           <form onSubmit={handleSearchSubmit} className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -150,13 +192,13 @@ const SuppliesPriceListList: React.FC = () => {
               className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             {searchTerm && (
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchClear}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </form>
         </CardContent>
