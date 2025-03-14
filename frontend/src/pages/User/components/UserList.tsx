@@ -1,5 +1,5 @@
 // src/pages/User/components/UserList.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, 
@@ -9,14 +9,13 @@ import {
   X,
   RefreshCw,
   CheckCircle,
-  XCircle
+  XCircle,
+  Download,
+  Upload
 } from 'lucide-react';
 import { 
   Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription 
+  CardContent
 } from '@/components/ui/card';
 import { 
   Table, 
@@ -27,6 +26,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { FileInput } from '@/components/ui/file-input';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { 
   AlertDialog,
@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { CardHeaderWithActions } from '@/components/CardHeader';
 import { LoadingState } from '@/components/feedback/LoadingState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -45,9 +46,11 @@ import { Badge } from '@/components/ui/badge';
 import { useUserList } from '@/pages/User/hooks';
 import { USER_ROUTES } from '@/pages/User/routes';
 import { USER_TYPE_LABELS, formatDate } from '@/pages/User/types';
+import { useToast } from '@/hooks/useToast';
 
 const UserList: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     users,
     loading,
@@ -56,11 +59,28 @@ const UserList: React.FC = () => {
     handleSearch,
     handlePageChange,
     handleDelete,
-    reloadUsers
+    reloadUsers,
+    handleExport = async () => {
+      showToast({
+        type: 'success',
+        title: 'Exportação',
+        message: 'Funcionalidade de exportação será implementada.'
+      });
+    },
+    handleImport = async (file?: File) => {
+      if (file) {
+        showToast({
+          type: 'success',
+          title: 'Importação',
+          message: `Arquivo ${file.name} será processado.`
+        });
+      }
+    }
   } = useUserList();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<{ show: boolean; id?: number }>({ show: false });
+  const [importInputRef, setImportInputRef] = useState<HTMLInputElement | null>(null);
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,6 +122,54 @@ const UserList: React.FC = () => {
     setDeleteDialog({ show: false });
   };
 
+  // Handle file select for import
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        await handleImport(file);
+        if (e.target) e.target.value = '';
+      } catch (error) {
+        console.error('Erro ao importar arquivo:', error);
+      }
+    }
+  };
+
+  // Header actions component
+  const headerActions = (
+    <>
+      <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
+        <Plus className="mr-2 h-4 w-4" /> Novo Usuário
+      </Button>
+      <Button 
+        variant="outline" 
+        onClick={() => { importInputRef?.click(); }}
+      >
+        <Upload className="mr-2 h-4 w-4" /> Importar
+      </Button>
+      <FileInput
+        ref={ref => setImportInputRef(ref)}
+        className="hidden"
+        accept=".csv,.xlsx"
+        onChange={handleFileSelect}
+        label="Importar arquivo"
+        hideLabel={true}
+      />
+      <Button 
+        variant="outline"
+        onClick={() => { handleExport(); }}
+      >
+        <Download className="mr-2 h-4 w-4" /> Exportar
+      </Button>
+      <Button 
+        variant="outline"
+        onClick={() => { reloadUsers(); }}
+      >
+        <RefreshCw className="mr-2 h-4 w-4" /> Atualizar
+      </Button>
+    </>
+  );
+
   // Show loading state if loading and no user data
   if (loading && (!users || users.length === 0)) {
     return <LoadingState />;
@@ -121,29 +189,11 @@ const UserList: React.FC = () => {
     <div className="space-y-6">
       {/* Header Card */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Usuários</CardTitle>
-              <CardDescription>Gerencie os usuários do sistema</CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleNewClick} className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Usuário
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  reloadUsers();
-                }}
-              >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Atualizar
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+        <CardHeaderWithActions
+          title="Usuários"
+          description="Gerencie os usuários do sistema"
+          actions={headerActions}
+        />
         <CardContent>
           <form onSubmit={handleSearchSubmit} className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -155,13 +205,13 @@ const UserList: React.FC = () => {
               className="w-full py-2 pl-10 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
             {searchTerm && (
-              <button
+              <Button
                 type="button"
                 onClick={handleSearchClear}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </form>
         </CardContent>
@@ -211,8 +261,8 @@ const UserList: React.FC = () => {
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{user.login}</TableCell>
-                      <TableCell>{user.user_name}</TableCell>
+                      <TableCell className="font-medium">{user.user_name}</TableCell>
+                      <TableCell>{user.login}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant="outline">

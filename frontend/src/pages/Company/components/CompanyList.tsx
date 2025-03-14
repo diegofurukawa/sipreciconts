@@ -23,6 +23,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { FileInput } from '@/components/ui/file-input';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { 
   AlertDialog,
@@ -162,12 +163,21 @@ const CompanyList: React.FC = () => {
         <Upload className="mr-2 h-4 w-4" />
         Importar
       </Button>
-      <input
+      {/* <FileInput
         type="file"
         ref={ref => setImportInputRef(ref)}
         className="hidden"
         accept=".csv,.xlsx"
         onChange={handleFileSelect}
+      /> */}
+
+      <FileInput
+        ref={ref => setImportInputRef(ref)}
+        className="hidden"
+        accept=".csv,.xlsx"
+        onChange={handleFileSelect}
+        label="Importar arquivo"
+        hideLabel={true}
       />
       <Button 
         variant="outline"
@@ -298,7 +308,7 @@ const CompanyList: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleEditClick(company.company_id || company.id)}
+                            onClick={() => handleEditClick(company.company_id)}
                             className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                           >
                             <Pencil className="h-4 w-4" />

@@ -23,6 +23,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { 
   AlertDialog,
@@ -128,7 +129,7 @@ const CustomerList: React.FC = () => {
       >
         <Upload className="mr-2 h-4 w-4" /> Importar
       </Button>
-      <input
+      <Input
         type="file"
         ref={ref => setImportInputRef(ref)}
         className="hidden"
@@ -235,7 +236,7 @@ const CustomerList: React.FC = () => {
                   customers.map((customer) => {
                     console.log('Renderizando cliente:', customer);
                     return (
-                      <TableRow key={customer.customer_id || customer.id} className="hover:bg-gray-50">
+                      <TableRow key={customer.customer_id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{customer.customer_id}</TableCell>
                         <TableCell>{customer.name}</TableCell>
                         <TableCell>{customer.document || '-'}</TableCell>

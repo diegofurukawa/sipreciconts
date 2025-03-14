@@ -24,6 +24,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { FileInput } from '@/components/ui/file-input';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { 
   AlertDialog,
@@ -189,12 +190,13 @@ const TaxList: React.FC = () => {
         <Upload className="mr-2 h-4 w-4" />
         Importar
       </Button>
-      <input
-        type="file"
+      <FileInput
         ref={ref => setImportInputRef(ref)}
         className="hidden"
         accept=".csv,.xlsx"
         onChange={handleFileSelect}
+        label="Importar arquivo"
+        hideLabel={true}
       />
       <Button 
         variant="outline"
