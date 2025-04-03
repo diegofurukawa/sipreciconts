@@ -10,6 +10,7 @@ import { headerManager } from '../headers';
 // Chaves para armazenamento no localStorage
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const TOKEN_REFRESH_IN_PROGRESS = 'token_refresh_in_progress';
 
 /**
  * Interface para payload do token JWT
@@ -29,6 +30,9 @@ interface TokenRefreshResponse {
   access: string;
   refresh?: string;
 }
+
+// Controle para não fazer múltiplas requisições de refresh simultâneas
+let refreshPromise: Promise<boolean> | null = null;
 
 /**
  * Armazena o token de acesso
@@ -69,6 +73,7 @@ function getRefreshToken(): string | null {
 function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
   headerManager.clearAuthHeaders();
 }
 
@@ -78,7 +83,7 @@ function clearTokens(): void {
  * @param bufferSeconds Tempo em segundos antes da expiração para considerar inválido
  * @returns true se o token for válido, false caso contrário
  */
-function isTokenValid(token?: string | null, bufferSeconds: number = 30): boolean {
+function isTokenValid(token?: string | null, bufferSeconds: number = 60): boolean {
   if (!token) {
     token = getAccessToken();
     if (!token) return false;
@@ -141,55 +146,138 @@ function getTokenPayload(token?: string): TokenPayload | null {
  * @returns true se o token foi atualizado com sucesso, false caso contrário
  */
 async function refreshCurrentToken(api?: AxiosInstance): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
-  try {
-    // Se uma instância do Axios foi fornecida, usa-a
-    // Caso contrário, cria uma requisição fetch diretamente
-    if (api) {
-      const response = await api.post<TokenRefreshResponse>('/auth/refresh/', {
-        refresh: refreshToken
-      });
-
-      if (response.data.access) {
-        setAccessToken(response.data.access);
-        
-        if (response.data.refresh) {
-          setRefreshToken(response.data.refresh);
-        }
-        
-        return true;
-      }
-    } else {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/refresh/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ refresh: refreshToken })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.access) {
-          setAccessToken(data.access);
+  // Verificar se já há um refresh em andamento
+  if (localStorage.getItem(TOKEN_REFRESH_IN_PROGRESS) === 'true') {
+    console.log('Refresh de token já está em andamento, aguardando...');
+    
+    // Aguarda até que o refresh em andamento termine
+    return new Promise((resolve) => {
+      const checkRefreshStatus = setInterval(() => {
+        if (localStorage.getItem(TOKEN_REFRESH_IN_PROGRESS) !== 'true') {
+          clearInterval(checkRefreshStatus);
           
-          if (data.refresh) {
-            setRefreshToken(data.refresh);
+          // Verifica se o token atualizado é válido
+          const token = getAccessToken();
+          resolve(!!token && isTokenValid(token));
+        }
+      }, 100); // Verificar a cada 100ms
+      
+      // Timeout para não ficar em loop infinito
+      setTimeout(() => {
+        clearInterval(checkRefreshStatus);
+        resolve(false);
+      }, 5000); // Timeout após 5 segundos
+    });
+  }
+  
+  // Se já existe uma Promise de refresh, retorna ela
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+  
+  // Marca que um refresh está em andamento
+  localStorage.setItem(TOKEN_REFRESH_IN_PROGRESS, 'true');
+  
+  // Cria nova Promise de refresh
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
+      return false;
+    }
+
+    try {
+      console.log('Iniciando refresh de token...');
+      
+      // Se uma instância do Axios foi fornecida, usa-a
+      // Caso contrário, cria uma requisição fetch diretamente
+      if (api) {
+        const response = await api.post<TokenRefreshResponse>('/auth/refresh/', {
+          refresh: refreshToken
+        });
+
+        if (response.data.access) {
+          setAccessToken(response.data.access);
+          
+          if (response.data.refresh) {
+            setRefreshToken(response.data.refresh);
           }
           
+          console.log('Token atualizado com sucesso');
+          localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
           return true;
         }
+      } else {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+        const response = await fetch(`${apiUrl}/auth/refresh/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ refresh: refreshToken })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.access) {
+            setAccessToken(data.access);
+            
+            if (data.refresh) {
+              setRefreshToken(data.refresh);
+            }
+            
+            console.log('Token atualizado com sucesso');
+            localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
+            return true;
+          }
+        } else {
+          // Se o status for 401 ou 403, significa que o refresh token expirou
+          if (response.status === 401 || response.status === 403) {
+            console.error('Refresh token expirado ou inválido');
+            clearTokens();
+            
+            // Dispara o evento de sessão expirada
+            window.dispatchEvent(new CustomEvent('auth:sessionExpired'));
+          }
+        }
       }
+      
+      localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
+      return false;
+    } catch (error) {
+      console.error('Erro ao renovar token:', error);
+      clearTokens();
+      
+      // Dispara o evento de sessão expirada
+      window.dispatchEvent(new CustomEvent('auth:sessionExpired'));
+      
+      localStorage.removeItem(TOKEN_REFRESH_IN_PROGRESS);
+      return false;
+    } finally {
+      // Limpa a Promise de refresh
+      refreshPromise = null;
     }
-    
-    return false;
-  } catch (error) {
-    console.error('Erro ao renovar token:', error);
-    return false;
-  }
+  })();
+  
+  return refreshPromise;
+}
+
+/**
+ * Verifica se o token precisa ser atualizado e atualiza automaticamente se necessário
+ * @returns Promise que resolve para true se o token está válido ou foi atualizado com sucesso
+ */
+async function ensureValidToken(): Promise<boolean> {
+  const token = getAccessToken();
+  
+  // Se não há token, retorna false
+  if (!token) return false;
+  
+  // Se o token ainda é válido, retorna true
+  if (isTokenValid(token)) return true;
+  
+  // Se o token precisa ser atualizado, tenta atualizá-lo
+  return await refreshCurrentToken();
 }
 
 export const tokenManager = {
@@ -201,7 +289,8 @@ export const tokenManager = {
   isTokenValid,
   getTokenExpiration,
   getTokenPayload,
-  refreshCurrentToken
+  refreshCurrentToken,
+  ensureValidToken
 };
 
 export default tokenManager;

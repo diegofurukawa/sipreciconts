@@ -24,7 +24,7 @@ class CustomerViewSet(BaseViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'customer_id'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'document', 'email', 'celphone', 'address', 'complement']
+    search_fields = ['name', 'document', 'email', 'celphone', 'address', 'complement', 'customer_type']
     ordering_fields = ['name', 'created', 'updated']
     ordering = ['name']
     

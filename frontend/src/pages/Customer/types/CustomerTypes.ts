@@ -90,3 +90,21 @@ export interface CustomerExportOptions {
     end: string;
   };
 }
+
+export interface CustomerResponse<T = any> {
+  data: T;
+  status: number;
+  message?: string;
+}
+
+export const getOptionLabel = (value: string, optionsRecord: Record<string, string>): string => {
+  if (!value) return '';
+  return optionsRecord[value] || value;
+};
+
+
+export const CUSTOMER_TYPE_LABELS: Record<string, string> = {
+  'business': 'Empresarial',
+  'individual': 'Individual',
+  
+};

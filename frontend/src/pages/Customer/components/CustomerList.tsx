@@ -41,6 +41,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { useCustomerList } from '../hooks/useCustomerList';
 import { CADASTROS_ROUTES } from '@/routes/modules/cadastros.routes';
+import { getOptionLabel, CUSTOMER_TYPE_LABELS } from '@/pages/Customer/types';
 
 const CustomerList: React.FC = () => {
   const navigate = useNavigate();
@@ -199,8 +200,9 @@ const CustomerList: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead>ID</TableHead>                  
                   <TableHead>Nome</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Documento</TableHead>
                   <TableHead>Celular</TableHead>
                   <TableHead>Email</TableHead>
@@ -238,7 +240,8 @@ const CustomerList: React.FC = () => {
                     return (
                       <TableRow key={customer.customer_id} className="hover:bg-gray-50">
                         <TableCell className="font-medium">{customer.customer_id}</TableCell>
-                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>{customer.name}</TableCell>                        
+                         <TableCell>{getOptionLabel(customer.customer_type, CUSTOMER_TYPE_LABELS)}</TableCell>
                         <TableCell>{customer.document || '-'}</TableCell>
                         <TableCell>{customer.celphone}</TableCell>
                         <TableCell>{customer.email || '-'}</TableCell>

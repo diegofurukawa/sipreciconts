@@ -1,5 +1,5 @@
 // src/pages/SuppliesPriceList/hooks/useSuppliesPriceListForm.ts
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,14 +31,21 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
   const parsedId = id ? parseInt(id) : null;
   const isEditMode = !!parsedId && !isNaN(parsedId);
   
+  // Estado principal
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initialLoad, setInitialLoad] = useState(!isEditMode);
   const [supplies, setSupplies] = useState<SupplyOption[]>([]);
   const [taxes, setTaxes] = useState<TaxOption[]>([]);
   const [suppliesLoading, setSuppliesLoading] = useState(true);
   const [taxesLoading, setTaxesLoading] = useState(true);
+  
+  // Refs para controlar carregamento
+  const initializationDone = useRef(false);
+  const dataInitialized = useRef(false);
+  const suppliesRequested = useRef(false);
+  const taxesRequested = useRef(false);
+  const itemRequested = useRef(false);
   
   const form = useForm<SuppliesPriceListFormSchema>({
     resolver: zodResolver(suppliesPriceListFormSchema),
@@ -50,84 +57,80 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
     }
   });
   
-  // Load supply options
-  const loadSupplies = async () => {
-    try {
-      setSuppliesLoading(true);
-      const supplies = await suppliesPriceListService.getSupplies();
-      setSupplies(supplies);
-    } catch (error) {
-      console.error('Error loading supplies:', error);
-      showToast({
-        type: 'error',
-        title: 'Erro',
-        message: 'Erro ao carregar lista de insumos'
-      });
-    } finally {
-      setSuppliesLoading(false);
-    }
-  };
-  
-  // Load tax options
-  const loadTaxes = async () => {
-    try {
-      setTaxesLoading(true);
-      const taxes = await suppliesPriceListService.getTaxes();
-      setTaxes(taxes);
-    } catch (error) {
-      console.error('Error loading taxes:', error);
-      showToast({
-        type: 'error',
-        title: 'Erro',
-        message: 'Erro ao carregar lista de impostos'
-      });
-    } finally {
-      setTaxesLoading(false);
-    }
-  };
-  
-  // Load item data for editing
-  const loadItemData = useCallback(async () => {
-    if (!isEditMode || !parsedId) return;
-  
-    setLoading(true);
-    try {
-      console.log('Loading supplies price list item with ID:', parsedId);
-      const item = await suppliesPriceListService.getById(parsedId);
-      console.log('Item data received:', item);
-      
-      form.reset({
-        supply: item.supply,
-        tax: item.tax,
-        value: typeof item.value === 'string' ? parseFloat(item.value) : item.value,
-        sequence: item.sequence || 0
-      });
-      
-    } catch (error: any) {
-      console.error('Error loading supplies price list item:', error);
-      setError(error.message || 'Não foi possível carregar os dados do item');
-      showToast({
-        type: 'error',
-        title: 'Erro',
-        message: 'Erro ao carregar dados do item'
-      });
-    } finally {
-      setLoading(false);
-      setInitialLoad(true);
-    }
-  }, [isEditMode, parsedId, form, showToast]);
-
-  // Initial load
+  // Inicialização única
   useEffect(() => {
-    // Load reference data
-    loadSupplies();
-    loadTaxes();
+    if (initializationDone.current) return;
+    initializationDone.current = true;
     
-    // Load item data if in edit mode
-    if (!initialLoad && isEditMode) {
-      loadItemData();
-    }
-  }, [initialLoad, isEditMode, loadItemData]);
+    const initialize = async () => {
+      if (suppliesRequested.current || taxesRequested.current) return;
+      
+      console.log('Inicializando formulário de preços');
+      
+      // Marcar como solicitado para evitar duplicação
+      suppliesRequested.current = true;
+      taxesRequested.current = true;
+      
+      try {
+        // Carregar supplies e taxes em paralelo
+        const [suppliesData, taxesData] = await Promise.all([
+          suppliesPriceListService.getSupplies(),
+          suppliesPriceListService.getTaxes()
+        ]);
+        
+        setSupplies(suppliesData);
+        setTaxes(taxesData);
+        dataInitialized.current = true;
+      } catch (error) {
+        console.error('Erro ao carregar dados iniciais:', error);
+        setError('Não foi possível carregar os dados necessários para o formulário');
+      } finally {
+        setSuppliesLoading(false);
+        setTaxesLoading(false);
+      }
+    };
+    
+    initialize();
+  }, []);
+  
+  // Carregar item para edição (apenas uma vez após inicialização de supplies/taxes)
+  useEffect(() => {
+    // Se não for modo de edição ou se já solicitou o item, sair
+    if (!isEditMode || !parsedId || itemRequested.current) return;
+    
+    // Se os dados ainda não foram inicializados, aguardar
+    if (!dataInitialized.current) return;
+    
+    // Marcar como solicitado para evitar duplicação
+    itemRequested.current = true;
+    
+    const loadItem = async () => {
+      setLoading(true);
+      try {
+        console.log('Carregando item para edição:', parsedId);
+        const item = await suppliesPriceListService.getById(parsedId);
+        
+        form.reset({
+          supply: item.supply,
+          tax: item.tax,
+          value: typeof item.value === 'string' ? parseFloat(item.value) : item.value,
+          sequence: item.sequence || 0
+        });
+      } catch (error: any) {
+        console.error('Erro ao carregar item:', error);
+        setError(error.message || 'Não foi possível carregar os dados do item');
+        showToast({
+          type: 'error',
+          title: 'Erro',
+          message: 'Erro ao carregar dados do item'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadItem();
+  }, [isEditMode, parsedId, form, showToast, dataInitialized.current]);
 
   // Form submission
   const onSubmit = async (data: SuppliesPriceListFormSchema) => {
@@ -135,7 +138,7 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
       setSubmitting(true);
       
       if (isEditMode && parsedId) {
-        console.log('Updating supplies price list item with ID:', parsedId, 'Data:', data);
+        console.log('Atualizando item:', parsedId, 'Dados:', data);
         await suppliesPriceListService.update(parsedId, data);
         showToast({
           type: 'success',
@@ -143,7 +146,7 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
           message: 'Item atualizado com sucesso'
         });
       } else {
-        console.log('Creating new supplies price list item with data:', data);
+        console.log('Criando novo item com dados:', data);
         await suppliesPriceListService.create(data);
         showToast({
           type: 'success',
@@ -154,7 +157,7 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
       
       navigate(SUPPLIES_PRICE_LIST_ROUTES.ROOT);
     } catch (error: any) {
-      console.error('Error saving supplies price list item:', error);
+      console.error('Erro ao salvar item:', error);
       showToast({
         type: 'error',
         title: 'Erro',
@@ -170,9 +173,12 @@ export function useSuppliesPriceListForm(): UseSuppliesPriceListFormReturn {
     navigate(SUPPLIES_PRICE_LIST_ROUTES.ROOT);
   };
   
+  // Estado de loading efetivo
+  const effectiveLoading = loading || (suppliesLoading || taxesLoading);
+  
   return {
     form,
-    loading,
+    loading: effectiveLoading,
     submitting,
     error,
     isEditMode,
